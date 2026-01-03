@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Retro Arcade Palette */
+  --background: 0 0% 0%; /* Black */
+  --foreground: 0 100% 50%; /* Pure Red */
+  
+  --primary: 0 100% 50%; /* Red */
+  --primary-foreground: 0 0% 0%; /* Black */
+  
+  --secondary: 0 0% 20%; /* Dark Gray */
+  --secondary-foreground: 0 100% 50%; /* Red */
+  
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 60%;
+  
+  --accent: 0 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  
+  --destructive: 0 100% 40%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 100% 50%; /* Red Borders */
+  --input: 0 0% 20%;
+  --ring: 0 100% 50%;
+  
+  --radius: 0px; /* Sharp corners for 8-bit look */
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground;
+    font-family: 'VT323', monospace;
+    font-size: 1.25rem;
+    background-image: 
+      linear-gradient(rgba(20, 0, 0, 0.9), rgba(20, 0, 0, 0.9)),
+      repeating-linear-gradient(0deg, transparent, transparent 2px, #220000 3px, #220000 3px);
+    background-size: 100% 100%, 100% 4px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Press Start 2P', cursive;
+    @apply uppercase tracking-widest leading-relaxed;
+  }
+}
+
+@layer utilities {
+  .text-shadow-retro {
+    text-shadow: 2px 2px 0px rgba(100, 0, 0, 1);
+  }
+  
+  .box-shadow-retro {
+    box-shadow: 4px 4px 0px var(--primary);
+  }
+
+  .box-shadow-retro-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px var(--primary);
+  }
+
+  .box-shadow-retro-active:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px var(--primary);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #111; 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary); 
+  border: 2px solid #000;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cc0000; 
+}

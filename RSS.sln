@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSS-Data", "RSS\RSS-Data.csproj", "{61639FFF-F3BC-4F90-9713-88BA48112F2C}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "RetroSportsSquaresWeb", "RetroSportsSquaresWeb\RetroSportsSquaresWeb.esproj", "{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{61639FFF-F3BC-4F90-9713-88BA48112F2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61639FFF-F3BC-4F90-9713-88BA48112F2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61639FFF-F3BC-4F90-9713-88BA48112F2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61639FFF-F3BC-4F90-9713-88BA48112F2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {031AA9D7-01A4-4587-9312-CD8BFBE27254}
+	EndGlobalSection
+EndGlobal
