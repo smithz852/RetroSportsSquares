@@ -1,15 +1,11 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { motion, MotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 
-type RetroButtonProps = Omit<
-  ButtonHTMLAttributes<HTMLButtonElement>,
-  "onAnimationStart" | "onAnimationEnd"
-> &
-  MotionProps & {
-    variant?: "primary" | "secondary" | "outline";
-    size?: "sm" | "md" | "lg";
-  };
+interface RetroButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "outline";
+  size?: "sm" | "md" | "lg";
+}
 
 export const RetroButton = forwardRef<HTMLButtonElement, RetroButtonProps>(
   ({ className, variant = "primary", size = "md", children, ...props }, ref) => {

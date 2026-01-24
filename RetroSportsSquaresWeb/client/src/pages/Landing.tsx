@@ -1,14 +1,11 @@
 import { RetroButton } from "@/components/RetroButton";
-import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Trophy, Users, ShieldCheck } from "lucide-react";
 
 export default function Landing() {
-
-  // const handleLogin = () => {
-  //   window.location.href = "/api/login";
-  // };
-
+  const handleLogin = () => {
+    window.location.href = "/api/login";
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -62,11 +59,9 @@ export default function Landing() {
           transition={{ delay: 0.6 }}
           className="z-10"
         >
-          <Link href="/login">
-          <RetroButton size="lg" className="text-xl animate-pulse">
+          <RetroButton size="lg" onClick={handleLogin} className="text-xl animate-pulse">
             INSERT COIN TO START
           </RetroButton>
-          </Link>
         </motion.div>
       </section>
 

@@ -6,6 +6,10 @@ import { Gamepad2, LogOut, User } from "lucide-react";
 export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
 
+  const handleLogin = () => {
+    window.location.href = "/api/login";
+  };
+
   return (
     <nav className="border-b-4 border-primary bg-black sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,11 +45,9 @@ export function Navbar() {
                 </RetroButton>
               </>
             ) : (
-              <Link href="/login">
-                <RetroButton variant="primary" size="sm">
-                  LOGIN
-                </RetroButton>
-              </Link>
+              <RetroButton variant="primary" size="sm" onClick={handleLogin}>
+                LOGIN
+              </RetroButton>
             )}
           </div>
         </div>
