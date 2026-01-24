@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Scoreboard } from "@/components/Scoreboard";
-import { api, buildUrl } from "@shared/routes";
+import { API_BASE_URL } from "../../../shared/routes";
 
 export default function GameBoard() {
   const params = useParams();
@@ -16,7 +16,12 @@ export default function GameBoard() {
   const { toast } = useToast();
   
   const { data: game, isLoading: gameLoading } = useQuery({
-    queryKey: [buildUrl(api.games.get.path, { id: id! })],
+    queryKey: ['game', id],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/games/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch game');
+      return response.json();
+    },
     enabled: !!id,
   });
 

@@ -11,7 +11,7 @@ export default function Dashboard() {
   const { data: allGames, isLoading, error } = useGames();
   const [, setLocation] = useLocation();
 
-  const games = allGames?.filter(game => !type || game.type === type);
+  const games = allGames?.filter(game => !type || game.type === type) || [];
 
   if (isLoading) {
     return (
