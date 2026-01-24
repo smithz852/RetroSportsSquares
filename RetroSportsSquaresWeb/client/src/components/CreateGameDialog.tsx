@@ -15,7 +15,7 @@ export function CreateGameDialog() {
     e.preventDefault();
     if (!name.trim()) return;
 
-    mutate({ name, status: "open" }, {
+   mutate({ name, type: "football", status: "open" }, {
       onSuccess: () => {
         setOpen(false);
         setName("");

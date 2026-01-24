@@ -7,7 +7,7 @@ export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "../pages/Login";
   };
 
   return (

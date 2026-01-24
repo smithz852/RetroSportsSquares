@@ -8,26 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-
 export default function Login() {
   const [, setLocation] = useLocation();
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
 
-  const onSubmit = (data: LoginFormValues) => {
-    console.log("Login submitted:", data);
-    // For now, just redirect to options as we're in stub mode
+  const onSubmit = () => {
     setLocation("/options");
   };
 
@@ -45,57 +29,35 @@ export default function Login() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-8">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Email Address</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="email" 
-                          placeholder="PLAYER@ARCADE.COM"
-                          className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
-                          data-testid="input-email"
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-700 text-xs font-mono" />
-                    </FormItem>
-                  )}
+            <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-6">
+              <div>
+                <label className="text-red-500 font-pixel text-xs uppercase">Email Address</label>
+                <Input 
+                  type="email" 
+                  placeholder="PLAYER@ARCADE.COM"
+                  className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
+                  data-testid="input-email"
                 />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Access Code</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="password" 
-                          placeholder="******"
-                          className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
-                          data-testid="input-password"
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-700 text-xs font-mono" />
-                    </FormItem>
-                  )}
+              </div>
+              
+              <div>
+                <label className="text-red-500 font-pixel text-xs uppercase">Access Code</label>
+                <Input 
+                  type="password" 
+                  placeholder="******"
+                  className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
+                  data-testid="input-password"
                 />
+              </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
-                  data-testid="button-login"
-                >
-                  Authorize Access
-                </Button>
-              </form>
-            </Form>
+              <Button 
+                type="submit" 
+                className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
+                data-testid="button-login"
+              >
+                Authorize Access
+              </Button>
+            </form>
             
             <div className="mt-8 text-center">
               <Link href="/">
