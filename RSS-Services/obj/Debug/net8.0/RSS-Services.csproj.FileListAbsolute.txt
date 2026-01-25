@@ -1,0 +1,16 @@
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\bin\Debug\net8.0\RSS-Services.deps.json
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\bin\Debug\net8.0\RSS-Services.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\bin\Debug\net8.0\RSS-Services.pdb
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\bin\Debug\net8.0\RSS-DB.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\bin\Debug\net8.0\RSS-DB.pdb
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.csproj.AssemblyReference.cache
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.AssemblyInfoInputs.cache
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.AssemblyInfo.cs
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.csproj.CoreCompileInputs.cache
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.sourcelink.json
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Serv.80ADAF9E.Up2Date
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\refint\RSS-Services.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\RSS-Services.pdb
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS-Services\obj\Debug\net8.0\ref\RSS-Services.dll
