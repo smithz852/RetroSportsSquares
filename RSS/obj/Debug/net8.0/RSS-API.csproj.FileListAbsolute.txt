@@ -107,3 +107,6 @@ C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\obj\Debug\net
 C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\obj\Debug\net8.0\ref\RSS-API.dll
 C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\MySqlConnector.dll
 C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\RSS-Services.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\RSS-Services.pdb
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

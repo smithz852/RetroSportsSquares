@@ -975,6 +975,19 @@
         "runtime": {
           "bin/placeholder/RSS-DB.dll": {}
         }
+      },
+      "RSS-Services/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "RSS-DB": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/RSS-Services.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/RSS-Services.dll": {}
+        }
       }
     }
   },
@@ -2744,12 +2757,18 @@
       "type": "project",
       "path": "../RSS-DB/RSS-DB.csproj",
       "msbuildProject": "../RSS-DB/RSS-DB.csproj"
+    },
+    "RSS-Services/1.0.0": {
+      "type": "project",
+      "path": "../RSS-Services/RSS-Services.csproj",
+      "msbuildProject": "../RSS-Services/RSS-Services.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "Pomelo.EntityFrameworkCore.MySql >= 8.0.0",
       "RSS-DB >= 1.0.0",
+      "RSS-Services >= 1.0.0",
       "Swashbuckle.AspNetCore >= 6.6.2"
     ]
   },
@@ -2788,6 +2807,9 @@
           "projectReferences": {
             "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj": {
               "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj"
+            },
+            "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj": {
+              "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj"
             }
           }
         }

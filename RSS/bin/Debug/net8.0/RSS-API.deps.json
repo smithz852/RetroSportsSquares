@@ -10,6 +10,7 @@
         "dependencies": {
           "Pomelo.EntityFrameworkCore.MySql": "8.0.0",
           "RSS-DB": "1.0.0",
+          "RSS-Services": "1.0.0",
           "Swashbuckle.AspNetCore": "6.6.2"
         },
         "runtime": {
@@ -549,6 +550,17 @@
             "fileVersion": "1.0.0.0"
           }
         }
+      },
+      "RSS-Services/1.0.0": {
+        "dependencies": {
+          "RSS-DB": "1.0.0"
+        },
+        "runtime": {
+          "RSS-Services.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -888,6 +900,11 @@
       "hashPath": "system.threading.channels.6.0.0.nupkg.sha512"
     },
     "RSS-DB/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RSS-Services/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

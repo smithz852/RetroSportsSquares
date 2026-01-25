@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RSS-DB\RSS-DB.csproj" />
+  </ItemGroup>
+
 </Project>

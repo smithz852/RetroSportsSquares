@@ -6,7 +6,8 @@ export function useGames() {
   return useQuery({
     queryKey: ['games'],
     queryFn: async (): Promise<Game[]> => {
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.list}`);
+      const res = await fetch('https://localhost:7187/AvailableGames/GetAvailableGames');
+      console.log(res)
       if (!res.ok) throw new Error("Failed to fetch games");
       return res.json();
     },
