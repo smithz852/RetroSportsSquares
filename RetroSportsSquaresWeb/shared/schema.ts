@@ -1,9 +1,9 @@
 // Frontend TypeScript types for .NET backend integration
 
 export interface Game {
-  id: number;
-  name: string;
-  type: 'football' | 'basketball';
+  gameId: number;
+  gameName: string;
+  gameType: 'football' | 'basketball';
   status: 'open' | 'active' | 'started';
   pricePerSquare: number;
   topNumbers?: number[];

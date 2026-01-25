@@ -11,7 +11,7 @@ export default function Dashboard() {
   const { data: allGames, isLoading, error } = useGames();
   const [, setLocation] = useLocation();
 
-  const games = allGames?.filter(game => !type || game.type === type) || [];
+  const games = allGames?.filter(game => !type || game.gameType === type) || [];
 
   if (isLoading) {
     return (
@@ -55,16 +55,16 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {games?.map((game, i) => (
             <motion.div
-              key={game.id}
+              key={game.gameId}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              onClick={() => setLocation(`/game/${game.id}`)}
+              onClick={() => setLocation(`/game/${game.gameId}`)}
             >
-              <RetroCard title={`ID: ${game.id.toString().padStart(4, '0')}`} className="h-full hover:border-white transition-colors cursor-pointer group">
+              <RetroCard title={`ID: ${game.gameId}`} className="h-full hover:border-white transition-colors cursor-pointer group">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-['Press_Start_2P'] text-white text-sm leading-6 line-clamp-2 group-hover:text-primary transition-colors">
-                    {game.name}
+                    {game.gameName}
                   </h3>
                   <span className={`px-2 py-1 text-xs font-['Press_Start_2P'] ${
                     game.status === 'open' ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
