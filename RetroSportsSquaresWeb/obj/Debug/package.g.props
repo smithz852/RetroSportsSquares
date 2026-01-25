@@ -5,7 +5,7 @@
     <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">1.0.0</PackageJsonVersion>
     <PackageJsonType Condition="$(PackageJsonType) == ''">module</PackageJsonType>
     <PackageJsonLicense Condition="$(PackageJsonLicense) == ''">MIT</PackageJsonLicense>
-    <PackageJsonScriptsDev Condition="$(PackageJsonScriptsDev) == ''">cross-env NODE_ENV=development tsx server/index.ts</PackageJsonScriptsDev>
+    <PackageJsonScriptsDev Condition="$(PackageJsonScriptsDev) == ''">vite</PackageJsonScriptsDev>
     <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">tsx script/build.ts</PackageJsonScriptsBuild>
     <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">cross-env NODE_ENV=production node dist/index.cjs</PackageJsonScriptsStart>
     <PackageJsonScriptsCheck Condition="$(PackageJsonScriptsCheck) == ''">tsc</PackageJsonScriptsCheck>
