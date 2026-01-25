@@ -6,9 +6,10 @@ export function useGames() {
     queryKey: ['games'],
     queryFn: async (): Promise<Game[]> => {
       const res = await fetch('https://localhost:7187/AvailableGames/GetAvailableGames');
-      // console.log(res)
       if (!res.ok) throw new Error("Failed to fetch games");
-      return res.json();
+      const data = await res.json();
+        // console.log(data);
+      return data;
     },
   });
 }
