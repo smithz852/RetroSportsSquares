@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj": {}
+    "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-Data.csproj": {}
   },
   "projects": {
-    "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj": {
+    "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
+        "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
         "projectName": "RSS-Data",
-        "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
+        "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
         "packagesPath": "C:\\Users\\surff\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\obj\\",
+        "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

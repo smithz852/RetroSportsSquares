@@ -453,11 +453,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
-      "projectName": "RSS-Data",
-      "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
+      "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-API.csproj",
+      "projectName": "RSS-API",
+      "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-API.csproj",
       "packagesPath": "C:\\Users\\surff\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\obj\\",
+      "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

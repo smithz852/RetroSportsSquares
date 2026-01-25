@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "8HkrxCt4O3I=",
+  "dgSpecHash": "qYg1atuxutQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RSS\\RSS-Data.csproj",
+  "projectFilePath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS\\RSS-API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\surff\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "C:\\Users\\surff\\.nuget\\packages\\microsoft.openapi\\1.6.14\\microsoft.openapi.1.6.14.nupkg.sha512",

@@ -1,12 +1,20 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\",
+  "WorkspaceRootPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\",
   "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{13C02141-0BDC-416F-8952-4C925CA85A63}|RSS-Services\\RSS-Services.csproj|c:\\users\\surff\\documents\\zachs-repos\\csharp\\retrosportssquares\\rss-services\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{13C02141-0BDC-416F-8952-4C925CA85A63}|RSS-Services\\RSS-Services.csproj|solutionrelative:rss-services\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F580BCEB-10C9-427E-9DBC-58193097F04B}|RSS-DB\\RSS-DB.csproj|c:\\users\\surff\\documents\\zachs-repos\\csharp\\retrosportssquares\\rss-db\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F580BCEB-10C9-427E-9DBC-58193097F04B}|RSS-DB\\RSS-DB.csproj|solutionrelative:rss-db\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages\\microsoft.visualstudio.javascript.sdk\\1.0.2752196\\Sdk\\Sdk.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}|RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj|c:\\users\\surff\\documents\\zachs-repos\\c#\\retrosportssquares\\retrosportssquaresweb\\retrosportssquaresweb.esproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "AbsoluteMoniker": "D:0:0:{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}|RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj|c:\\users\\surff\\documents\\zachs-repos\\csharp\\retrosportssquares\\retrosportssquaresweb\\retrosportssquaresweb.esproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{B4EA2E3B-68A8-B120-2C7B-95E42FEC7250}|RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj|solutionrelative:retrosportssquaresweb\\retrosportssquaresweb.esproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     }
   ],
@@ -22,6 +30,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Class1.cs",
+              "DocumentMoniker": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\Class1.cs",
+              "RelativeDocumentMoniker": "RSS-Services\\Class1.cs",
+              "ToolTip": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\Class1.cs",
+              "RelativeToolTip": "RSS-Services\\Class1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-25T04:04:44.21Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Class1.cs",
+              "DocumentMoniker": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\Class1.cs",
+              "RelativeDocumentMoniker": "RSS-DB\\Class1.cs",
+              "ToolTip": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\Class1.cs",
+              "RelativeToolTip": "RSS-DB\\Class1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-25T04:04:08.416Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "Sdk.targets",
               "DocumentMoniker": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages\\microsoft.visualstudio.javascript.sdk\\1.0.2752196\\Sdk\\Sdk.targets",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages\\microsoft.visualstudio.javascript.sdk\\1.0.2752196\\Sdk\\Sdk.targets",
@@ -34,11 +68,11 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "RetroSportsSquaresWeb",
-              "DocumentMoniker": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj",
+              "DocumentIndex": 3,
+              "Title": "RetroSportsSquaresWeb.esproj",
+              "DocumentMoniker": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj",
               "RelativeDocumentMoniker": "RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj",
-              "ToolTip": "C:\\Users\\surff\\Documents\\zachs-repos\\C#\\RetroSportsSquares\\RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj",
+              "ToolTip": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj",
               "RelativeToolTip": "RetroSportsSquaresWeb\\RetroSportsSquaresWeb.esproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
