@@ -18,5 +18,21 @@ namespace RSS_Services
             return _appDbContext.AvailableGames.ToList();
         }
 
+        public AvailableGames CreateGame(string name, string status, decimal playerCount, string gameType)
+        {
+            var game = new AvailableGames
+            {
+                Name = name,
+                Status = status,
+                PlayerCount = playerCount,
+                CreatedAt = DateTime.UtcNow,
+                GameType = gameType
+            };
+
+            _appDbContext.AvailableGames.Add(game);
+            _appDbContext.SaveChanges();
+            return game;
+        }
+
     }
 }

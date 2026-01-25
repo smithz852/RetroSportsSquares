@@ -1,6 +1,22 @@
 [
   {
     "ContainingType": "RSS.Controllers.AvailableGamesController",
+    "Method": "CreateGame",
+    "RelativePath": "AvailableGames/CreateGame",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "gameData",
+        "Type": "RSS.DTOs.CreateGameDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.AvailableGamesController",
     "Method": "GetAvailableGames",
     "RelativePath": "AvailableGames/GetAvailableGames",
     "HttpMethod": "GET",

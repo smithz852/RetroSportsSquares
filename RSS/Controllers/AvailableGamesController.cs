@@ -38,5 +38,13 @@ namespace RSS.Controllers
 
             return Ok(gamesDtoList);
         }
+
+        [HttpPost("CreateGame")]
+        public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
+        {
+            var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.Status, gameData.PlayerCount, gameData.GameType);
+            var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
+            return Ok(gameDto);
+        }
     }
 }

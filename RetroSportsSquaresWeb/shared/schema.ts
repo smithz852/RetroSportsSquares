@@ -29,7 +29,9 @@ export interface SquareSelection {
 
 export interface CreateGameRequest {
   name: string;
-  type: 'football' | 'basketball';
+  gameType: 'football' | 'basketball';
+  playerCount: number;
+  Status: 'open' | 'closed';
   pricePerSquare?: number;
 }
 

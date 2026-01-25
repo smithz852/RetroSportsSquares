@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 export function CreateGameDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [playerCount, setPlayerCount] = useState("");
+  const gameStatus = "open";
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
 
@@ -15,10 +17,11 @@ export function CreateGameDialog() {
     e.preventDefault();
     if (!name.trim()) return;
 
-   mutate({ name, type: "football" }, {
+   mutate({ name, gameType: "football", playerCount: parseInt(playerCount), Status: gameStatus }, {
       onSuccess: () => {
         setOpen(false);
         setName("");
+        setPlayerCount("");
         toast({
           title: "GAME CREATED",
           description: "NEW CHALLENGE INITIALIZED.",
@@ -54,6 +57,16 @@ export function CreateGameDialog() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="ENTER TITLE..."
+              className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-700"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">NUMBER OF PLAYERS</label>
+            <input
+              value={playerCount}
+              onChange={(e) => setPlayerCount(e.target.value)}
+              placeholder="ENTER VALUE BETWEEN 2-100"
               className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-700"
               autoFocus
             />
