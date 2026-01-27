@@ -47,6 +47,35 @@ namespace RSS_DB.Migrations
 
                     b.ToTable("AvailableGames");
                 });
+
+            modelBuilder.Entity("RSS_DB.Entities.DailyNflGames", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ApiGameId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("GameName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("InUse")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DailyNflGames");
+                });
 #pragma warning restore 612, 618
         }
     }
