@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RSS.SportsDataAutomation;
 using RSS_DB;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         sql => sql.MigrationsAssembly("RSS_DB")
     )
 );
+builder.Services.AddHostedService<FootballAutomation>();
 
 var app = builder.Build();
 
