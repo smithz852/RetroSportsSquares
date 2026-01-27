@@ -1,25 +1,33 @@
-﻿namespace RSS.SportsDataAutomation
+﻿using RSS_Services;
+
+namespace RSS.SportsDataAutomation
 {
     public class FootballAutomation : BackgroundService
     {
+        private readonly IServiceProvider _serviceProvider;
+
+        public FootballAutomation(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // Check if we need to run immediately on startup
-            var now = DateTime.Now;
-            if (now.Hour >= 1 && !HasTodaysDataBeenLoaded())
+            var nowUtc = DateTime.UtcNow;
+            if (!await HasTodaysDataBeenLoaded())
             {
-                await DoYourWork();
+                await DoYourWork(); //need to add function for pull game data from api, and saving it to db
             }
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                now = DateTime.Now;
-                var nextRun = DateTime.Today.AddDays(1).AddHours(1); // Tomorrow at 1 AM
+                nowUtc = DateTime.UtcNow;
+                var nextRun = DateTime.UtcNow.Date.AddDays(1).AddHours(9); // Tomorrow at 9 AM UTC (1 AM PST)
 
-                if (now.Hour < 1) // If it's before 1 AM today
-                    nextRun = DateTime.Today.AddHours(1); // Run today at 1 AM
+                if (nowUtc.Hour < 9) // If it's before 9 AM UTC today
+                    nextRun = DateTime.UtcNow.Date.AddHours(9); // Run today at 9 AM UTC
 
-                var delay = nextRun - now;
+                var delay = nextRun - nowUtc;
 
                 try
                 {
@@ -27,7 +35,7 @@
 
                     if (!stoppingToken.IsCancellationRequested)
                     {
-                        await DoYourWork();
+                        //await DoYourWork();
                     }
                 }
                 catch (OperationCanceledException)
@@ -37,15 +45,30 @@
             }
         }
 
-        private bool HasTodaysDataBeenLoaded()
+        private async Task<bool> HasTodaysDataBeenLoaded()
         {
-            // Check if today's data has already been loaded
-            return false; // Implement your logic here
+            using var scope = _serviceProvider.CreateScope();
+            var nflGameServices = scope.ServiceProvider.GetRequiredService<NflGameServices>();
+            
+            var gamesToday = nflGameServices.AreGamesInDbForToday();
+            if (!gamesToday)
+            {
+                var availableGames = await nflGameServices.AreNflGamesAvailableToday();
+                if (!availableGames)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private async Task DoYourWork()
         {
-            // Your data loading logic here
+            var two = 1 + 1;
         }
     }
 }
