@@ -48,7 +48,7 @@ namespace RSS_DB.Migrations
                     b.ToTable("AvailableGames");
                 });
 
-            modelBuilder.Entity("RSS_DB.Entities.DailyNflGames", b =>
+            modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,11 +62,23 @@ namespace RSS_DB.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("GameStartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("GameStartTime")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("InUse")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("League")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SportType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -74,7 +86,7 @@ namespace RSS_DB.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DailyNflGames");
+                    b.ToTable("DailySportsGames");
                 });
 #pragma warning restore 612, 618
         }

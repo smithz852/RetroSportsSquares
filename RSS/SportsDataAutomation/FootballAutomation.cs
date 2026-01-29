@@ -16,7 +16,7 @@ namespace RSS.SportsDataAutomation
             var nowUtc = DateTime.UtcNow;
             if (!await HasTodaysDataBeenLoaded())
             {
-                await DoYourWork(); //need to add function for pull game data from api, and saving it to db
+                await TryToLoadAvailableGames();
             }
 
             while (!stoppingToken.IsCancellationRequested)
@@ -53,17 +53,24 @@ namespace RSS.SportsDataAutomation
             var gamesToday = nflGameServices.AreGamesInDbForToday();
             if (!gamesToday)
             {
-                var availableGames = await nflGameServices.AreNflGamesAvailableToday();
-                if (!availableGames)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return false;
+                
             }
             return true;
+        }
+
+        private async Task TryToLoadAvailableGames()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var nflGameServices = scope.ServiceProvider.GetRequiredService<NflGameServices>();
+
+           var availableGames = await nflGameServices.GetGamesAvailableToday();
+            if (availableGames.Count == 0)
+            {
+                return;
+            }
+
+
         }
 
         private async Task DoYourWork()

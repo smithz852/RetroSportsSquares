@@ -13,7 +13,7 @@ namespace RSS_DB
         }
 
         public DbSet<AvailableGames> AvailableGames { get; set; }
-        public DbSet<DailyNflGames> DailyNflGames { get; set; }
+        public DbSet<DailySportsGames> DailySportsGames { get; set; }
 
     }
 }
