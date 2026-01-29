@@ -40,9 +40,9 @@ namespace RSS_Services
                 var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
                 var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
                 var dateString = todayPst.ToString("yyyy-MM-dd");
-                
-                //var response = await _httpClient.GetAsync($"https://v1.american-football.api-sports.io/games?league=1&date={dateString}&timezone=America/Los_Angeles");
-                var response = await _httpClient.GetAsync($"https://v1.american-football.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles");
+
+                var response = await _httpClient.GetAsync($"https://v1.american-football.api-sports.io/games?league=1&date={dateString}&timezone=America/Los_Angeles");
+                //var response = await _httpClient.GetAsync($"https://v1.american-football.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles");
                 response.EnsureSuccessStatusCode();
                 
                 var json = await response.Content.ReadAsStringAsync();
@@ -55,6 +55,7 @@ namespace RSS_Services
                     return gamesList;
                 }
 
+                //possibly move to mapper helper
                 var responseArray = document.RootElement.GetProperty("response");
                 foreach (var gameElement in responseArray.EnumerateArray())
                 {

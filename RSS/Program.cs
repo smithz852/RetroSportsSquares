@@ -33,7 +33,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         sql => sql.MigrationsAssembly("RSS_DB")
     )
 );
-builder.Services.AddHostedService<FootballAutomation>();
+builder.Services.AddHostedService<NflAutomation>();
+builder.Services.AddHostedService<NbaAutomation>();
 
 var app = builder.Build();
 
