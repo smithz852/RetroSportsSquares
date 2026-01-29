@@ -21,17 +21,17 @@ namespace RSS_Services
             _httpClient = httpClient;
         }
 
-        public bool AreGamesInDbForToday()
+        public bool AreGamesInDbForToday(string sportType, int leagueId)
         {
             //get from helper once made below
             var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
             //make query specific to sport
             return _appDbContext.DailySportsGames
-                .Any(g => g.GameStartDate.Date == todayPst);
+                .Any(g => g.GameStartDate.Date == todayPst && g.SportType == sportType && g.LeagueId == leagueId);
         }
 
-        public async Task<List<SportsGamesAvailableDTO>> GetGamesAvailableToday()
+        public async Task<List<SportsGamesAvailableDTO>> GetGamesAvailableToday(string sportType, int leagueId)
         {
             var gamesList = new List<SportsGamesAvailableDTO>();
             try
@@ -41,8 +41,8 @@ namespace RSS_Services
                 var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
                 var dateString = todayPst.ToString("yyyy-MM-dd");
 
-                var response = await _httpClient.GetAsync($"https://v1.american-football.api-sports.io/games?league=1&date={dateString}&timezone=America/Los_Angeles");
-                //var response = await _httpClient.GetAsync($"https://v1.american-football.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles");
+                var response = await _httpClient.GetAsync($"https://v1.{sportType}.api-sports.io/games?league={leagueId}&date={dateString}&timezone=America/Los_Angeles");
+                //var response = await _httpClient.GetAsync($"https://v1.{sportType}.api-sports.io/games?league={leagueId}&season=2022&team=1&timezone=America/Los_Angeles");
                 response.EnsureSuccessStatusCode();
                 
                 var json = await response.Content.ReadAsStringAsync();
@@ -76,7 +76,7 @@ namespace RSS_Services
                         GameStartDate = gameStartDate,
                         GameName = mergeIntoGameName,
                         Status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString(),
-                        SportType = "american-football",
+                        SportType = sportType,
                         League = gameElement.GetProperty("league").GetProperty("name").GetString(),
                         LeagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32()
                     };

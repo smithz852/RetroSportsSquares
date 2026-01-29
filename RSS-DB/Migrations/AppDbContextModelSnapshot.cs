@@ -76,6 +76,9 @@ namespace RSS_DB.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("LeagueId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SportType")
                         .IsRequired()
                         .HasColumnType("longtext");
