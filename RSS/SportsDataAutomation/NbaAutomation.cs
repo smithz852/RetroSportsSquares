@@ -7,22 +7,32 @@ namespace RSS.SportsDataAutomation
         protected override string SportName => "NBA";
         protected override int LoadHourUtc => 9; // 2 AM PST
 
+        private string SportsType = "basketball";
+        private int LeagueId = 12;
+
         public NbaAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         protected override async Task<bool> HasTodaysDataBeenLoaded()
         {
             using var scope = _serviceProvider.CreateScope();
-            // var nbaGameServices = scope.ServiceProvider.GetRequiredService<NbaGameServices>();
-            // return nbaGameServices.AreGamesInDbForToday();
-            return false; // Placeholder
+             var nbaGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
+             return nbaGameServices.AreGamesInDbForToday(SportsType, LeagueId);
         }
 
         protected override async Task TryToLoadAvailableGames()
         {
             using var scope = _serviceProvider.CreateScope();
-            // var nbaGameServices = scope.ServiceProvider.GetRequiredService<NbaGameServices>();
-            // var availableGames = await nbaGameServices.GetGamesAvailableToday();
-            // Save logic here
+             var nbaGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
+
+            //move to helper after
+            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
+            var dateString = todayPst.ToString("yyyy-MM-dd");
+
+            var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?date={dateString}&timezone=America%2FLos_Angeles";
+            
+            var availableGames = await nbaGameServices.GetGamesAvailableToday(SportsType, gameUrl);
+
         }
     }
 }

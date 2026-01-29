@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using RSS_Services;
 
 namespace RSS.SportsDataAutomation
@@ -8,6 +9,7 @@ namespace RSS.SportsDataAutomation
         protected override int LoadHourUtc => 9; // 1 AM PST
         private string SportsType = "american-football";
         private int LeagueId = 1;
+
 
         public NflAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
@@ -22,8 +24,16 @@ namespace RSS.SportsDataAutomation
         {
             using var scope = _serviceProvider.CreateScope();
             var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
-            
-            var availableGames = await nflGameServices.GetGamesAvailableToday(SportsType, LeagueId);
+
+            //move to helper after
+            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
+            var dateString = todayPst.ToString("yyyy-MM-dd");
+
+            var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league={LeagueId}&date={dateString}&timezone=America/Los_Angeles";
+
+
+            var availableGames = await nflGameServices.GetGamesAvailableToday(SportsType, gameUrl);
             if (availableGames.Count > 0)
             {
                 //save to db here

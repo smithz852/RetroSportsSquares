@@ -11,8 +11,4 @@
     <ProjectReference Include="..\RSS-DB\RSS-DB.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
-
 </Project>
