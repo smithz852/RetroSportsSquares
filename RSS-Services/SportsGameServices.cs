@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace RSS_Services
 {
-    public class NflGameServices
+    public class SportsGameServices
     {
         private readonly AppDbContext _appDbContext;
         private readonly HttpClient _httpClient;
 
-        public NflGameServices(AppDbContext appDbContext, HttpClient httpClient)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;

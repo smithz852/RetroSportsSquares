@@ -12,14 +12,14 @@ namespace RSS.SportsDataAutomation
         protected override async Task<bool> HasTodaysDataBeenLoaded()
         {
             using var scope = _serviceProvider.CreateScope();
-            var nflGameServices = scope.ServiceProvider.GetRequiredService<NflGameServices>();
+            var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             return nflGameServices.AreGamesInDbForToday();
         }
 
         protected override async Task TryToLoadAvailableGames()
         {
             using var scope = _serviceProvider.CreateScope();
-            var nflGameServices = scope.ServiceProvider.GetRequiredService<NflGameServices>();
+            var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             
             var availableGames = await nflGameServices.GetGamesAvailableToday();
             if (availableGames.Count > 0)
