@@ -1,4 +1,5 @@
 using RSS_Services;
+using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
@@ -26,12 +27,9 @@ namespace RSS.SportsDataAutomation
         {
             using var scope = _serviceProvider.CreateScope();
              var nbaGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
-            //var saveDataService = scope.ServiceProvider.GetRequiredService<GeneralServices>();
+            var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
 
-            //move to helper after
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
-            var dateString = todayPst.ToString("yyyy-MM-dd");
+            var dateString = timeHelpers.GetTimeStringTodayInPst();
 
             var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?date={dateString}&timezone=America%2FLos_Angeles";
             

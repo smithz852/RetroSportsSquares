@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using RSS_Services;
+using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
@@ -27,12 +28,9 @@ namespace RSS.SportsDataAutomation
         {
             using var scope = _serviceProvider.CreateScope();
             var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
-            //var saveDataService = scope.ServiceProvider.GetRequiredService<GeneralServices>();
+            var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
 
-            //move to helper after
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
-            var dateString = todayPst.ToString("yyyy-MM-dd");
+           var dateString = timeHelpers.GetTimeStringTodayInPst();
 
             //var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league={LeagueId}&date={dateString}&timezone=America/Los_Angeles";
             var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles";

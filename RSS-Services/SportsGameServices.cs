@@ -19,21 +19,21 @@ namespace RSS_Services
         private readonly NbaDataPullHelper _nbaDataPullHelper;
         private readonly FootballMapperHelper _footballMapperHelper;
         private readonly GeneralServices _generalServices;
+        private readonly TimeHelpers _timeHelpers;
 
-        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;
             _nbaDataPullHelper = nbaDataPullHelper;
             _footballMapperHelper = footballMapperHelper;
             _generalServices = generalServices;
+            _timeHelpers = timeHelpers;
         }
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
         {
-            //get from helper once made below
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
+            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
             //make query specific to sport
             return _appDbContext.DailySportsGames
                 .Any(g => g.GameStartDate.Date == todayPst && g.SportType == sportType && g.LeagueId == leagueId);
@@ -77,7 +77,7 @@ namespace RSS_Services
         {
             foreach (var game in availableGames)
             {
-                //temp delete after
+                //temp delete after testing is done
                 var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
                 var customDate = new DateTime(2026, 1, 30);
                 var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;

@@ -15,7 +15,6 @@ namespace RSS_Services.Helpers
 
             foreach (var gameElement in responseArray.EnumerateArray())
             {
-                //move to helper after
                 var gameStartString = gameElement.GetProperty("game").GetProperty("date").GetProperty("date").GetString();
                 var gameStartDate = DateTime.Parse(gameStartString);
 
