@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic;
 using RSS.DTOs;
 using RSS_DB;
+using RSS_DB.Entities;
 using RSS_Services.Helpers;
 using System;
 using System.Collections.Generic;
@@ -17,13 +18,15 @@ namespace RSS_Services
         private readonly HttpClient _httpClient;
         private readonly NbaDataPullHelper _nbaDataPullHelper;
         private readonly FootballMapperHelper _footballMapperHelper;
+        private readonly GeneralServices _generalServices;
 
-        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;
             _nbaDataPullHelper = nbaDataPullHelper;
             _footballMapperHelper = footballMapperHelper;
+            _generalServices = generalServices;
         }
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
@@ -43,7 +46,6 @@ namespace RSS_Services
             {
 
                 var response = await _httpClient.GetAsync(gameUrl);
-                //var response = await _httpClient.GetAsync($"https://v1.{sportType}.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles");
                 response.EnsureSuccessStatusCode();
                 var json = await response.Content.ReadAsStringAsync();
                 using var document = JsonDocument.Parse(json);
@@ -69,6 +71,35 @@ namespace RSS_Services
             {
                 return gamesList; //need to change later for actual error handling
             }
+        }
+
+        public void SaveSportsData(List<SportsGamesAvailableDTO> availableGames)
+        {
+            foreach (var game in availableGames)
+            {
+                //temp delete after
+                var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                var customDate = new DateTime(2026, 1, 30);
+                var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
+                var dateString = todayPst.ToString("yyyy-MM-dd");
+                var testGameData = DateTime.Parse(dateString);
+
+
+                DailySportsGames dailySportsGames = new DailySportsGames()
+                {
+                    ApiGameId = game.ApiGameId,
+                    InUse = game.InUse,
+                    GameName = game.GameName,
+                    GameStartTime = game.GameStartTime,
+                    GameStartDate = testGameData,
+                    SportType = game.SportType,
+                    League = game.League,
+                    LeagueId = game.LeagueId,
+                    Status = game.Status,
+                };
+               _generalServices.SaveData(dailySportsGames);
+            }
+           
         }
     }
 }

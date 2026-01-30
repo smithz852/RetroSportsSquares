@@ -10,7 +10,10 @@ namespace RSS.SportsDataAutomation
         private string SportsType = "basketball";
         private int LeagueId = 12;
 
-        public NbaAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
+        public NbaAutomation(IServiceProvider serviceProvider) : base(serviceProvider) 
+        { 
+
+        }
 
         protected override async Task<bool> HasTodaysDataBeenLoaded()
         {
@@ -23,6 +26,7 @@ namespace RSS.SportsDataAutomation
         {
             using var scope = _serviceProvider.CreateScope();
              var nbaGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
+            //var saveDataService = scope.ServiceProvider.GetRequiredService<GeneralServices>();
 
             //move to helper after
             var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
@@ -32,6 +36,11 @@ namespace RSS.SportsDataAutomation
             var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?date={dateString}&timezone=America%2FLos_Angeles";
             
             var availableGames = await nbaGameServices.GetGamesAvailableToday(SportsType, gameUrl);
+
+            if (availableGames.Count > 0)
+            {
+                nbaGameServices.SaveSportsData(availableGames);
+            }
 
         }
     }

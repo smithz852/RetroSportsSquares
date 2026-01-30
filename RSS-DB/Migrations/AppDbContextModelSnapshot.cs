@@ -36,8 +36,8 @@ namespace RSS_DB.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("PlayerCount")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<int>("PlayerCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -54,9 +54,8 @@ namespace RSS_DB.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("ApiGameId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("ApiGameId")
+                        .HasColumnType("int");
 
                     b.Property<string>("GameName")
                         .IsRequired()

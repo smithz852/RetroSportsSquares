@@ -24,6 +24,13 @@ namespace RSS_Services.Helpers
                 var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
                 var mergeIntoGameName = awayTeamName + " VS " + homeTeamName;
 
+                var status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString();
+
+                if (status == null)
+                {
+                    status = "OT";
+                }
+
                 var gameDto = new SportsGamesAvailableDTO
                 {
                     ApiGameId = gameElement.GetProperty("game").GetProperty("id").GetInt32(),
@@ -31,7 +38,7 @@ namespace RSS_Services.Helpers
                     GameStartTime = gameElement.GetProperty("game").GetProperty("date").GetProperty("time").GetString(),
                     GameStartDate = gameStartDate,
                     GameName = mergeIntoGameName,
-                    Status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString(),
+                    Status = status,
                     SportType = sportType,
                     League = gameElement.GetProperty("league").GetProperty("name").GetString(),
                     LeagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32()

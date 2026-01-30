@@ -15,7 +15,7 @@ namespace RSS_DB.Entities
         public string GameType { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
-        public decimal PlayerCount { get; set; }
+        public int PlayerCount { get; set; }
 
         public AvailableGames()
         {

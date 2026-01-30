@@ -9,7 +9,7 @@ namespace RSS_DB.Entities
     public class DailySportsGames
     {
         public Guid Id { get; set; }
-        public string ApiGameId { get; set; }
+        public int ApiGameId { get; set; }
         public bool InUse { get; set; }
         public string GameName { get; set; }
         public string GameStartTime { get; set; }
@@ -18,5 +18,10 @@ namespace RSS_DB.Entities
         public string League {  get; set; }
         public int LeagueId { get; set; }
         public string Status { get; set; }
+
+        public DailySportsGames()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }

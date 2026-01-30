@@ -18,7 +18,7 @@ namespace RSS_Services
             return _appDbContext.AvailableGames.ToList();
         }
 
-        public AvailableGames CreateGame(string name, string status, decimal playerCount, string gameType)
+        public AvailableGames CreateGame(string name, string status, int playerCount, string gameType)
         {
             var game = new AvailableGames
             {
