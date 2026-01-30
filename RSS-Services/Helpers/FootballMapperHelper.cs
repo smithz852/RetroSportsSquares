@@ -10,6 +10,11 @@ namespace RSS_Services.Helpers
 {
     public class FootballMapperHelper
     {
+        private readonly DataSortHelpers _dataSortHelpers;
+        public FootballMapperHelper(DataSortHelpers dataSortHelpers)
+        {
+            _dataSortHelpers = dataSortHelpers;
+        }
         public void MapFootballData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
         {
 
@@ -17,12 +22,7 @@ namespace RSS_Services.Helpers
             {
                 var gameStartString = gameElement.GetProperty("game").GetProperty("date").GetProperty("date").GetString();
                 var gameStartDate = DateTime.Parse(gameStartString);
-
-                //move to helper after
-                var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
-                var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
-                var mergeIntoGameName = awayTeamName + " VS " + homeTeamName;
-
+                var mergeIntoGameName = _dataSortHelpers.MakeGameName(gameElement);
                 var status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString();
 
                 if (status == null)

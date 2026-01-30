@@ -13,6 +13,8 @@ builder.Services.AddScoped<RSS_Services.AvailableGamesServices>();
 builder.Services.AddScoped<NbaDataPullHelper>();
 builder.Services.AddScoped<FootballMapperHelper>();
 builder.Services.AddScoped<GeneralServices>();
+builder.Services.AddScoped<TimeHelpers>();
+builder.Services.AddScoped<DataSortHelpers>();
 builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
 {
     client.DefaultRequestHeaders.Add("x-apisports-key", "2f14287fb764f299801970b51492fe7e");

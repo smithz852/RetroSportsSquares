@@ -10,6 +10,12 @@ namespace RSS_Services.Helpers
 {
     public class NbaDataPullHelper
     {
+        private readonly DataSortHelpers _dataSortHelpers;
+
+        public NbaDataPullHelper(DataSortHelpers dataSortHelpers)
+        {
+            _dataSortHelpers = dataSortHelpers;
+        }
         public void GetNbaGameData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
         {
   
@@ -21,11 +27,7 @@ namespace RSS_Services.Helpers
                 {
                     var gameStartString = gameElement.GetProperty("date").GetString();
                     var gameStartDate = DateTime.Parse(gameStartString);
-
-                    //move to helper after
-                    var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
-                    var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
-                    var mergeIntoGameName = awayTeamName + " VS " + homeTeamName;
+                    var mergeIntoGameName = _dataSortHelpers.MakeGameName(gameElement);
 
                     var gameDto = new SportsGamesAvailableDTO
                     {
