@@ -3,6 +3,7 @@ using RSS.DTOs;
 using RSS_DB;
 using RSS_DB.Entities;
 using RSS_Services.Helpers;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +45,6 @@ namespace RSS_Services
             var gamesList = new List<SportsGamesAvailableDTO>();
             try
             {
-
                 var response = await _httpClient.GetAsync(gameUrl);
                 response.EnsureSuccessStatusCode();
                 var json = await response.Content.ReadAsStringAsync();
@@ -99,7 +99,16 @@ namespace RSS_Services
                 };
                _generalServices.SaveData(dailySportsGames);
             }
-           
         }
+
+        public List<DailySportsGames> GetAvailableSportsGameOptions(int leagueId)
+        {
+            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+            var availbleGameOptions = _appDbContext.DailySportsGames
+                .Where(g => g.GameStartDate.Date == todayPst && g.LeagueId == leagueId)
+                .ToList(); //add check for status != FT or AOT later
+            return availbleGameOptions;
+        }
+
     }
 }

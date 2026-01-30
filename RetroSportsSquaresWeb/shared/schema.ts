@@ -41,3 +41,9 @@ export interface CreateSquareSelectionRequest {
   col: number;
   playerName: string;
 }
+
+export interface AvailableGameOptions {
+  id: string;
+  gameName: string;
+  status: string;
+}

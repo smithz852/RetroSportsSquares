@@ -9,6 +9,7 @@ interface RetroButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const RetroButton = forwardRef<HTMLButtonElement, RetroButtonProps>(
   ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
+    const { onAnimationStart, onAnimationEnd, onAnimationIteration, onDragStart, onDragEnd, onDrag, ...motionProps } = props;
     
     const variants = {
       primary: "bg-primary text-primary-foreground border-2 border-primary hover:bg-red-600",
@@ -35,7 +36,7 @@ export const RetroButton = forwardRef<HTMLButtonElement, RetroButtonProps>(
           sizes[size],
           className
         )}
-        {...props}
+        {...motionProps}
       >
         {children}
       </motion.button>

@@ -1,13 +1,12 @@
 // Frontend API client configuration for .NET backend
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7187';
 
 // API endpoints for .NET backend
 export const endpoints = {
   games: {
-    list: '/games',
-    get: (id: string) => `/games/${id}`,
-    create: '/games',
-    update: (id: string) => `/games/${id}`,
+    list: '/AvailableGames/GetAvailableGames',
+    create: '/AvailableGames/CreateGame',
+    options: '/AvailableSportsGames/GetAvailableGameOptions', // Add this for the third function
   },
   selections: {
     list: (gameId: string) => `/games/${gameId}/selections`,

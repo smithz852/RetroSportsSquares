@@ -4,6 +4,7 @@ import { RetroButton } from "./RetroButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "react-day-picker";
 
 export function CreateGameDialog() {
   const [open, setOpen] = useState(false);
@@ -70,6 +71,15 @@ export function CreateGameDialog() {
               className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-700"
               autoFocus
             />
+          </div>
+          <div>
+            <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">SELECT A GAME</label>
+            <div className="grid grid-cols-2 gap-1">
+              <RetroButton className="p-1 m-2" size="sm">Houston Texans <br/>VS <br/>Las Vegas Raiders</RetroButton>
+              <RetroButton className="p-1 m-2" size="sm">Houston Texans <br/>VS <br/>Las Vegas Raiders</RetroButton>
+              <RetroButton className="p-1 m-2" size="sm">Oklahoma City Thunder <br/>VS <br/> Minnesota Timberwolves</RetroButton>
+            
+            </div>
           </div>
           <div className="flex justify-end pt-4">
             <RetroButton 

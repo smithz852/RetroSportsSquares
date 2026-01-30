@@ -17,5 +17,15 @@ namespace RSS.Helpers
                 PlayerCount = availableGames.PlayerCount
             };
         }
+
+        public AvailableSportsGamesOptionsDTO AvailableSportsGamesOptionsMapper(DailySportsGames dailySportsGameOption)
+        {
+            return new AvailableSportsGamesOptionsDTO
+            {
+                Id = dailySportsGameOption.Id,
+                GameName = dailySportsGameOption.GameName,
+                Status = dailySportsGameOption.Status,
+            };
+        }
     }
 }
