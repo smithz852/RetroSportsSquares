@@ -107,7 +107,7 @@ namespace RSS_Services
 
             //for testing delete after
             var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var customDate = new DateTime(2026, 1, 30);
+            var customDate = new DateTime(2026, 1, 31);
             var todayTest = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
             var dateString = todayTest.ToString("yyyy-MM-dd");
             var todayPst = DateTime.Parse(dateString);
