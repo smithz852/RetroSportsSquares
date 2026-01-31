@@ -11,7 +11,7 @@ import {
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "react-day-picker";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 
 // Format game name for display
@@ -34,6 +34,7 @@ export function CreateGameDialog() {
   const gameStatus = "open";
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const { type } = useParams<{ type: string }>();
   const {
     data: availableGames,
@@ -55,7 +56,7 @@ export function CreateGameDialog() {
         pricePerSquare: parseInt(wagerAmount),
       },
       {
-        onSuccess: () => {
+        onSuccess: (createdGame) => {
           setOpen(false);
           setName("");
           setPlayerCount("");
@@ -66,6 +67,8 @@ export function CreateGameDialog() {
             className:
               "bg-black border-2 border-primary text-primary font-['VT323']",
           });
+          // Navigate to the newly created game
+          setLocation(`/game/${createdGame.gameId}`);
         },
         onError: () => {
           toast({
