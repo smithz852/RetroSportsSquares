@@ -13,6 +13,11 @@ export default function Dashboard() {
 
   const games = allGames?.filter(game => !type || game.gameType === type) || [];
 
+  function formatId(fullGameId: string) {
+    var splitId = fullGameId.split('-')[0]
+    return splitId;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
@@ -61,7 +66,7 @@ export default function Dashboard() {
               transition={{ delay: i * 0.1 }}
               onClick={() => setLocation(`/game/${game.gameId}`)}
             >
-              <RetroCard title={`ID: ${game.gameId}`} className="h-full hover:border-white transition-colors cursor-pointer group">
+              <RetroCard title={`ID: ${formatId(game.gameId)}`} className="h-full hover:border-white transition-colors cursor-pointer group">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-['Press_Start_2P'] text-white text-sm leading-6 line-clamp-2 group-hover:text-primary transition-colors">
                     {game.gameName}

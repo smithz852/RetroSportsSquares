@@ -14,7 +14,8 @@ namespace RSS.Helpers
                 GameType = availableGames.GameType,
                 CreatedAt = availableGames.CreatedAt,
                 Status = availableGames.Status,
-                PlayerCount = availableGames.PlayerCount
+                PlayerCount = availableGames.PlayerCount,
+
             };
         }
 

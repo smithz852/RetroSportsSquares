@@ -21,12 +21,15 @@ namespace RSS_DB.Migrations
 
             modelBuilder.Entity("RSS_DB.Entities.AvailableGames", b =>
                 {
-                    b.Property<Guid>("GameId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("DailySportGameId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("GameType")
                         .IsRequired()
@@ -39,11 +42,16 @@ namespace RSS_DB.Migrations
                     b.Property<int>("PlayerCount")
                         .HasColumnType("int");
 
+                    b.Property<int>("PricePerSquare")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("GameId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("DailySportGameId");
 
                     b.ToTable("AvailableGames");
                 });
@@ -89,6 +97,22 @@ namespace RSS_DB.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DailySportsGames");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.AvailableGames", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.DailySportsGames", "DailySportGame")
+                        .WithMany("AvailableGames")
+                        .HasForeignKey("DailySportGameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DailySportGame");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
+                {
+                    b.Navigation("AvailableGames");
                 });
 #pragma warning restore 612, 618
         }

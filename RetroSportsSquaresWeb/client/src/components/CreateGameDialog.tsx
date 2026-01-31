@@ -29,7 +29,7 @@ export function CreateGameDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [playerCount, setPlayerCount] = useState("");
-  const [selectedGameId, setSelectedGameId] = useState("");
+  const [dailySportsGameId, setDailySportsGameId] = useState("");
   const [wagerAmount, setWagerAmount] = useState("");
   const gameStatus = "open";
   const { mutate, isPending } = useCreateGame();
@@ -51,7 +51,7 @@ export function CreateGameDialog() {
         gameType: "football",
         playerCount: parseInt(playerCount),
         Status: gameStatus,
-        selectedGameId,
+        dailySportsGameId,
         pricePerSquare: parseInt(wagerAmount),
       },
       {
@@ -156,8 +156,8 @@ export function CreateGameDialog() {
                     <h6>{game.status}</h6>
                     <RetroButton
                       type="button"
-                      onClick={() => setSelectedGameId(game.id)}
-                      className={`p-1 m-2 ${selectedGameId === game.id ? "bg-primary" : ""}`}
+                      onClick={() => setDailySportsGameId(game.id)}
+                      className={`p-1 m-2 ${dailySportsGameId === game.id ? "bg-primary" : ""}`}
                       size="sm"
                     >
                       {formatGameName(game.gameName)}
