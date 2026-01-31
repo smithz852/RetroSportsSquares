@@ -79,7 +79,7 @@ namespace RSS_Services
             {
                 //temp delete after testing is done
                 var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                var customDate = new DateTime(2026, 1, 30);
+                var customDate = new DateTime(2026, 1, 31);
                 var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
                 var dateString = todayPst.ToString("yyyy-MM-dd");
                 var testGameData = DateTime.Parse(dateString);
@@ -116,6 +116,17 @@ namespace RSS_Services
                 .Where(g => g.GameStartDate.Date == todayPst && g.LeagueId == leagueId)
                 .ToList(); //add check for status != FT or AOT later
             return availbleGameOptions;
+        }
+
+        public void SetGameInUse(string dailySportsGameId)
+        {
+            var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
+            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
+            if (game != null)
+            {
+                game.InUse = true;
+            }
+            _appDbContext.SaveChanges();
         }
 
     }

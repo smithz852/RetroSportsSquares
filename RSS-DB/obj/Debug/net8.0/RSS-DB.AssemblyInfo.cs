@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RSS-DB")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd37a0aa6db6e2e92a4a7eb193887e7d57a7976a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f0725e83dbdbed18e4b4022706fb6199d9207ded")]
 [assembly: System.Reflection.AssemblyProductAttribute("RSS-DB")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RSS-DB")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

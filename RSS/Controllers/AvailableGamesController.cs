@@ -13,13 +13,14 @@ namespace RSS.Controllers
         private readonly AvailableGamesServices _availableGamesServices;
         private readonly MapperHelpers _mapperHelpers;
         private readonly GeneralServices _generalServices;
+        private readonly SportsGameServices _sportsGameServices;
 
-        public AvailableGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices)
+        public AvailableGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
             _generalServices = generalServices;
-
+            _sportsGameServices = sportsGameServices;
         }
 
         [HttpGet("GetAvailableGames")]
@@ -46,7 +47,12 @@ namespace RSS.Controllers
         public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
         {
             var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.Status, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
-            _generalServices.SaveData(createdGame);
+           var dataSaved = _generalServices.SaveData(createdGame);
+            if (!dataSaved)
+            {
+                return BadRequest("Failed to save game data.");
+            }
+            _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
             var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
             return Ok(gameDto);
         }

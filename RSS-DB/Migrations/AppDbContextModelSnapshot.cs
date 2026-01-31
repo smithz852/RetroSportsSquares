@@ -65,6 +65,16 @@ namespace RSS_DB.Migrations
                     b.Property<int>("ApiGameId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CurrentAwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentHomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CurrentQuarter")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("GameName")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -84,6 +94,36 @@ namespace RSS_DB.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<int>("LeagueId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OTAwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OTHomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q1AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q1HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q2AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q2HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q3AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q3HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q4AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q4HomeScore")
                         .HasColumnType("int");
 
                     b.Property<string>("SportType")
