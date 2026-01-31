@@ -39,7 +39,9 @@ export function useGetAvailableGameOptions() {
     queryFn: async (): Promise<AvailableGameOptions[]> => {
       const res = await fetch(`${API_BASE_URL}${endpoints.games.options}`);
       if (!res.ok) throw new Error("Failed to fetch available game options");
-      return res.json();
+     const data = await res.json();
+     console.log(data);
+     return data;
     },
   });
 }

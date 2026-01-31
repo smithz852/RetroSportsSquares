@@ -18,6 +18,7 @@ namespace RSS_DB.Entities
         public string League {  get; set; }
         public int LeagueId { get; set; }
         public string Status { get; set; }
+        public virtual List<AvailableGames> AvailableGames { get; set; }
 
         public DailySportsGames()
         {

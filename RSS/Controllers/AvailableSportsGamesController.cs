@@ -6,20 +6,20 @@ using RSS_Services;
 
 namespace RSS.Controllers
 {
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
-    public class AvailableSportsGamesConroller : ControllerBase
+    public class AvailableSportsGamesController : ControllerBase
     {
         private SportsGameServices _sportsGameServices;
         private MapperHelpers _mapperHelpers;
 
-        public AvailableSportsGamesConroller(SportsGameServices sportsGameServices, MapperHelpers mapperHelpers)
+        public AvailableSportsGamesController(SportsGameServices sportsGameServices, MapperHelpers mapperHelpers)
         {
             _sportsGameServices = sportsGameServices;
             _mapperHelpers = mapperHelpers;
         }
 
-        [HttpGet("GetAvailableGameOptions")]
+        [HttpGet("GetAvailableNflGameOptions")]
         public IActionResult GetAvailableNflGameOptions()
         {
             int leagueId = 1;

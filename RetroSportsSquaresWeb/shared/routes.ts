@@ -6,7 +6,7 @@ export const endpoints = {
   games: {
     list: '/AvailableGames/GetAvailableGames',
     create: '/AvailableGames/CreateGame',
-    options: '/AvailableSportsGames/GetAvailableGameOptions', // Add this for the third function
+    options: '/AvailableSportsGames/GetAvailableNflGameOptions', // Add this for the third function
   },
   selections: {
     list: (gameId: string) => `/games/${gameId}/selections`,

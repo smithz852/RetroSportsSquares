@@ -10,7 +10,8 @@ namespace RSS_DB.Entities
     public class AvailableGames
     {
         [Key]
-        public Guid GameId { get; set; }
+        public Guid Id { get; set; }
+        public virtual DailySportsGames DailySportGame { get; set; }
         public string Name { get; set; }
         public string GameType { get; set; }
         public string Status { get; set; }
@@ -19,7 +20,7 @@ namespace RSS_DB.Entities
 
         public AvailableGames()
         {
-            GameId = Guid.NewGuid();
+            Id = Guid.NewGuid();
         }
     }
     

@@ -33,6 +33,7 @@ export interface CreateGameRequest {
   playerCount: number;
   Status: 'open' | 'closed';
   pricePerSquare?: number;
+  selectedGameId: string;
 }
 
 export interface CreateSquareSelectionRequest {

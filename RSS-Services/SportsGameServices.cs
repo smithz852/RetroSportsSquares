@@ -103,7 +103,15 @@ namespace RSS_Services
 
         public List<DailySportsGames> GetAvailableSportsGameOptions(int leagueId)
         {
-            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+            //var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+
+            //for testing delete after
+            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var customDate = new DateTime(2026, 1, 30);
+            var todayTest = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
+            var dateString = todayTest.ToString("yyyy-MM-dd");
+            var todayPst = DateTime.Parse(dateString);
+
             var availbleGameOptions = _appDbContext.DailySportsGames
                 .Where(g => g.GameStartDate.Date == todayPst && g.LeagueId == leagueId)
                 .ToList(); //add check for status != FT or AOT later

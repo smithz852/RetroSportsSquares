@@ -24,5 +24,15 @@
     "Order": 0,
     "Parameters": [],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.AvailableSportsGamesController",
+    "Method": "GetAvailableNflGameOptions",
+    "RelativePath": "AvailableSportsGames/GetAvailableNflGameOptions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   }
 ]

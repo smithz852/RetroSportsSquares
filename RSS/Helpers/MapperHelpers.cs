@@ -9,7 +9,7 @@ namespace RSS.Helpers
         {
             return new AvailableGamesDTO
             {
-                GameId = availableGames.GameId,
+                GameId = availableGames.Id,
                 GameName = availableGames.Name,
                 GameType = availableGames.GameType,
                 CreatedAt = availableGames.CreatedAt,
