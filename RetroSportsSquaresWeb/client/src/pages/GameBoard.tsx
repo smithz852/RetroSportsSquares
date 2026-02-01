@@ -15,7 +15,7 @@ export default function GameBoard() {
   const id = params.id as string;
   const { toast } = useToast();
   
-  const { data: game, isLoading: gameLoading } = useQuery({
+  const { data: game, isLoading: gameLoading, error } = useQuery({
     queryKey: ['game', id],
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/games/${id}`);
@@ -96,6 +96,14 @@ export default function GameBoard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <h2 className="text-primary font-pixel animate-pulse">LOADING GAME...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <h2 className="text-red-500 font-pixel">ERROR: {(error as Error).message}</h2>
       </div>
     );
   }
