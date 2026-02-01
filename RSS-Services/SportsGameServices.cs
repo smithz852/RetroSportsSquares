@@ -139,7 +139,7 @@ namespace RSS_Services
                 var inUse = sportsGame.InUse;
                 var status = newSportsData.Status;
 
-                if (status == "FT" || status == "AOT" || status == null)
+                if (status == "FT" || status == "AOT" || status == null || status == "Final/OT" || status == "Postponed")
                 {
                     inUse = false;
 
@@ -164,7 +164,7 @@ namespace RSS_Services
                 }
             }
 
-           
+           _appDbContext.SaveChanges();
         }
 
         public async Task<SportScoreUpdateDTO> GetSportsGameDataByGameId(string gameUrl, string sportType)

@@ -42,6 +42,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 builder.Services.AddHostedService<NflAutomation>();
 builder.Services.AddHostedService<NbaAutomation>();
+builder.Services.AddHostedService<NflRefetchAutomation>();
 
 var app = builder.Build();
 
