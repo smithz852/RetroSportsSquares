@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using RSS.SportsDataAutomation;
 using RSS_DB;
+using RSS_Services;
+using RSS_Services.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<RSS_Services.AvailableGamesServices>();
+builder.Services.AddScoped<NbaDataPullHelper>();
+builder.Services.AddScoped<FootballMapperHelper>();
+builder.Services.AddScoped<GeneralServices>();
+builder.Services.AddScoped<TimeHelpers>();
+builder.Services.AddScoped<DataSortHelpers>();
+builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
+{
+    client.DefaultRequestHeaders.Add("x-apisports-key", "2f14287fb764f299801970b51492fe7e");
+    client.DefaultRequestHeaders.Add("x-rapidapi-host", "v1.american-football.api-sports.io");
+});
 builder.Services.AddScoped<RSS.Helpers.MapperHelpers>();
 builder.Services.AddCors(options =>
 {
@@ -27,6 +40,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         sql => sql.MigrationsAssembly("RSS_DB")
     )
 );
+builder.Services.AddHostedService<NflAutomation>();
+builder.Services.AddHostedService<NbaAutomation>();
+builder.Services.AddHostedService<NflRefetchAutomation>();
 
 var app = builder.Build();
 

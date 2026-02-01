@@ -1,7 +1,7 @@
 // Frontend TypeScript types for .NET backend integration
 
 export interface Game {
-  gameId: number;
+  gameId: string;
   gameName: string;
   gameType: 'football' | 'basketball';
   status: 'open' | 'active' | 'started';
@@ -33,6 +33,7 @@ export interface CreateGameRequest {
   playerCount: number;
   Status: 'open' | 'closed';
   pricePerSquare?: number;
+  dailySportsGameId: string;
 }
 
 export interface CreateSquareSelectionRequest {
@@ -40,4 +41,10 @@ export interface CreateSquareSelectionRequest {
   row: number;
   col: number;
   playerName: string;
+}
+
+export interface AvailableGameOptions {
+  id: string;
+  gameName: string;
+  status: string;
 }

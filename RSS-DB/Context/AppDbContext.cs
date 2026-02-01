@@ -13,11 +13,7 @@ namespace RSS_DB
         }
 
         public DbSet<AvailableGames> AvailableGames { get; set; }
+        public DbSet<DailySportsGames> DailySportsGames { get; set; }
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    modelBuilder.Entity<AvailableGames>()
-        //        .HasKey(e => e.GameId);
-        //}
     }
 }

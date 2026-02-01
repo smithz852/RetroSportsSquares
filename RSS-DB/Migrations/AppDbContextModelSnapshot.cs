@@ -21,12 +21,15 @@ namespace RSS_DB.Migrations
 
             modelBuilder.Entity("RSS_DB.Entities.AvailableGames", b =>
                 {
-                    b.Property<Guid>("GameId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("DailySportGameId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("GameType")
                         .IsRequired()
@@ -36,16 +39,120 @@ namespace RSS_DB.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("PlayerCount")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<int>("PlayerCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PricePerSquare")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("GameId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("DailySportGameId");
 
                     b.ToTable("AvailableGames");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ApiGameId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentAwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentHomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CurrentQuarter")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("GameName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("GameStartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("GameStartTime")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("InUse")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("League")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("LeagueId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OTAwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OTHomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q1AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q1HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q2AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q2HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q3AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q3HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q4AwayScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Q4HomeScore")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SportType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DailySportsGames");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.AvailableGames", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.DailySportsGames", "DailySportGame")
+                        .WithMany("AvailableGames")
+                        .HasForeignKey("DailySportGameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DailySportGame");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
+                {
+                    b.Navigation("AvailableGames");
                 });
 #pragma warning restore 612, 618
         }

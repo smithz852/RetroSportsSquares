@@ -9,12 +9,23 @@ namespace RSS.Helpers
         {
             return new AvailableGamesDTO
             {
-                GameId = availableGames.GameId,
+                GameId = availableGames.Id,
                 GameName = availableGames.Name,
                 GameType = availableGames.GameType,
                 CreatedAt = availableGames.CreatedAt,
                 Status = availableGames.Status,
-                PlayerCount = availableGames.PlayerCount
+                PlayerCount = availableGames.PlayerCount,
+
+            };
+        }
+
+        public AvailableSportsGamesOptionsDTO AvailableSportsGamesOptionsMapper(DailySportsGames dailySportsGameOption)
+        {
+            return new AvailableSportsGamesOptionsDTO
+            {
+                Id = dailySportsGameOption.Id,
+                GameName = dailySportsGameOption.GameName,
+                Status = dailySportsGameOption.Status,
             };
         }
     }
