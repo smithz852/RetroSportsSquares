@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using RSS_Services.DTOs;
 
 namespace RSS_Services
 {
@@ -65,7 +66,7 @@ namespace RSS_Services
                 }
 
                 _footballMapperHelper.MapFootballData(responseArray, gamesList, sportType);
-                return gamesList; 
+                return gamesList;
             }
             catch (HttpRequestException)
             {
@@ -84,7 +85,6 @@ namespace RSS_Services
                 var dateString = todayPst.ToString("yyyy-MM-dd");
                 var testGameData = DateTime.Parse(dateString);
 
-
                 DailySportsGames dailySportsGames = new DailySportsGames()
                 {
                     ApiGameId = game.ApiGameId,
@@ -97,7 +97,8 @@ namespace RSS_Services
                     LeagueId = game.LeagueId,
                     Status = game.Status,
                 };
-               _generalServices.SaveData(dailySportsGames);
+
+                _generalServices.SaveData(dailySportsGames);
             }
         }
 
@@ -127,6 +128,88 @@ namespace RSS_Services
                 game.InUse = true;
             }
             _appDbContext.SaveChanges();
+        }
+
+        public void UpdateSportsData(SportScoreUpdateDTO newSportsData, Guid Id)
+        {
+            var sportsGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == Id);
+
+            if (sportsGame != null)
+            {
+                var inUse = sportsGame.InUse;
+                var status = newSportsData.Status;
+
+                if (status == "FT" || status == "AOT" || status == null)
+                {
+                    inUse = false;
+
+                }
+
+                if (sportsGame != null)
+                {
+                    sportsGame.InUse = inUse;
+                    sportsGame.Status = status;
+                    sportsGame.CurrentHomeScore = newSportsData.CurrentHomeScore;
+                    sportsGame.CurrentAwayScore = newSportsData.CurrentAwayScore;
+                    sportsGame.Q1HomeScore = newSportsData.Q1HomeScore;
+                    sportsGame.Q1AwayScore = newSportsData.Q1AwayScore;
+                    sportsGame.Q2HomeScore = newSportsData.Q2HomeScore;
+                    sportsGame.Q2AwayScore = newSportsData.Q2AwayScore;
+                    sportsGame.Q3HomeScore = newSportsData.Q3HomeScore;
+                    sportsGame.Q3AwayScore = newSportsData.Q3AwayScore;
+                    sportsGame.Q4HomeScore = newSportsData.Q4HomeScore;
+                    sportsGame.Q4AwayScore = newSportsData.Q4AwayScore;
+                    sportsGame.OTHomeScore = newSportsData.OTHomeScore;
+                    sportsGame.OTAwayScore = newSportsData.OTAwayScore;
+                }
+            }
+
+           
+        }
+
+        public async Task<SportScoreUpdateDTO> GetSportsGameDataByGameId(string gameUrl, string sportType)
+        {
+
+            try
+            {
+                var response = await _httpClient.GetAsync(gameUrl);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(json);
+                var responseArray = document.RootElement.GetProperty("response");
+
+                //if (sportType == "basketball")
+                //{
+                //    _nbaDataPullHelper.GetNbaGameData(responseArray, gamesList, sportType);
+                //    return gamesList;
+                //}
+
+                var game =_footballMapperHelper.MapFootballScoreData(responseArray, sportType);
+                return game;
+            }
+            catch (HttpRequestException)
+            {
+                var game = new SportScoreUpdateDTO();
+                return game; //need to change later for actual error handling
+            }
+        }
+
+        public int GetGameApiIdFromId(Guid id)
+        {
+            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == id);
+            return game.ApiGameId;
+        }
+
+        public List<SportsGamesInUseDTO> GetAllGamesInUse()
+        {
+            var allGameInUse = _appDbContext.DailySportsGames
+                .Where(g => g.InUse == true)
+                .Select(g => new SportsGamesInUseDTO
+                {
+                    Id = g.Id
+                })
+                .ToList();
+            return allGameInUse;
         }
 
     }

@@ -38,5 +38,12 @@ namespace RSS.Controllers
             }
             return Ok(availableSportsGamesOptionsDTO);
         }
+
+        //will need fetch by id function/api route
+        //[HttpGet("FetchNflScoreData")]
+        //public IActionResult FetchNflScoreData(int apiGameId)
+        //{
+            
+        //}
     }
 }
