@@ -176,10 +176,12 @@ export default function GameBoard() {
                 </div>
 
                 {Array.from({ length: 10 }).map((_, colIndex) => {
-                  const name = selections[`${rowIndex}-${colIndex}`];
+                  const squareId = `${rowIndex}-${colIndex}`;
+                  const name = selections[squareId];
                   return (
                     <div
-                      key={`${rowIndex}-${colIndex}`}
+                      key={squareId}
+                      data-square-id={squareId}
                       onClick={() => handleSquareClick(rowIndex, colIndex)}
                       className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
                         name ? 'bg-red-600/20' : 'hover:bg-red-900/10'
