@@ -24,23 +24,6 @@ namespace RSS.Controllers
             _config = config;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-        {
-            var user = new ApplicationUser
-            {
-                UserName = dto.Email,
-                Email = dto.Email,
-                DisplayName = dto.DisplayName
-            };
-
-            var result = await _userManager.CreateAsync(user, dto.Password);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new { message = "User created successfully" });
-        }
-
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
@@ -69,6 +52,27 @@ namespace RSS.Controllers
             return Ok(new { user.Id, user.Email, user.DisplayName });
         }
 
+        [HttpPost("signup")]
+        public async Task<IActionResult> SignUp([FromBody] RegisterDto dto)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingUser != null)
+                return BadRequest(new { message = "User already exists" });
+
+            var user = new ApplicationUser
+            {
+                UserName = dto.Email,
+                Email = dto.Email,
+                DisplayName = dto.Name
+            };
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "User created successfully" });
+        }
+
         private string GenerateJwtToken(ApplicationUser user)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -91,6 +95,6 @@ namespace RSS.Controllers
         }
     }
 
-    public record RegisterDto(string Email, string Password, string DisplayName);
+    public record RegisterDto(string Email, string Password, string Name);
     public record LoginDto(string Email, string Password);
 }

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
-import { type LoginRequest, type User, type LoginResponse } from "@shared/schema";
+import { type LoginRequest, type User, type LoginResponse, type SignupRequest } from "@shared/schema";
 
 
 
@@ -47,6 +47,24 @@ export function useLogin() {
       // Store token and user data
       localStorage.setItem('token', data.token);
       queryClient.setQueryData(["currentUser"], data.user);
+    },
+  });
+}
+
+export function useSignup() {
+  return useMutation({
+    mutationFn: async (userData: SignupRequest) => {
+      const response = await fetch(`${API_BASE_URL}${endpoints.auth.signup}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Signup failed');
+      }
+      
+      return response.json();
     },
   });
 }

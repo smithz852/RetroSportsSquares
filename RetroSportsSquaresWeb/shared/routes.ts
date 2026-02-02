@@ -16,7 +16,8 @@ export const endpoints = {
   auth: {
     login: '/Auth/login',
     logout: '/Auth/logout',
-    getUser: '/Auth/me'
+    getUser: '/Auth/me',
+    signup: '/Auth/signup',
   }
 };
 

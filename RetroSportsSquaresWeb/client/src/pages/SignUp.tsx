@@ -4,11 +4,13 @@ import { RetroButton } from "@/components/RetroButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useSignup } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
 
 export default function Signup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { mutate: signup, isPending } = useSignup();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,12 +31,28 @@ export default function Signup() {
       return;
     }
 
-    toast({
-      title: "SUCCESS",
-      description: "PROFILE CREATED! (FRONT-END ONLY)",
-      className: "bg-black border-2 border-primary text-primary font-pixel text-[10px]",
+    signup({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "SUCCESS",
+          description: "PROFILE CREATED! PLEASE LOGIN.",
+          className: "bg-black border-2 border-primary text-primary font-pixel text-[10px]",
+        });
+        setLocation("/login");
+      },
+      onError: () => {
+        toast({
+          title: "ERROR",
+          description: "FAILED TO CREATE PROFILE.",
+          variant: "destructive",
+          className: "bg-black border-2 border-red-900 text-red-500 font-pixel text-[10px]",
+        });
+      }
     });
-    setLocation("/login");
   };
 
   return (
@@ -93,8 +111,8 @@ export default function Signup() {
               </div>
               
               <div className="pt-4 flex flex-col gap-4">
-                <RetroButton type="submit" className="w-full py-6 text-lg">
-                  SIGN UP
+                <RetroButton type="submit" disabled={isPending} className="w-full py-6 text-lg">
+                  {isPending ? "CREATING..." : "SIGN UP"}
                 </RetroButton>
                 <RetroButton 
                   variant="outline" 
