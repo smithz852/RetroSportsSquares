@@ -45,9 +45,16 @@ export function Navbar() {
                 </RetroButton>
               </>
             ) : (
-              <RetroButton variant="primary" size="sm" onClick={handleLogin}>
-                LOGIN
-              </RetroButton>
+             <div className="flex items-center gap-2">
+                <RetroButton variant="primary" size="sm" onClick={handleLogin}>
+                  LOGIN
+                </RetroButton>
+                <Link href="/signup">
+                  <RetroButton variant="outline" size="sm">
+                    SIGN UP
+                  </RetroButton>
+                </Link>
+              </div>
             )}
           </div>
         </div>

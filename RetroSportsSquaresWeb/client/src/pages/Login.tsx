@@ -8,14 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export default function Login() {
   const [, setLocation] = useLocation();
 
-  const onSubmit = () => {
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof loginSchema>) => {
+    console.log(values);
     setLocation("/options");
   };
 
-  return (
+ return (
     <div className="flex items-center justify-center min-h-[80vh] p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -29,35 +43,68 @@ export default function Login() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-8">
-            <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-6">
-              <div>
-                <label className="text-red-500 font-pixel text-xs uppercase">Email Address</label>
-                <Input 
-                  type="email" 
-                  placeholder="PLAYER@ARCADE.COM"
-                  className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
-                  data-testid="input-email"
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Email Address</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="email" 
+                          placeholder="PLAYER@ARCADE.COM"
+                          className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
+                          data-testid="input-email"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-700 text-xs font-mono" />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              <div>
-                <label className="text-red-500 font-pixel text-xs uppercase">Access Code</label>
-                <Input 
-                  type="password" 
-                  placeholder="******"
-                  className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
-                  data-testid="input-password"
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Access Code</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          placeholder="******"
+                          className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
+                          data-testid="input-password"
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-700 text-xs font-mono" />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
-                data-testid="button-login"
-              >
-                Authorize Access
-              </Button>
-            </form>
+                <div className="flex flex-col gap-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
+                    data-testid="button-login"
+                  >
+                    Authorize Access
+                  </Button>
+                  <Button 
+                    type="button"
+                    onClick={() => setLocation("/signup")}
+                    variant="outline"
+                    className="w-full border-2 border-red-600 text-red-600 font-pixel py-6 rounded-none hover:bg-red-600 hover:text-black uppercase"
+                    data-testid="button-goto-signup"
+                  >
+                    Register Profile
+                  </Button>
+                </div>
+              </form>
+            </Form>
             
             <div className="mt-8 text-center">
               <Link href="/">
