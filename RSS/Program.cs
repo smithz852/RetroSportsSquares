@@ -1,14 +1,50 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using RSS.SportsDataAutomation;
 using RSS_DB;
+using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
+
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("Default"),
+        new MySqlServerVersion(new Version(8, 0, 21)),
+        sql => sql.MigrationsAssembly("RSS_DB")
+    )
+);
+
+// Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+
+// Your existing services
 builder.Services.AddScoped<RSS_Services.AvailableGamesServices>();
 builder.Services.AddScoped<NbaDataPullHelper>();
 builder.Services.AddScoped<FootballMapperHelper>();
@@ -21,6 +57,7 @@ builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
     client.DefaultRequestHeaders.Add("x-rapidapi-host", "v1.american-football.api-sports.io");
 });
 builder.Services.AddScoped<RSS.Helpers.MapperHelpers>();
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -30,23 +67,16 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("Default"),
-        new MySqlServerVersion(new Version(8, 0, 21)),
-        sql => sql.MigrationsAssembly("RSS_DB")
-    )
-);
+
 builder.Services.AddHostedService<NflAutomation>();
 builder.Services.AddHostedService<NbaAutomation>();
 builder.Services.AddHostedService<NflRefetchAutomation>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -54,11 +84,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
