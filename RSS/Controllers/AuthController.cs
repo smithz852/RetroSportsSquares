@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using RSS_DB.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -53,6 +54,19 @@ namespace RSS.Controllers
 
             var token = GenerateJwtToken(user);
             return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName } });
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(userId!);
+            
+            if (user == null)
+                return NotFound();
+
+            return Ok(new { user.Id, user.Email, user.DisplayName });
         }
 
         private string GenerateJwtToken(ApplicationUser user)

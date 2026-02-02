@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
+import { useLogin } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -15,6 +16,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { mutate: login, isPending } = useLogin();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -25,8 +27,10 @@ export default function Login() {
   });
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    console.log(values);
-    setLocation("/options");
+    login(values, {
+      onSuccess: () => setLocation("/options"),
+      onError: (error) => console.error('Login error:', error),
+    });
   };
 
  return (
@@ -88,10 +92,11 @@ export default function Login() {
                 <div className="flex flex-col gap-4">
                   <Button 
                     type="submit" 
+                    disabled={isPending}
                     className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
                     data-testid="button-login"
                   >
-                    Authorize Access
+                    {isPending ? "AUTHENTICATING..." : "Authorize Access"}
                   </Button>
                   <Button 
                     type="button"

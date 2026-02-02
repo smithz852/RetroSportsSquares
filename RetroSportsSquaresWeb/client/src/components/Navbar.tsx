@@ -28,7 +28,7 @@ export function Navbar() {
               <>
                 <div className="hidden md:flex items-center gap-2 text-primary font-['VT323'] text-xl border-2 border-primary/30 px-3 py-1 bg-primary/5">
                   <User className="h-4 w-4" />
-                  <span>PLAYER: {user.firstName || 'UNKNOWN'}</span>
+                  <span>PLAYER: {user.displayName || 'UNKNOWN'}</span>
                 </div>
                 <Link href="/options">
                   <RetroButton variant="outline" size="sm">

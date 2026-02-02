@@ -48,3 +48,19 @@ export interface AvailableGameOptions {
   gameName: string;
   status: string;
 }
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  displayName: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
