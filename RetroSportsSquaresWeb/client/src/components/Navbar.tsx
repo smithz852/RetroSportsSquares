@@ -6,6 +6,11 @@ import { Gamepad2, LogOut, User } from "lucide-react";
 export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
 
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/";
+  };
+
   const handleLogin = () => {
     window.location.href = "../pages/Login";
   };
@@ -38,7 +43,7 @@ export function Navbar() {
                 <RetroButton 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => logout()}
+                  onClick={handleLogout}
                   disabled={isLoggingOut}
                 >
                   {isLoggingOut ? "EXITING..." : "LOGOUT"}
