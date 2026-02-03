@@ -66,7 +66,7 @@ export default function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section className="w-full max-w-7xl px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="w-full max-w-7xl px-4 py-16 grid grid-cols-1 md:grid-cols-2 gap-8">
         <motion.div 
           whileHover={{ y: -5 }}
           className="border-2 border-zinc-800 bg-zinc-900/50 p-8 text-center"
@@ -88,23 +88,12 @@ export default function Landing() {
           <h3 className="text-primary font-['Press_Start_2P'] text-sm mb-4">MULTIPLAYER</h3>
           <p className="font-['VT323'] text-xl text-gray-400">Compete against up to 100 players per grid. Real-time updates.</p>
         </motion.div>
-
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="border-2 border-zinc-800 bg-zinc-900/50 p-8 text-center"
-        >
-          <div className="w-16 h-16 bg-primary/20 rounded-none mx-auto mb-6 flex items-center justify-center border-2 border-primary">
-            <ShieldCheck className="text-primary w-8 h-8" />
-          </div>
-          <h3 className="text-primary font-['Press_Start_2P'] text-sm mb-4">SECURE LOGIN</h3>
-          <p className="font-['VT323'] text-xl text-gray-400">Powered by Replit Auth. No passwords to remember. Just play.</p>
-        </motion.div>
       </section>
 
       {/* Footer */}
       <footer className="w-full py-8 border-t-2 border-zinc-800 mt-12 text-center">
         <p className="font-['VT323'] text-gray-600 text-lg">
-          © 2024 SPORTS SQUARES. ALL RIGHTS RESERVED.
+          © 2026 SPORTS SQUARES. ALL RIGHTS RESERVED.
         </p>
       </footer>
     </div>

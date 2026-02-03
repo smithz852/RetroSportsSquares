@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useLogin } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -16,7 +18,8 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { mutate: login, isPending } = useLogin();
+  const { mutate: login, isPending, error } = useLogin();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -26,10 +29,21 @@ export default function Login() {
     },
   });
 
+  // Show error toast when login fails
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "ACCESS DENIED",
+        description: error.message.toUpperCase(),
+        variant: "destructive",
+        className: "bg-black border-2 border-red-900 text-red-500 font-pixel text-[10px]",
+      });
+    }
+  }, [error, toast]);
+
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
     login(values, {
       onSuccess: () => setLocation("/options"),
-      onError: (error) => console.error('Login error:', error),
     });
   };
 

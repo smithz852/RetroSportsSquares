@@ -12,7 +12,7 @@ export function Navbar() {
   };
 
   const handleLogin = () => {
-    window.location.href = "../pages/Login";
+    window.location.href = "/Login";
   };
 
   return (

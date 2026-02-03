@@ -31,17 +31,26 @@ export function useLogin() {
   
   return useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
-      const response = await fetch(`${API_BASE_URL}${endpoints.auth.login}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Login failed');
+      try {
+        const response = await fetch(`${API_BASE_URL}${endpoints.auth.login}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(credentials),
+        });
+
+        if (!response.ok) {
+          throw new Error('Login failed. Please ensure the Email and Password is correct.');
+        }
+        
+        return response.json();
+      } catch (error) {
+        // Network error (server down, no internet, etc.)
+        if (error instanceof TypeError) {
+          throw new Error('Failed to connect to server');
+        }
+        // Re-throw other errors
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       // Store token and user data
