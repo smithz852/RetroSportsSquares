@@ -217,43 +217,6 @@ namespace RSS_DB.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("RSS_DB.Entities.AvailableGames", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("DailySportGameId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("GameType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("PlayerCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PricePerSquare")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DailySportGameId");
-
-                    b.ToTable("AvailableGames");
-                });
-
             modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
                 {
                     b.Property<Guid>("Id")
@@ -331,6 +294,124 @@ namespace RSS_DB.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DailySportsGames");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsHost")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("NumbersOfSquareSelected")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalWagerAmount")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("TurnOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GamePlayer");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GamePlayerSquare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("GamePlayerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("SquareId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("SquaresId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GamePlayerId");
+
+                    b.HasIndex("SquaresId");
+
+                    b.ToTable("GamePlayerSquare");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("DailySportGameId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("GameType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("PlayerCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PricePerSquare")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("WinnerQ1Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("WinnerQ2Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("WinnerQ3Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("WinnerQ4Id")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DailySportGameId");
+
+                    b.HasIndex("WinnerQ1Id");
+
+                    b.HasIndex("WinnerQ2Id");
+
+                    b.HasIndex("WinnerQ3Id");
+
+                    b.HasIndex("WinnerQ4Id");
+
+                    b.ToTable("AvailableGames");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.Squares", b =>
@@ -1001,7 +1082,45 @@ namespace RSS_DB.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RSS_DB.Entities.AvailableGames", b =>
+            modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.SquareGames", "Game")
+                        .WithMany("GamePlayers")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "User")
+                        .WithMany("GamePlayers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GamePlayerSquare", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.GamePlayer", "GamePlayer")
+                        .WithMany("GamePlayerSquares")
+                        .HasForeignKey("GamePlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RSS_DB.Entities.Squares", "Squares")
+                        .WithMany("GamePlayerSquare")
+                        .HasForeignKey("SquaresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GamePlayer");
+
+                    b.Navigation("Squares");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
                 {
                     b.HasOne("RSS_DB.Entities.DailySportsGames", "DailySportGame")
                         .WithMany("AvailableGames")
@@ -1009,12 +1128,56 @@ namespace RSS_DB.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ1")
+                        .WithMany()
+                        .HasForeignKey("WinnerQ1Id");
+
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ2")
+                        .WithMany()
+                        .HasForeignKey("WinnerQ2Id");
+
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ3")
+                        .WithMany()
+                        .HasForeignKey("WinnerQ3Id");
+
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ4")
+                        .WithMany()
+                        .HasForeignKey("WinnerQ4Id");
+
                     b.Navigation("DailySportGame");
+
+                    b.Navigation("WinnerQ1");
+
+                    b.Navigation("WinnerQ2");
+
+                    b.Navigation("WinnerQ3");
+
+                    b.Navigation("WinnerQ4");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("GamePlayers");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
                 {
                     b.Navigation("AvailableGames");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>
+                {
+                    b.Navigation("GamePlayerSquares");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
+                {
+                    b.Navigation("GamePlayers");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.Squares", b =>
+                {
+                    b.Navigation("GamePlayerSquare");
                 });
 #pragma warning restore 612, 618
         }

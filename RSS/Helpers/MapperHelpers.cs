@@ -5,7 +5,7 @@ namespace RSS.Helpers
 {
     public class MapperHelpers
     {
-        public AvailableGamesDTO AvailableGamesMapper(AvailableGames availableGames)
+        public AvailableGamesDTO AvailableGamesMapper(SquareGames availableGames)
         {
             return new AvailableGamesDTO
             {

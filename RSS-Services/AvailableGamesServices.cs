@@ -16,17 +16,17 @@ namespace RSS_Services
             _timeHelpers = timeHelpers;
         }
 
-        public List<AvailableGames> GetAllAvailableGames()
+        public List<SquareGames> GetAllAvailableGames()
         {
             return _appDbContext.AvailableGames.ToList();
         }
 
-        public AvailableGames CreateGame(string name, string status, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
+        public SquareGames CreateGame(string name, string status, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = _timeHelpers.GetTimeDateTimeTodayInPst();
 
-            var game = new AvailableGames
+            var game = new SquareGames
             {
                 Name = name,
                 Status = status,

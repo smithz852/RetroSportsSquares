@@ -40,7 +40,7 @@ namespace RSS_DB.Entities
         public int Q4AwayScore { get; set; }
         public int OTHomeScore { get; set; }
         public int OTAwayScore { get; set; }
-        public virtual List<AvailableGames> AvailableGames { get; set; }
+        public ICollection<SquareGames> AvailableGames { get; set; } = new List<SquareGames>();
 
         public DailySportsGames()
         {
