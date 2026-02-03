@@ -333,6 +333,623 @@ namespace RSS_DB.Migrations
                     b.ToTable("DailySportsGames");
                 });
 
+            modelBuilder.Entity("RSS_DB.Entities.Squares", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Squares");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("399c3591-3d62-0ba2-ee36-d94f06296377"),
+                            Name = "top-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("480fdb6d-2931-6b90-eece-264d5eeb1826"),
+                            Name = "top-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("9f5399e6-bfa8-3e49-6a5e-3a077574464b"),
+                            Name = "top-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("ee83009f-7f8c-8936-7e09-860055ea6716"),
+                            Name = "top-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("14e2cd04-3d6d-6b11-c3a2-cea0a22d8138"),
+                            Name = "top-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("5e7c0b9f-f3ed-3caa-f17d-d6c11db011bd"),
+                            Name = "top-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("0a39e8b0-c7d2-80a6-74d7-da800cbf73b3"),
+                            Name = "top-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("094cb3e3-aaee-7ddd-63a2-97deee7ca2a8"),
+                            Name = "top-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("02800d76-e822-914c-a95a-993cd7edff21"),
+                            Name = "top-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("08d64f01-2e3e-a251-f767-af671b8f012c"),
+                            Name = "top-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("42dfed63-c2ad-43dc-be45-acfbf497bed8"),
+                            Name = "row-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("5820f165-0619-8f5e-51b3-05f8507c6078"),
+                            Name = "row-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("74f7d9f0-7ae5-831e-226a-118b9a93a192"),
+                            Name = "row-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("b351a938-3a4a-9201-f859-d7a2a55a79df"),
+                            Name = "row-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("ca549795-5096-16b7-b55d-eb094a43489b"),
+                            Name = "row-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("94431097-a3b9-3f00-3e54-25f743cfef2d"),
+                            Name = "row-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("da6484e6-976f-56f3-582d-6577d8a4e161"),
+                            Name = "row-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("970f0255-453e-b29e-73e6-2b9d1726b35f"),
+                            Name = "row-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("e0c4ccec-0675-ac89-7afb-fbed9b412004"),
+                            Name = "row-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("4b781bf8-e6e0-0abb-be78-d6aaea13200d"),
+                            Name = "row-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("033276c7-0ae2-b264-7035-2752d6a1e7c6"),
+                            Name = "0-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("2128ebc2-2356-5d3b-8272-19971c8b04c2"),
+                            Name = "0-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("b0fabfdf-e68c-c42e-57a6-c2cf7f55e76c"),
+                            Name = "0-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("41db8560-8b84-ebe6-82c2-6abd7b0d0c03"),
+                            Name = "0-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("cdce4ecb-b4dc-7c51-a0bc-ddafd23813b9"),
+                            Name = "0-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("545392e5-fc8f-90b0-ecc0-cd0944afd27f"),
+                            Name = "0-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("b61c03d9-1ae1-4582-e824-5c9ed74ea9ea"),
+                            Name = "0-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("7f500599-79a1-389d-269b-ff7a2589a685"),
+                            Name = "0-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("7f455ab2-daa8-fea4-2ff0-4cb47f79a59c"),
+                            Name = "0-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("60015d41-fb7b-fa64-0b7e-faf0fe064e86"),
+                            Name = "0-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("4169a2ec-51bc-d187-e298-3961edb6dbb6"),
+                            Name = "1-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("6cc066ea-1c1e-fa05-9f1a-a39d98dc5bc1"),
+                            Name = "1-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2f2c698-7f28-734c-cea3-d40ae7ec3ff2"),
+                            Name = "1-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("7ae2ce13-d92b-1539-479f-049378cffdd3"),
+                            Name = "1-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("9f0a173a-f4e4-fa7e-37d2-3ad521b9098e"),
+                            Name = "1-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("956c4212-1b6d-01c5-7082-b12a969b0b7c"),
+                            Name = "1-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("85af9d44-1ac7-8e9f-b7c6-66134b1d9b95"),
+                            Name = "1-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("c7b51368-3fce-0492-87e5-ffcd5f799feb"),
+                            Name = "1-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("48954bd0-c49b-bce2-1187-bbfa7ef0ba59"),
+                            Name = "1-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("7a58152f-4c6a-13c3-83bf-0dd1c995333b"),
+                            Name = "1-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("bbab0383-5d6a-1a6d-f53c-9dd45c682d62"),
+                            Name = "2-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("55bfbd8f-b173-ae8f-9373-6180f8d0197a"),
+                            Name = "2-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("40a0463c-e67b-1f0a-0073-1ab8e9575df2"),
+                            Name = "2-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("34602cc2-3096-88d6-cef2-0a3fd708ad87"),
+                            Name = "2-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("cc260762-cbe3-c5c8-74e5-889cb404da8c"),
+                            Name = "2-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("4c87b02d-84c1-753a-20d8-d5fc2f8e3f37"),
+                            Name = "2-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("409363d9-f0c2-1c05-1a7a-09da5ef07ed4"),
+                            Name = "2-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("acffc092-2316-7088-2954-e5e94def34b3"),
+                            Name = "2-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("a7d66955-7672-8ec3-4e58-91bd92577c63"),
+                            Name = "2-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("f24c5442-c411-34ff-5e88-1b7664cb74bc"),
+                            Name = "2-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("18b4d62d-fa5f-31f9-647b-896faa2467dd"),
+                            Name = "3-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("b6e7e6c9-989f-16f5-a54c-fe2c9e25fb3f"),
+                            Name = "3-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("3bd472b7-bb49-b557-96d0-343c33bcffec"),
+                            Name = "3-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("7fcc6678-a0b5-013c-6efd-4d506a451850"),
+                            Name = "3-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("a8d5b2b7-b4d1-4fd6-0e89-e293d4ac08eb"),
+                            Name = "3-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("c40cee5a-a94d-93dd-c7b7-f7493389cea8"),
+                            Name = "3-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("0be641d9-0621-6aa7-1eb5-54a01f9b9f2f"),
+                            Name = "3-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("fb0906e3-6ace-751a-6f50-a31ec86eae83"),
+                            Name = "3-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("d2b69990-64a5-b294-6a86-cd1fe119efc2"),
+                            Name = "3-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("8791b7bd-6410-3291-6d5a-f13f07501a4e"),
+                            Name = "3-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("b8cffd20-7973-a3c9-4b5e-cbe0dda37ced"),
+                            Name = "4-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("abefbd74-5797-81a0-606b-181ac29f1db2"),
+                            Name = "4-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("74b75b2f-fd7e-54a0-6636-fb385a3fa593"),
+                            Name = "4-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("fbda6448-d055-745d-897f-dce5dee7fd22"),
+                            Name = "4-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("f1fc5d6b-4cf4-489d-5dda-1902ac33c0a9"),
+                            Name = "4-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("75c47052-7ca5-f6a8-87fa-faee7ef53c7f"),
+                            Name = "4-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("c8eb27b4-e2ff-1822-31c4-9fa57369653e"),
+                            Name = "4-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("50a7c3f1-910b-519d-7c2e-485c77fe209f"),
+                            Name = "4-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("e0ddfb79-5c74-db53-18cb-800fdca12294"),
+                            Name = "4-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("d8ba8d9e-06b2-9999-4141-8fc3d12de54a"),
+                            Name = "4-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("f4dbc5a9-d0b6-d818-4d4b-b19c666a3422"),
+                            Name = "5-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("16dea119-2271-8aa1-f369-c749f4e40a48"),
+                            Name = "5-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("fa9fa1dc-3016-fe54-ef33-432fad5f9833"),
+                            Name = "5-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("ea54d90d-4f20-a119-b391-b7828491927b"),
+                            Name = "5-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("1a4c2760-06c6-dfdd-ab59-1309cb5ace78"),
+                            Name = "5-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("6276c46d-bae0-7d8f-65d0-fbe93024dbad"),
+                            Name = "5-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("5db5ff34-65a2-212f-3f67-451b2712e727"),
+                            Name = "5-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("75ba726d-2602-7d63-5265-8f66492583b3"),
+                            Name = "5-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("f89bfc69-cdfc-bd1d-f596-11b22b8a50e3"),
+                            Name = "5-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("d2598d87-a285-840c-9276-42865e10381f"),
+                            Name = "5-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("5290ed3d-0755-60cb-6f3c-c6606c5a49f5"),
+                            Name = "6-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("6ac09902-97ed-7304-ae41-d986b308cd09"),
+                            Name = "6-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("db0d3817-2e84-4398-0203-4e1bb66c24e4"),
+                            Name = "6-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("6294e5fa-008f-7d3e-8250-252baa6a83b2"),
+                            Name = "6-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("d700cba5-ffc8-5ffe-b2c7-9c540a54817a"),
+                            Name = "6-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("997595fb-2984-1e6d-c1a8-a941ae769c2b"),
+                            Name = "6-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("1a9697e3-a90a-e0ad-4eb9-8a3c9d8e9d24"),
+                            Name = "6-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("6305a3c0-cf27-48a3-6f48-201b4f88a5fa"),
+                            Name = "6-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("13bc48d8-e539-a176-bc0c-76a79656aaeb"),
+                            Name = "6-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("cabbeec0-abf4-b5a9-3e9f-36ae8e00e649"),
+                            Name = "6-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("9e4d3430-4aeb-6e4a-0e5e-dd79911d444c"),
+                            Name = "7-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("9c8314a5-7149-6f40-f865-a3f340e4ea36"),
+                            Name = "7-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("c8dbb56a-d486-7067-a86e-6cc0be54a9d1"),
+                            Name = "7-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("275aacd5-4ec3-d7bf-a1db-d16d5b99edfb"),
+                            Name = "7-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("beff42d7-43ce-905c-76fb-a5f244396cf8"),
+                            Name = "7-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("fe691d3a-2453-4f23-c826-c187339aee43"),
+                            Name = "7-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("bf69701d-87d7-357d-1c42-57e0ac2a027a"),
+                            Name = "7-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("ae5f6df1-2097-f152-ca95-a5440a2a3d9b"),
+                            Name = "7-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("8962f7e4-374f-9371-743f-39684e65e82d"),
+                            Name = "7-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("6b5791c0-674e-afe1-4037-43ed7c208bd4"),
+                            Name = "7-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("852692f8-d413-1823-f9cb-2e01c1513156"),
+                            Name = "8-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("5c713496-e0a7-cd46-d0fc-857cdc38dcb6"),
+                            Name = "8-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("a7e48119-b362-5898-dc33-f9ea28ed065a"),
+                            Name = "8-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("fc57a0f2-3573-279a-81f0-fd48f63d6fde"),
+                            Name = "8-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("90cf0117-499c-5d83-0c79-3c7a7ef82a5d"),
+                            Name = "8-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("373cb4b8-6f53-b12c-c108-0240cddc4f2c"),
+                            Name = "8-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("426ad949-4799-9c98-6187-0dbae5bfbf15"),
+                            Name = "8-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("469fa028-7165-7a3a-9cfc-b946a286b829"),
+                            Name = "8-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("7fc7495a-9614-ba88-8ae5-33a42ff81683"),
+                            Name = "8-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("4c7464d6-db28-214e-f5ed-23e22390b19a"),
+                            Name = "8-9"
+                        },
+                        new
+                        {
+                            Id = new Guid("2a30fc52-4936-83fd-b715-0d26d057dad6"),
+                            Name = "9-0"
+                        },
+                        new
+                        {
+                            Id = new Guid("f8da0bb0-70d9-dfb7-6649-53f63a698374"),
+                            Name = "9-1"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2445c43-bc66-050c-f7b6-f48e7a454f1c"),
+                            Name = "9-2"
+                        },
+                        new
+                        {
+                            Id = new Guid("da5f38a4-a498-ae39-de46-4b18924abaea"),
+                            Name = "9-3"
+                        },
+                        new
+                        {
+                            Id = new Guid("22720b5a-c5f0-a7f9-d569-039911132b40"),
+                            Name = "9-4"
+                        },
+                        new
+                        {
+                            Id = new Guid("ccc2fed7-3f6a-c206-3b46-54977dca0dea"),
+                            Name = "9-5"
+                        },
+                        new
+                        {
+                            Id = new Guid("ba6bd319-52d5-1343-e9fe-9fd1d786c70c"),
+                            Name = "9-6"
+                        },
+                        new
+                        {
+                            Id = new Guid("69cc5b26-43d0-7b9e-f813-b38466b2fd40"),
+                            Name = "9-7"
+                        },
+                        new
+                        {
+                            Id = new Guid("db410643-e830-d652-af73-89961baaee37"),
+                            Name = "9-8"
+                        },
+                        new
+                        {
+                            Id = new Guid("d8656bad-62d6-ef43-ebf6-fb805b27d450"),
+                            Name = "9-9"
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
