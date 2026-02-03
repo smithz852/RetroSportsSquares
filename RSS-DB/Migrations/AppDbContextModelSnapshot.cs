@@ -269,10 +269,6 @@ namespace RSS_DB.Migrations
                     b.Property<int>("CurrentHomeScore")
                         .HasColumnType("int");
 
-                    b.Property<string>("CurrentQuarter")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("GameName")
                         .IsRequired()
                         .HasColumnType("longtext");

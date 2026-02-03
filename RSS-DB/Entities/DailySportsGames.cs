@@ -30,7 +30,6 @@ namespace RSS_DB.Entities
         public string Status { get; set; }
         public int CurrentHomeScore { get; set; }
         public int CurrentAwayScore { get; set; }
-        public string CurrentQuarter { get; set; } = string.Empty;
         public int Q1HomeScore { get; set; }
         public int Q1AwayScore { get; set; }
         public int Q2HomeScore { get; set; }
