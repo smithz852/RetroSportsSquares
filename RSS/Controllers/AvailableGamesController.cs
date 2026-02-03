@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using RSS_Services;
-using RSS.Helpers;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RSS.DTOs;
-using Microsoft.AspNetCore.Authorization;
+using RSS.Helpers;
+using RSS_Services;
+using System.Linq;
+using System.Security.Claims;
 
 namespace RSS.Controllers
 {
@@ -48,6 +49,11 @@ namespace RSS.Controllers
         [Authorize]
         public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
         {
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //if (string.IsNullOrEmpty(userId))
+            //{
+            //    return Unauthorized();
+            //}
             var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.Status, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
            var dataSaved = _generalServices.SaveData(createdGame);
             if (!dataSaved)
