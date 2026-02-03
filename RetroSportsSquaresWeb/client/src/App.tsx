@@ -10,6 +10,7 @@ import GameOptions from "@/pages/GameOptions";
 import Login from "@/pages/Login";
 import GameBoard from "@/pages/GameBoard";
 import Dashboard from "@/pages/Dashboard";
+import Signup from "@/pages/SignUp";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/login" component={Login} />
+           <Route path="/signup" component={Signup} />
           <Route path="/options" component={GameOptions} />
           <Route path="/arena/:type" component={Dashboard} />
           <Route path="/game/:id" component={GameBoard} />

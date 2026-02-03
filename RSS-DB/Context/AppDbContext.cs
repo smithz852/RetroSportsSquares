@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using RSS_DB.Entities;
 
 namespace RSS_DB
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         //Migration commands from API dir in dev powershell
         //dotnet ef migrations add {NAME_HERE} --project ../RSS-DB --startup-project .
@@ -14,6 +15,5 @@ namespace RSS_DB
 
         public DbSet<AvailableGames> AvailableGames { get; set; }
         public DbSet<DailySportsGames> DailySportsGames { get; set; }
-
     }
 }

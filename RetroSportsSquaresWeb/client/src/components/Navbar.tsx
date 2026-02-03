@@ -6,8 +6,13 @@ import { Gamepad2, LogOut, User } from "lucide-react";
 export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
 
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/";
+  };
+
   const handleLogin = () => {
-    window.location.href = "../pages/Login";
+    window.location.href = "/Login";
   };
 
   return (
@@ -28,7 +33,7 @@ export function Navbar() {
               <>
                 <div className="hidden md:flex items-center gap-2 text-primary font-['VT323'] text-xl border-2 border-primary/30 px-3 py-1 bg-primary/5">
                   <User className="h-4 w-4" />
-                  <span>PLAYER: {user.firstName || 'UNKNOWN'}</span>
+                  <span>PLAYER: {user.displayName || 'UNKNOWN'}</span>
                 </div>
                 <Link href="/options">
                   <RetroButton variant="outline" size="sm">
@@ -38,16 +43,23 @@ export function Navbar() {
                 <RetroButton 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => logout()}
+                  onClick={handleLogout}
                   disabled={isLoggingOut}
                 >
                   {isLoggingOut ? "EXITING..." : "LOGOUT"}
                 </RetroButton>
               </>
             ) : (
-              <RetroButton variant="primary" size="sm" onClick={handleLogin}>
-                LOGIN
-              </RetroButton>
+             <div className="flex items-center gap-2">
+                <RetroButton variant="primary" size="sm" onClick={handleLogin}>
+                  LOGIN
+                </RetroButton>
+                <Link href="/signup">
+                  <RetroButton variant="outline" size="sm">
+                    SIGN UP
+                  </RetroButton>
+                </Link>
+              </div>
             )}
           </div>
         </div>

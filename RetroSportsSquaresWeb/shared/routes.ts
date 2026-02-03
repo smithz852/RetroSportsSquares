@@ -6,13 +6,19 @@ export const endpoints = {
   games: {
     list: '/AvailableGames/GetAvailableGames',
     create: '/AvailableGames/CreateGame',
-    options: '/AvailableSportsGames/GetAvailableNflGameOptions', // Add this for the third function
+    options: '/AvailableSportsGames/GetAvailableNflGameOptions',
   },
   selections: {
     list: (gameId: string) => `/games/${gameId}/selections`,
     create: (gameId: string) => `/games/${gameId}/selections`,
     clear: (gameId: string) => `/games/${gameId}/selections`,
   },
+  auth: {
+    login: '/Auth/login',
+    logout: '/Auth/logout',
+    getUser: '/Auth/me',
+    signup: '/Auth/signup',
+  }
 };
 
 // Helper to build full API URLs

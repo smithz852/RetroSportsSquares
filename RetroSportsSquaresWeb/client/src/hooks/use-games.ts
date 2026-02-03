@@ -17,12 +17,20 @@ export function useGames() {
 
 export function useCreateGame() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: CreateGameRequest): Promise<Game> => {
-           console.log(data);
+      const token = localStorage.getItem('token');
+      // console.log(token);
+      if (!token) throw new Error("Please login to create a game");
+      
+      console.log(data);
       const res = await fetch(`${API_BASE_URL}${endpoints.games.create}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`
+         },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to create game");

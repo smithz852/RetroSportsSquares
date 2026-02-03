@@ -1,5 +1,47 @@
 [
   {
+    "ContainingType": "RSS.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "Auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "RSS.Controllers.LoginDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.AuthController",
+    "Method": "GetCurrentUser",
+    "RelativePath": "Auth/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.AuthController",
+    "Method": "SignUp",
+    "RelativePath": "Auth/signup",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "RSS.Controllers.RegisterDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "RSS.Controllers.AvailableGamesController",
     "Method": "CreateGame",
     "RelativePath": "AvailableGames/CreateGame",
