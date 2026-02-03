@@ -1,15 +1,20 @@
 import { useGames } from "@/hooks/use-games";
+import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
 import { Loader2, Calendar, User, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
+import Landing from "./Landing";
 
 export default function Dashboard() {
   const { type } = useParams<{ type: string }>();
   const { data: allGames, isLoading, error } = useGames();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  
+    
 
   const games = allGames?.filter(game => !type || game.gameType === type) || [];
 
@@ -17,8 +22,8 @@ export default function Dashboard() {
     var splitId = fullGameId.split('-')[0]
     return splitId;
   }
-
-  if (isLoading) {
+if (user) {
+      if (isLoading) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-16 w-16 text-primary animate-spin" />
@@ -95,4 +100,9 @@ export default function Dashboard() {
       )}
     </div>
   );
+    }
+   else
+    {
+      setLocation("/login")
+    }
 }

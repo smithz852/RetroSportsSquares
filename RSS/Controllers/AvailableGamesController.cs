@@ -3,6 +3,7 @@ using System.Linq;
 using RSS_Services;
 using RSS.Helpers;
 using RSS.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RSS.Controllers
 {
@@ -44,6 +45,7 @@ namespace RSS.Controllers
         }
 
         [HttpPost("CreateGame")]
+        [Authorize]
         public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
         {
             var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.Status, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);

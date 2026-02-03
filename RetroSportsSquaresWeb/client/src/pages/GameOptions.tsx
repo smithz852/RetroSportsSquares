@@ -1,11 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
+import Landing from "./Landing";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Trophy, Circle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLocation } from "wouter";
 
 export default function GameOptions() {
-  return (
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+
+  if (user) {
+return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] gap-12 p-4">
       <motion.h1 
         initial={{ opacity: 0, y: -20 }}
@@ -54,4 +61,10 @@ export default function GameOptions() {
       </div>
     </div>
   );
+  } 
+  else
+  {
+    setLocation("/login")
+  }
+  
 }

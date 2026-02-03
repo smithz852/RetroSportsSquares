@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Scoreboard } from "@/components/Scoreboard";
+import { useAuth } from "@/hooks/use-auth";
 import { API_BASE_URL } from "../../../shared/routes";
 
 export default function GameBoard() {
+  const { user, isLoading: authLoading } = useAuth();
   const params = useParams();
   const id = params.id as string;
   const { toast } = useToast();
+  
+  // Redirect if not authenticated
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <h2 className="text-primary font-pixel animate-pulse">AUTHENTICATING...</h2>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-6">
+        <h2 className="text-red-500 font-pixel text-center">ACCESS DENIED - LOGIN REQUIRED</h2>
+        <Link href="/login">
+          <Button className="bg-red-600 text-black font-pixel py-4 px-8 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase">
+            LOGIN
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+  
+  // Validate game ID
+  if (!id || isNaN(Number(id))) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <h2 className="text-red-500 font-pixel">INVALID GAME ID</h2>
+      </div>
+    );
+  }
   
   const { data: game, isLoading: gameLoading, error } = useQuery({
     queryKey: ['game', id],
