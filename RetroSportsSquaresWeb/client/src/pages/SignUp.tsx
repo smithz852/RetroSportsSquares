@@ -18,18 +18,41 @@ export default function Signup() {
     confirmPassword: "",
   });
 
+  const validatePassword = (password: string) => {
+    const minLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return minLength && hasUpperCase && hasNumber && hasSpecialChar;
+  };
+  
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const password = e.target.value;
+    setFormData({ ...formData, password });
+    
+    // Set custom validation message
+    if (!validatePassword(password) && password.length > 0) {
+      e.target.setCustomValidity("Password must be 8+ chars with uppercase, number & special char");
+    } else {
+      e.target.setCustomValidity("");
+    }
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const confirmPassword = e.target.value;
+    setFormData({ ...formData, confirmPassword });
+    
+    // Check if passwords match
+    if (formData.password !== confirmPassword && confirmPassword.length > 0) {
+      e.target.setCustomValidity("Passwords do not match");
+    } else {
+      e.target.setCustomValidity("");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "ERROR",
-        description: "PASSWORDS DO NOT MATCH!",
-        variant: "destructive",
-        className: "bg-black border-2 border-red-900 text-red-500 font-pixel text-[10px]",
-      });
-      return;
-    }
 
     signup({
       name: formData.name,
@@ -54,6 +77,8 @@ export default function Signup() {
       }
     });
   };
+
+  const passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).{8,}$";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
@@ -94,8 +119,9 @@ export default function Signup() {
                 <Input
                   required
                   type="password"
+                  pattern={passwordPattern}
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={handlePasswordChange}
                   className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
               </div>
@@ -105,7 +131,7 @@ export default function Signup() {
                   required
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  onChange={handleConfirmPasswordChange}
                   className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
               </div>
