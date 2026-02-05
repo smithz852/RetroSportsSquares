@@ -25,8 +25,8 @@ namespace RSS.Controllers
             _sportsGameServices = sportsGameServices;
         }
 
-        [HttpGet("GetAvailableGames")]
-        public IActionResult GetAvailableGames()
+        [HttpGet("GetAvailableSquareGames")]
+        public IActionResult GetAvailableSquareGames()
         {
             var availableGames = _availableGamesServices.GetAllAvailableGames();
             var gamesDtoList = new List<AvailableGamesDTO>();
@@ -54,7 +54,7 @@ namespace RSS.Controllers
             //{
             //    return Unauthorized();
             //}
-            var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.Status, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
+            var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
            var dataSaved = _generalServices.SaveData(createdGame);
             if (!dataSaved)
             {

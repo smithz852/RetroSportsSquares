@@ -15,7 +15,9 @@ namespace RSS_DB.Entities
         [Required]
         public bool InUse { get; set; }
         [Required]
-        public string GameName { get; set; }
+        public string HomeTeam { get; set; }
+        [Required]
+        public string AwayTeam { get; set; }
         [Required]
         public string GameStartTime { get; set; }
         [Required]

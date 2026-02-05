@@ -59,8 +59,8 @@
   },
   {
     "ContainingType": "RSS.Controllers.AvailableGamesController",
-    "Method": "GetAvailableGames",
-    "RelativePath": "AvailableGames/GetAvailableGames",
+    "Method": "GetAvailableSquareGames",
+    "RelativePath": "AvailableGames/GetAvailableSquareGames",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,

@@ -89,7 +89,8 @@ namespace RSS_Services
                 {
                     ApiGameId = game.ApiGameId,
                     InUse = game.InUse,
-                    GameName = game.GameName,
+                    HomeTeam = game.HomeTeam,
+                    AwayTeam = game.AwayTeam,
                     GameStartTime = game.GameStartTime,
                     GameStartDate = testGameData,
                     SportType = game.SportType,

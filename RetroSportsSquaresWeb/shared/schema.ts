@@ -1,20 +1,22 @@
 // Frontend TypeScript types for .NET backend integration
 
-export interface Game {
+export interface SquareGame {
   gameId: string;
   gameName: string;
   gameType: 'football' | 'basketball';
-  status: 'open' | 'active' | 'started';
+  status: 'open' | 'closed';
   pricePerSquare: number;
-  topNumbers?: number[];
-  leftNumbers?: number[];
-  scoreData?: {
-    team1: { name: string; score: number; quarters: number[] };
-    team2: { name: string; score: number; quarters: number[] };
-    currentQuarter: number;
-    statusText: string;
-  };
   createdAt: string;
+}
+
+export interface SquareGameScoreData {
+    homeTeam: { name: string; score: number; quarterlyHomeScores: {Q1: number; Q2: number; Q3: number; Q4: number; OT: number } };
+    awayTeam: { name: string; score: number; quarterlyAwayScores: {Q1: number; Q2: number; Q3: number; Q4: number; OT: number } };
+    status: string;
+    winnerQ1: User;
+    winnerQ2: User;
+    winnerQ3: User;
+    winnerQ4: User;
 }
 
 export interface SquareSelection {
@@ -27,7 +29,7 @@ export interface SquareSelection {
   createdAt: string;
 }
 
-export interface CreateGameRequest {
+export interface CreateSquareGameRequest {
   name: string;
   gameType: 'football' | 'basketball';
   playerCount: number;
@@ -45,7 +47,8 @@ export interface CreateSquareSelectionRequest {
 
 export interface AvailableGameOptions {
   id: string;
-  gameName: string;
+  HomeTeam: string;
+  AwayTeam: string;
   status: string;
 }
 

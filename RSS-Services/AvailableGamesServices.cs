@@ -21,15 +21,15 @@ namespace RSS_Services
             return _appDbContext.AvailableGames.ToList();
         }
 
-        public SquareGames CreateGame(string name, string status, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = _timeHelpers.GetTimeDateTimeTodayInPst();
 
             var game = new SquareGames
             {
-                Name = name,
-                Status = status,
+                GameName = name,
+                isOpen = isOpen,
                 PlayerCount = playerCount,
                 CreatedAt = createdAt,
                 GameType = gameType,

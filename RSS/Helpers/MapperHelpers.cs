@@ -10,10 +10,10 @@ namespace RSS.Helpers
             return new AvailableGamesDTO
             {
                 GameId = availableGames.Id,
-                GameName = availableGames.Name,
+                GameName = availableGames.GameName,
                 GameType = availableGames.GameType,
                 CreatedAt = availableGames.CreatedAt,
-                Status = availableGames.Status,
+                IsOpen = availableGames.isOpen,
                 PlayerCount = availableGames.PlayerCount,
 
             };
@@ -24,7 +24,8 @@ namespace RSS.Helpers
             return new AvailableSportsGamesOptionsDTO
             {
                 Id = dailySportsGameOption.Id,
-                GameName = dailySportsGameOption.GameName,
+                HomeTeam = dailySportsGameOption.HomeTeam,
+                AwayTeam= dailySportsGameOption.AwayTeam,
                 Status = dailySportsGameOption.Status,
             };
         }

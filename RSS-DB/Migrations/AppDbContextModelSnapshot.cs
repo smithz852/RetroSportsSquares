@@ -226,20 +226,24 @@ namespace RSS_DB.Migrations
                     b.Property<int>("ApiGameId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AwayTeam")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<int>("CurrentAwayScore")
                         .HasColumnType("int");
 
                     b.Property<int>("CurrentHomeScore")
                         .HasColumnType("int");
 
-                    b.Property<string>("GameName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("GameStartDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("GameStartTime")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("HomeTeam")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -369,11 +373,11 @@ namespace RSS_DB.Migrations
                     b.Property<Guid>("DailySportGameId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("GameType")
+                    b.Property<string>("GameName")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("GameType")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -382,10 +386,6 @@ namespace RSS_DB.Migrations
 
                     b.Property<int>("PricePerSquare")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("WinnerQ1Id")
                         .HasColumnType("varchar(255)");
@@ -398,6 +398,9 @@ namespace RSS_DB.Migrations
 
                     b.Property<string>("WinnerQ4Id")
                         .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("isOpen")
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 

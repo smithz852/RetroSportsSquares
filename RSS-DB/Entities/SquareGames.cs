@@ -17,11 +17,11 @@ namespace RSS_DB.Entities
         [Required]
         public DailySportsGames DailySportGame { get; set; }
         [Required]
-        public string Name { get; set; }
+        public string GameName { get; set; }
         [Required]
         public string GameType { get; set; }
         [Required]
-        public string Status { get; set; }
+        public bool isOpen { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; }
         [Required]
