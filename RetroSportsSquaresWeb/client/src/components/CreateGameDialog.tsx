@@ -15,12 +15,12 @@ import { useParams, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 
 // Format game name for display
-function formatGameName(gameName: string) {
-  const [team1, team2] = gameName.split(/ vs /i);
+function formatGameName(HomeTeam: string, AwayTeam: string) {
+
 
   return (
     <>
-      {team1} <br /> VS <br /> {team2}
+      {HomeTeam} <br /> VS <br /> {AwayTeam}
     </>
   );
 }
@@ -163,7 +163,7 @@ export function CreateGameDialog() {
                       className={`p-1 m-2 ${dailySportsGameId === game.id ? "bg-primary" : ""}`}
                       size="sm"
                     >
-                      {formatGameName(game.gameName)}
+                      {formatGameName(game.HomeTeam, game.AwayTeam)}
                     </RetroButton>
                   </div>
                 ))

@@ -15,7 +15,6 @@ namespace RSS.Helpers
                 CreatedAt = availableGames.CreatedAt,
                 IsOpen = availableGames.isOpen,
                 PlayerCount = availableGames.PlayerCount,
-
             };
         }
 

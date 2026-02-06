@@ -4,7 +4,7 @@ export interface SquareGame {
   gameId: string;
   gameName: string;
   gameType: 'football' | 'basketball';
-  status: 'open' | 'closed';
+  isOpen: boolean;
   pricePerSquare: number;
   createdAt: string;
 }

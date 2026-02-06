@@ -6,16 +6,31 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
-import { API_BASE_URL } from "../../../shared/routes";
+import { getSquareGameById } from "@/hooks/use-games";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
   const params = useParams();
   const id = params.id as string;
   const { toast } = useToast();
+  
+  const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
+
+  const [topNumbers, setTopNumbers] = useState<(number | null)[]>(Array(10).fill(null));
+  const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(Array(10).fill(null));
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [gameStarted, setGameStarted] = useState(false);
+  
+  const [activePlayer, setActivePlayer] = useState(() => {
+    return localStorage.getItem("sports_squares_player") || "";
+  });
+  const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
+
+  // Odds Board State
+  const [multiplier, setMultiplier] = useState(5);
+  const [tempMultiplier, setTempMultiplier] = useState("5");
   
   // Redirect if not authenticated
   if (authLoading) {
@@ -39,38 +54,15 @@ export default function GameBoard() {
     );
   }
   
-  // Validate game ID
-  if (!id || isNaN(Number(id))) {
+  // Validate game ID (GUID format)
+  const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !guidRegex.test(id)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <h2 className="text-red-500 font-pixel">INVALID GAME ID</h2>
       </div>
     );
   }
-  
-  const { data: game, isLoading: gameLoading, error } = useQuery({
-    queryKey: ['game', id],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/games/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch game');
-      return response.json();
-    },
-    enabled: !!id,
-  });
-
-  const [topNumbers, setTopNumbers] = useState<(number | null)[]>(Array(10).fill(null));
-  const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(Array(10).fill(null));
-  const [selections, setSelections] = useState<Record<string, string>>({});
-  const [gameStarted, setGameStarted] = useState(false);
-  
-  const [activePlayer, setActivePlayer] = useState(() => {
-    return localStorage.getItem("sports_squares_player") || "";
-  });
-  const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
-
-  // Odds Board State
-  const [multiplier, setMultiplier] = useState(5);
-  const [tempMultiplier, setTempMultiplier] = useState("5");
 
   const handleSetPlayer = () => {
     setActivePlayer(tempPlayerName);

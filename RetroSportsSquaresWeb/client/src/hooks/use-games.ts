@@ -67,3 +67,18 @@ export function GetGameScoreData() {
     },
   });
 }
+
+export function getSquareGameById(id: string) {
+  return useQuery({
+    queryKey: ['game', id],
+    queryFn: async (): Promise<SquareGame> => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}${endpoints.games.squareGameById(id)}` , {
+    headers: { 'Authorization': `Bearer ${token}` }
+     });
+      if (!res.ok) throw new Error('Failed to fetch game');
+      return res.json();
+    },
+    enabled: !!id,
+  });
+}

@@ -40,5 +40,11 @@ namespace RSS_Services
             return game;
         }
 
+        public SquareGames GetGameById(string id)
+        {
+            var gameId = Guid.Parse(id);
+            return _appDbContext.AvailableGames.FirstOrDefault(g => g.Id == gameId);
+        }
+
     }
 }

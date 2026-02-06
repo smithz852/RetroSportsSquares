@@ -64,5 +64,18 @@ namespace RSS.Controllers
             var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
             return Ok(gameDto);
         }
+
+        [HttpGet("{id}")]
+        [Authorize]
+        public IActionResult GetSquareGameById(string id)
+        {
+            var availableGame = _availableGamesServices.GetGameById(id);
+            if (availableGame == null)
+            {
+                return NotFound();
+            }
+            var gameDto = _mapperHelpers.AvailableGamesMapper(availableGame);
+            return Ok(gameDto);
+        }
     }
 }

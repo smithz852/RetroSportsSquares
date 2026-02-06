@@ -43,6 +43,22 @@
   },
   {
     "ContainingType": "RSS.Controllers.AvailableGamesController",
+    "Method": "GetSquareGameById",
+    "RelativePath": "AvailableGames/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.AvailableGamesController",
     "Method": "CreateGame",
     "RelativePath": "AvailableGames/CreateGame",
     "HttpMethod": "POST",
