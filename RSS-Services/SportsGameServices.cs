@@ -210,10 +210,10 @@ namespace RSS_Services
             return game.ApiGameId;
         }
 
-        public List<SportsGamesInUseDTO> GetAllGamesInUse()
+        public List<SportsGamesInUseDTO> GetAllGamesInUse(string sportType)
         {
             var allGameInUse = _appDbContext.DailySportsGames
-                .Where(g => g.InUse == true)
+                .Where(g => g.InUse == true && g.SportType == sportType)
                 .Select(g => new SportsGamesInUseDTO
                 {
                     Id = g.Id
