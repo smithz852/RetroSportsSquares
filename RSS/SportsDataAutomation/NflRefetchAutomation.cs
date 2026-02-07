@@ -17,7 +17,7 @@ namespace RSS.SportsDataAutomation
         {
             var scope = _serviceProvider.CreateScope();
             var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
-            return nflGameServices.GetAllGamesInUse();
+            return nflGameServices.GetAllGamesInUse(sportsType);
         }
 
         protected override async Task<SportScoreUpdateDTO> FetchSportGameData(Guid id)
@@ -25,7 +25,7 @@ namespace RSS.SportsDataAutomation
             var scope = _serviceProvider.CreateScope();
             var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             var gameId = nflGameServices.GetGameApiIdFromId(id);
-            var gameUrl = $"https://v1.american-football.api-sports.io/games?id={gameId}";
+            var gameUrl = $"https://v1.{sportsType}.api-sports.io/games?id={gameId}";
 
             var game = await nflGameServices.GetSportsGameDataByGameId(gameUrl, sportsType);
             return game;

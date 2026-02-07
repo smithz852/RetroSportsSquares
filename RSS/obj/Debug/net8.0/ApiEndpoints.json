@@ -102,11 +102,22 @@
   {
     "ContainingType": "RSS.Controllers.AvailableSportsGamesController",
     "Method": "GetAvailableNflGameOptions",
-    "RelativePath": "AvailableSportsGames/GetAvailableNflGameOptions",
+    "RelativePath": "AvailableSportsGames/GetAvailable{gameType}League{leagueId}GameOptions",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "gameType",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "leagueId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   }
 ]

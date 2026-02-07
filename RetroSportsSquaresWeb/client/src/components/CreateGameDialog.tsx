@@ -35,12 +35,12 @@ export function CreateGameDialog() {
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { type } = useParams<{ type: string }>();
+  const { type, leagueId } = useParams<{ type: string, leagueId: string }>();
   const {
     data: availableGames,
     isLoading,
     error,
-  } = useGetAvailableGameOptions();
+  } = useGetAvailableGameOptions(type, leagueId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +49,7 @@ export function CreateGameDialog() {
     mutate(
       {
         name,
-        gameType: "football",
+        gameType: type,
         playerCount: parseInt(playerCount),
         Status: gameStatus,
         dailySportsGameId,
