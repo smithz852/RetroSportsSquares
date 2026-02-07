@@ -7,6 +7,9 @@ export interface SquareGame {
   isOpen: boolean;
   pricePerSquare: number;
   createdAt: string;
+  sportGameId: number;
+  homeTeam: string;
+  awayTeam: string;
 }
 
 export interface SquareGameScoreData {

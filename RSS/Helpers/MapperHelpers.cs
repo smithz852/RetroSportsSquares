@@ -7,6 +7,8 @@ namespace RSS.Helpers
     {
         public AvailableGamesDTO AvailableGamesMapper(SquareGames availableGames)
         {
+         
+
             return new AvailableGamesDTO
             {
                 GameId = availableGames.Id,
@@ -15,6 +17,10 @@ namespace RSS.Helpers
                 CreatedAt = availableGames.CreatedAt,
                 IsOpen = availableGames.isOpen,
                 PlayerCount = availableGames.PlayerCount,
+                PricePerSquare = availableGames.PricePerSquare,
+                SportGameId = availableGames.DailySportGame.ApiGameId,
+                HomeTeam = availableGames.DailySportGame.HomeTeam,
+                AwayTeam = availableGames.DailySportGame.AwayTeam,
             };
         }
 

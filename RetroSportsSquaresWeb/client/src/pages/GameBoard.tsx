@@ -9,6 +9,7 @@ import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { getSquareGameById } from "@/hooks/use-games";
+import { number } from "zod";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -29,8 +30,8 @@ export default function GameBoard() {
   const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
 
   // Odds Board State
-  const [multiplier, setMultiplier] = useState(5);
-  const [tempMultiplier, setTempMultiplier] = useState("5");
+  const [multiplier, setMultiplier] = useState(game?.pricePerSquare || 0);
+  const [tempMultiplier, setTempMultiplier] = useState(game?.pricePerSquare || 0);
   
   // Redirect if not authenticated
   if (authLoading) {
@@ -74,10 +75,9 @@ export default function GameBoard() {
   };
 
   const handleSetMultiplier = () => {
-    const val = parseInt(tempMultiplier);
-    if (!isNaN(val)) {
-      setMultiplier(val);
-      toast({ title: "MULTIPLIER SET", description: `Wager per square: ${val} coins` });
+    if (tempMultiplier >= 0) {
+      setMultiplier(tempMultiplier);
+      toast({ title: "MULTIPLIER SET", description: `Wager per square: ${tempMultiplier} coins` });
     }
   };
 
@@ -245,7 +245,7 @@ export default function GameBoard() {
                 <div className="flex gap-2">
                   <Input 
                     value={tempMultiplier}
-                    onChange={(e) => setTempMultiplier(e.target.value)}
+                    onChange={(e) => setTempMultiplier(parseInt(e.target.value))}
                     className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
                   />
                   <Button 
