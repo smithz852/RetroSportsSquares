@@ -18,7 +18,9 @@ namespace RSS_Services
 
         public List<SquareGames> GetAllAvailableGames()
         {
-            return _appDbContext.AvailableGames.ToList();
+            return _appDbContext.AvailableGames
+                .Include(g => g.DailySportGame)
+                .ToList();
         }
 
         public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
@@ -43,7 +45,9 @@ namespace RSS_Services
         public SquareGames GetGameById(string id)
         {
             var gameId = Guid.Parse(id);
-            return _appDbContext.AvailableGames.FirstOrDefault(g => g.Id == gameId);
+            return _appDbContext.AvailableGames
+                .Include(g => g.DailySportGame)
+                .FirstOrDefault(g => g.Id == gameId);
         }
 
     }

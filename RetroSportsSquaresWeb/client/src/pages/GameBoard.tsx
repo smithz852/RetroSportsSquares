@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,8 @@ export default function GameBoard() {
   const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(Array(10).fill(null));
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [gameStarted, setGameStarted] = useState(false);
+  const [homeTeam, setHomeTeam] = useState("");
+  const [awayTeam, setAwayTeam] = useState("");
   
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -30,8 +32,18 @@ export default function GameBoard() {
   const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
 
   // Odds Board State
-  const [multiplier, setMultiplier] = useState(game?.pricePerSquare || 0);
-  const [tempMultiplier, setTempMultiplier] = useState(game?.pricePerSquare || 0);
+  const [multiplier, setMultiplier] = useState(0);
+  const [tempMultiplier, setTempMultiplier] = useState(0);
+  
+  // Update state when game data loads
+  useEffect(() => {
+    if (game) {
+      setHomeTeam(game.homeTeam || "");
+      setAwayTeam(game.awayTeam || "");
+      setMultiplier(game.pricePerSquare || 0);
+      setTempMultiplier(game.pricePerSquare || 0);
+    }
+  }, [game]);
   
   // Redirect if not authenticated
   if (authLoading) {
@@ -187,9 +199,26 @@ export default function GameBoard() {
               </div>
             )}
           </div>
-
-          <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
-            <div 
+          
+          {/* Game Board with Team Labels */}
+          <div className="flex items-center gap-4">
+            {/* Away Team Label (Rotated) */}
+            <div className="flex items-center justify-center">
+              <span className="-rotate-90 text-red-600 font-pixel text-sm whitespace-nowrap">
+                {awayTeam}
+              </span>
+            </div>
+            
+            {/* Grid Container */}
+            <div className="flex flex-col">
+              {/* Home Team Label */}
+              <div className="text-center mb-7 pl-10 md:pl-14">
+                <span className="text-red-600 font-pixel text-sm">{homeTeam}</span>
+              </div>
+              
+              {/* Game Grid */}
+              <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
+                <div 
               onClick={() => { if(confirm("RESET GAME?")) { setGameStarted(false); clearNumbers(); clearSelections(); }}}
               className="w-10 h-10 md:w-14 md:h-14 bg-red-600 border-2 border-red-900 flex items-center justify-center cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500 transition-colors"
             >
@@ -228,6 +257,8 @@ export default function GameBoard() {
                 })}
               </div>
             ))}
+              </div>
+            </div>
           </div>
         </div>
 
