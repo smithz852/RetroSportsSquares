@@ -16,7 +16,7 @@ interface ScoreboardProps {
 
 export function Scoreboard({ isVisible, gameName, squareGameId }: ScoreboardProps) {
   const { data: scoreData, isLoading, error } = GetGameScoreData(squareGameId);
-  console.log(scoreData)
+  // console.log(scoreData)
   if (!isVisible) return null;
   
   // Show loading state
@@ -28,15 +28,22 @@ export function Scoreboard({ isVisible, gameName, squareGameId }: ScoreboardProp
     );
   }
 
+  let q2HomeScore = (scoreData?.q1HomeScore ?? 0) + (scoreData?.q2HomeScore ?? 0);
+  let q3HomeScore = q2HomeScore + (scoreData?.q3HomeScore ?? 0);
+  let q4HomeScore = q3HomeScore + (scoreData?.q4HomeScore ?? 0);
+  let q2AwayScore = (scoreData?.q1AwayScore ?? 0) + (scoreData?.q2AwayScore ?? 0);
+  let q3AwayScore = q2AwayScore + (scoreData?.q3AwayScore ?? 0);
+  let q4AwayScore = q3AwayScore + (scoreData?.q4AwayScore ?? 0);
+
   // Use scoreData if available, otherwise show placeholder
   const team1: TeamData = scoreData ? {
     name: scoreData.homeTeamName,
     score: scoreData.currentHomeScore,
     quarters: [
       scoreData.q1HomeScore ?? 0,
-      scoreData.q2HomeScore ?? 0,
-      scoreData.q3HomeScore ?? 0,
-      scoreData.q4HomeScore ?? 0
+      q2HomeScore,
+      q3HomeScore,
+      q4HomeScore
     ]
   } : {
     name: "HOME",
@@ -49,9 +56,9 @@ export function Scoreboard({ isVisible, gameName, squareGameId }: ScoreboardProp
     score: scoreData.currentAwayScore,
     quarters: [
       scoreData.q1AwayScore ?? 0,
-      scoreData.q2AwayScore ?? 0,
-      scoreData.q3AwayScore ?? 0,
-      scoreData.q4AwayScore ?? 0
+      q2AwayScore,
+      q3AwayScore,
+      q4AwayScore
     ]
   } : {
     name: "AWAY",
