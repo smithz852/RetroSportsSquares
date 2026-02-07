@@ -163,7 +163,7 @@ export function CreateGameDialog() {
                       className={`p-1 m-2 ${dailySportsGameId === game.id ? "bg-primary" : ""}`}
                       size="sm"
                     >
-                      {formatGameName(game.HomeTeam, game.AwayTeam)}
+                      {formatGameName(game.homeTeam, game.awayTeam)}
                     </RetroButton>
                   </div>
                 ))

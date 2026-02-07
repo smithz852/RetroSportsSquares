@@ -66,8 +66,8 @@ export interface CreateSquareSelectionRequest {
 
 export interface AvailableGameOptions {
   id: string;
-  HomeTeam: string;
-  AwayTeam: string;
+  homeTeam: string;
+  awayTeam: string;
   status: string;
 }
 
