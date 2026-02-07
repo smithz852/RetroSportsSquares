@@ -32,8 +32,8 @@ namespace RSS.SportsDataAutomation
 
            var dateString = timeHelpers.GetTimeStringTodayInPst();
 
-            //var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league={LeagueId}&date={dateString}&timezone=America/Los_Angeles";
-            var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles";
+            var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league={LeagueId}&date={dateString}&timezone=America/Los_Angeles";
+            //var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?league=1&season=2022&team=1&timezone=America/Los_Angeles";
 
 
             var availableGames = await nflGameServices.GetGamesAvailableToday(SportsType, gameUrl);

@@ -50,5 +50,17 @@ namespace RSS_Services
                 .FirstOrDefault(g => g.Id == gameId);
         }
 
+        public SquareGames GetAllScoreAndWinnerDataByGameId(string id)
+        {
+            var gameId = Guid.Parse(id);
+            return _appDbContext.AvailableGames
+                .Include(g => g.DailySportGame)
+                .Include(g => g.WinnerQ1)
+                .Include(g => g.WinnerQ2)
+                .Include(g => g.WinnerQ3)
+                .Include(g => g.WinnerQ4)
+                .FirstOrDefault(g => g.Id == gameId);
+        }
+
     }
 }

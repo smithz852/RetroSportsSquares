@@ -84,6 +84,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "RSS.Controllers.AvailableGamesController",
+    "Method": "GetGameScoreData",
+    "RelativePath": "AvailableGames/GetSquareGameScoreData/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "RSS.Controllers.AvailableSportsGamesController",
     "Method": "GetAvailableNflGameOptions",
     "RelativePath": "AvailableSportsGames/GetAvailableNflGameOptions",

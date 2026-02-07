@@ -77,5 +77,17 @@ namespace RSS.Controllers
             var gameDto = _mapperHelpers.AvailableGamesMapper(availableGame);
             return Ok(gameDto);
         }
+
+        [HttpGet("GetSquareGameScoreData/{id}")]
+        public IActionResult GetGameScoreData(string id)
+        {
+            var scoreData = _availableGamesServices.GetAllScoreAndWinnerDataByGameId(id);
+            if (scoreData == null)
+            {
+                return NotFound();
+            }
+            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData);
+            return Ok(gameDto);
+        }
     }
 }

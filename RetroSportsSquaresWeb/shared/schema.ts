@@ -13,13 +13,29 @@ export interface SquareGame {
 }
 
 export interface SquareGameScoreData {
-    homeTeam: { name: string; score: number; quarterlyHomeScores: {Q1: number; Q2: number; Q3: number; Q4: number; OT: number } };
-    awayTeam: { name: string; score: number; quarterlyAwayScores: {Q1: number; Q2: number; Q3: number; Q4: number; OT: number } };
-    status: string;
-    winnerQ1: User;
-    winnerQ2: User;
-    winnerQ3: User;
-    winnerQ4: User;
+  homeTeamName: string;
+  awayTeamName: string;
+  currentHomeScore: number;
+  currentAwayScore: number;
+  q1HomeScore: number;
+  q2HomeScore: number;
+  q3HomeScore: number;
+  q4HomeScore: number;
+  oTHomeScore: number;
+  q1AwayScore: number;
+  q2AwayScore: number;
+  q3AwayScore: number;
+  q4AwayScore: number;
+  oTAwayScore: number;
+  status: string;
+  winnerQ1Name?: string;      // Display name
+  winnerQ1UserId?: string;    // For tracking wins, future dev
+  winnerQ2Name?: string;
+  winnerQ2UserId?: string;
+  winnerQ3Name?: string;
+  winnerQ3UserId?: string;
+  winnerQ4Name?: string;
+  winnerQ4UserId?: string;
 }
 
 export interface SquareSelection {

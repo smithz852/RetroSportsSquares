@@ -153,7 +153,7 @@ export default function GameBoard() {
 
   return (
     <div className="flex flex-col items-center p-4 max-w-[1400px] mx-auto w-full">
-       <Scoreboard isVisible={gameStarted} gameName={(game as any)?.name} />
+       <Scoreboard isVisible={gameStarted} gameName={(game as any)?.name} squareGameId={id} />
       
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">

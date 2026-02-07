@@ -7,7 +7,7 @@ export const endpoints = {
     list: '/AvailableGames/GetAvailableSquareGames',
     create: '/AvailableGames/CreateGame',
     options: '/AvailableSportsGames/GetAvailableNflGameOptions',
-    scoreData: 'AvailableSportsGames/GetSquareGameScoreData',
+    scoreData: (gameId: string) => `/AvailableGames/GetSquareGameScoreData/${gameId}`,
     squareGameById: (gameId: string) => `/AvailableGames/${gameId}`
   },
   selections: {

@@ -54,17 +54,17 @@ export function useGetAvailableGameOptions() {
   });
 }
 
-export function GetGameScoreData() {
-  const queryClient = useQueryClient();
+export function GetGameScoreData(id: string) {
   return useQuery({
-    queryKey: ['gameScoreData'],
-    queryFn: async (): Promise<SquareGameScoreData[]> => {
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.scoreData}`);
-      if (!res.ok) throw new Error("Failed to fetch available game options");
-     const data = await res.json();
-     console.log(data);
+    queryKey: ['gameScoreData', id],
+    queryFn: async (): Promise<SquareGameScoreData> => {
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.scoreData(id)}`);
+      if (!res.ok) throw new Error("Failed to fetch game score data");
+       const data = await res.json();
+    //  console.log(data);
      return data;
     },
+    enabled: !!id,
   });
 }
 
