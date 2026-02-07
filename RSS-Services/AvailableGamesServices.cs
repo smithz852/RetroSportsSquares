@@ -16,20 +16,22 @@ namespace RSS_Services
             _timeHelpers = timeHelpers;
         }
 
-        public List<AvailableGames> GetAllAvailableGames()
+        public List<SquareGames> GetAllAvailableGames()
         {
-            return _appDbContext.AvailableGames.ToList();
+            return _appDbContext.AvailableGames
+                .Include(g => g.DailySportGame)
+                .ToList();
         }
 
-        public AvailableGames CreateGame(string name, string status, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = _timeHelpers.GetTimeDateTimeTodayInPst();
 
-            var game = new AvailableGames
+            var game = new SquareGames
             {
-                Name = name,
-                Status = status,
+                GameName = name,
+                isOpen = isOpen,
                 PlayerCount = playerCount,
                 CreatedAt = createdAt,
                 GameType = gameType,
@@ -38,6 +40,26 @@ namespace RSS_Services
             };
 
             return game;
+        }
+
+        public SquareGames GetGameById(string id)
+        {
+            var gameId = Guid.Parse(id);
+            return _appDbContext.AvailableGames
+                .Include(g => g.DailySportGame)
+                .FirstOrDefault(g => g.Id == gameId);
+        }
+
+        public SquareGames GetAllScoreAndWinnerDataByGameId(string id)
+        {
+            var gameId = Guid.Parse(id);
+            return _appDbContext.AvailableGames
+                .Include(g => g.DailySportGame)
+                .Include(g => g.WinnerQ1)
+                .Include(g => g.WinnerQ2)
+                .Include(g => g.WinnerQ3)
+                .Include(g => g.WinnerQ4)
+                .FirstOrDefault(g => g.Id == gameId);
         }
 
     }

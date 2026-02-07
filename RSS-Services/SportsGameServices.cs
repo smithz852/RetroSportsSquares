@@ -22,8 +22,9 @@ namespace RSS_Services
         private readonly FootballMapperHelper _footballMapperHelper;
         private readonly GeneralServices _generalServices;
         private readonly TimeHelpers _timeHelpers;
+        private readonly AvailableGamesServices _availableGamesServices;
 
-        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;
@@ -31,6 +32,8 @@ namespace RSS_Services
             _footballMapperHelper = footballMapperHelper;
             _generalServices = generalServices;
             _timeHelpers = timeHelpers;
+            _availableGamesServices = availableGamesServices;
+
         }
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
@@ -89,7 +92,8 @@ namespace RSS_Services
                 {
                     ApiGameId = game.ApiGameId,
                     InUse = game.InUse,
-                    GameName = game.GameName,
+                    HomeTeam = game.HomeTeam,
+                    AwayTeam = game.AwayTeam,
                     GameStartTime = game.GameStartTime,
                     GameStartDate = testGameData,
                     SportType = game.SportType,

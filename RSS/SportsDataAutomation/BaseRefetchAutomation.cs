@@ -1,4 +1,5 @@
-﻿using RSS_DB.Entities;
+﻿using RSS.DTOs;
+using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.DTOs;
 

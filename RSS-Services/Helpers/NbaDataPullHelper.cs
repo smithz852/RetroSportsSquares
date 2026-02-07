@@ -10,11 +10,10 @@ namespace RSS_Services.Helpers
 {
     public class NbaDataPullHelper
     {
-        private readonly DataSortHelpers _dataSortHelpers;
 
-        public NbaDataPullHelper(DataSortHelpers dataSortHelpers)
+        public NbaDataPullHelper()
         {
-            _dataSortHelpers = dataSortHelpers;
+
         }
         public void GetNbaGameData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
         {
@@ -22,12 +21,13 @@ namespace RSS_Services.Helpers
             foreach (var gameElement in responseArray.EnumerateArray())
             {
                 var leagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32();
+                var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
+                var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
 
                 if (leagueId == 12)
                 {
                     var gameStartString = gameElement.GetProperty("date").GetString();
                     var gameStartDate = DateTime.Parse(gameStartString);
-                    var mergeIntoGameName = _dataSortHelpers.MakeGameName(gameElement);
 
                     var gameDto = new SportsGamesAvailableDTO
                     {
@@ -35,7 +35,8 @@ namespace RSS_Services.Helpers
                         InUse = false,
                         GameStartTime = gameElement.GetProperty("time").GetString(),
                         GameStartDate = gameStartDate,
-                        GameName = mergeIntoGameName,
+                        HomeTeam = homeTeamName,
+                        AwayTeam = awayTeamName,
                         Status = gameElement.GetProperty("status").GetProperty("short").GetString(),
                         SportType = sportType,
                         League = gameElement.GetProperty("league").GetProperty("name").GetString(),

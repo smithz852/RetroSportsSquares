@@ -6,5 +6,6 @@ namespace RSS_DB.Entities
     {
         public string? DisplayName { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }

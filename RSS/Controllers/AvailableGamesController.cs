@@ -25,8 +25,8 @@ namespace RSS.Controllers
             _sportsGameServices = sportsGameServices;
         }
 
-        [HttpGet("GetAvailableGames")]
-        public IActionResult GetAvailableGames()
+        [HttpGet("GetAvailableSquareGames")]
+        public IActionResult GetAvailableSquareGames()
         {
             var availableGames = _availableGamesServices.GetAllAvailableGames();
             var gamesDtoList = new List<AvailableGamesDTO>();
@@ -54,7 +54,7 @@ namespace RSS.Controllers
             //{
             //    return Unauthorized();
             //}
-            var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.Status, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
+            var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
            var dataSaved = _generalServices.SaveData(createdGame);
             if (!dataSaved)
             {
@@ -62,6 +62,31 @@ namespace RSS.Controllers
             }
             _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
             var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
+            return Ok(gameDto);
+        }
+
+        [HttpGet("{id}")]
+        [Authorize]
+        public IActionResult GetSquareGameById(string id)
+        {
+            var availableGame = _availableGamesServices.GetGameById(id);
+            if (availableGame == null)
+            {
+                return NotFound();
+            }
+            var gameDto = _mapperHelpers.AvailableGamesMapper(availableGame);
+            return Ok(gameDto);
+        }
+
+        [HttpGet("GetSquareGameScoreData/{id}")]
+        public IActionResult GetGameScoreData(string id)
+        {
+            var scoreData = _availableGamesServices.GetAllScoreAndWinnerDataByGameId(id);
+            if (scoreData == null)
+            {
+                return NotFound();
+            }
+            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData);
             return Ok(gameDto);
         }
     }

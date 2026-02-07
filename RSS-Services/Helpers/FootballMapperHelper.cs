@@ -11,10 +11,10 @@ namespace RSS_Services.Helpers
 {
     public class FootballMapperHelper
     {
-        private readonly DataSortHelpers _dataSortHelpers;
-        public FootballMapperHelper(DataSortHelpers dataSortHelpers)
+
+        public FootballMapperHelper()
         {
-            _dataSortHelpers = dataSortHelpers;
+
         }
         public void MapFootballData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
         {
@@ -23,7 +23,8 @@ namespace RSS_Services.Helpers
             {
                 var gameStartString = gameElement.GetProperty("game").GetProperty("date").GetProperty("date").GetString();
                 var gameStartDate = DateTime.Parse(gameStartString);
-                var mergeIntoGameName = _dataSortHelpers.MakeGameName(gameElement);
+                var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
+                var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
                 var status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString();
 
                 if (status == null)
@@ -38,7 +39,8 @@ namespace RSS_Services.Helpers
                     InUse = false,
                     GameStartTime = gameElement.GetProperty("game").GetProperty("date").GetProperty("time").GetString(),
                     GameStartDate = gameStartDate,
-                    GameName = mergeIntoGameName,
+                    HomeTeam = homeTeamName,
+                    AwayTeam = awayTeamName,
                     Status = status,
                     SportType = sportType,
                     League = gameElement.GetProperty("league").GetProperty("name").GetString(),
@@ -56,7 +58,6 @@ namespace RSS_Services.Helpers
             {
                 var gameStartString = gameElement.GetProperty("game").GetProperty("date").GetProperty("date").GetString();
                 var gameStartDate = DateTime.Parse(gameStartString);
-                var mergeIntoGameName = _dataSortHelpers.MakeGameName(gameElement);
                 var status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString();
 
                 if (status == null)

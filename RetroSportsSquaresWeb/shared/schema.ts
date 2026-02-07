@@ -1,20 +1,41 @@
 // Frontend TypeScript types for .NET backend integration
 
-export interface Game {
+export interface SquareGame {
   gameId: string;
   gameName: string;
   gameType: 'football' | 'basketball';
-  status: 'open' | 'active' | 'started';
+  isOpen: boolean;
   pricePerSquare: number;
-  topNumbers?: number[];
-  leftNumbers?: number[];
-  scoreData?: {
-    team1: { name: string; score: number; quarters: number[] };
-    team2: { name: string; score: number; quarters: number[] };
-    currentQuarter: number;
-    statusText: string;
-  };
   createdAt: string;
+  sportGameId: number;
+  homeTeam: string;
+  awayTeam: string;
+}
+
+export interface SquareGameScoreData {
+  homeTeamName: string;
+  awayTeamName: string;
+  currentHomeScore: number;
+  currentAwayScore: number;
+  q1HomeScore: number;
+  q2HomeScore: number;
+  q3HomeScore: number;
+  q4HomeScore: number;
+  oTHomeScore: number;
+  q1AwayScore: number;
+  q2AwayScore: number;
+  q3AwayScore: number;
+  q4AwayScore: number;
+  oTAwayScore: number;
+  status: string;
+  winnerQ1Name?: string;      // Display name
+  winnerQ1UserId?: string;    // For tracking wins, future dev
+  winnerQ2Name?: string;
+  winnerQ2UserId?: string;
+  winnerQ3Name?: string;
+  winnerQ3UserId?: string;
+  winnerQ4Name?: string;
+  winnerQ4UserId?: string;
 }
 
 export interface SquareSelection {
@@ -27,7 +48,7 @@ export interface SquareSelection {
   createdAt: string;
 }
 
-export interface CreateGameRequest {
+export interface CreateSquareGameRequest {
   name: string;
   gameType: 'football' | 'basketball';
   playerCount: number;
@@ -45,7 +66,8 @@ export interface CreateSquareSelectionRequest {
 
 export interface AvailableGameOptions {
   id: string;
-  gameName: string;
+  homeTeam: string;
+  awayTeam: string;
   status: string;
 }
 

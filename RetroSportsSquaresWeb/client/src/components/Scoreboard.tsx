@@ -1,3 +1,4 @@
+import { GetGameScoreData } from "@/hooks/use-games";
 import { motion } from "framer-motion";
 import { Trophy, Clock } from "lucide-react";
 
@@ -10,21 +11,59 @@ interface TeamData {
 interface ScoreboardProps {
   isVisible: boolean;
   gameName?: string;
+  squareGameId: string;
 }
 
-export function Scoreboard({ isVisible, gameName }: ScoreboardProps) {
+export function Scoreboard({ isVisible, gameName, squareGameId }: ScoreboardProps) {
+  const { data: scoreData, isLoading, error } = GetGameScoreData(squareGameId);
+  // console.log(scoreData)
   if (!isVisible) return null;
+  
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-4xl mx-auto mb-8 bg-black border-4 border-red-900 p-8 text-center">
+        <div className="text-red-500 font-pixel">LOADING SCORES...</div>
+      </div>
+    );
+  }
 
-  // Filler data as requested
-  const team1: TeamData = {
-    name: "BUCS",
-    score: 24,
-    quarters: [7, 7, 3, 7]
+  let q2HomeScore = (scoreData?.q1HomeScore ?? 0) + (scoreData?.q2HomeScore ?? 0);
+  let q3HomeScore = q2HomeScore + (scoreData?.q3HomeScore ?? 0);
+  let q4HomeScore = q3HomeScore + (scoreData?.q4HomeScore ?? 0);
+  let q2AwayScore = (scoreData?.q1AwayScore ?? 0) + (scoreData?.q2AwayScore ?? 0);
+  let q3AwayScore = q2AwayScore + (scoreData?.q3AwayScore ?? 0);
+  let q4AwayScore = q3AwayScore + (scoreData?.q4AwayScore ?? 0);
+
+  // Use scoreData if available, otherwise show placeholder
+  const team1: TeamData = scoreData ? {
+    name: scoreData.homeTeamName,
+    score: scoreData.currentHomeScore,
+    quarters: [
+      scoreData.q1HomeScore ?? 0,
+      q2HomeScore,
+      q3HomeScore,
+      q4HomeScore
+    ]
+  } : {
+    name: "HOME",
+    score: 0,
+    quarters: [0, 0, 0, 0]
   };
-  const team2: TeamData = {
-    name: "PANTHERS",
-    score: 17,
-    quarters: [0, 10, 0, 7]
+  
+  const team2: TeamData = scoreData ? {
+    name: scoreData.awayTeamName,
+    score: scoreData.currentAwayScore,
+    quarters: [
+      scoreData.q1AwayScore ?? 0,
+      q2AwayScore,
+      q3AwayScore,
+      q4AwayScore
+    ]
+  } : {
+    name: "AWAY",
+    score: 0,
+    quarters: [0, 0, 0, 0]
   };
 
   return (
@@ -49,7 +88,7 @@ export function Scoreboard({ isVisible, gameName }: ScoreboardProps) {
 
         {/* Center Info */}
         <div className="p-4 flex flex-col items-center justify-center bg-red-900/5">
-          <span className="text-red-500 text-2xl mb-2">NS</span>
+          <span className="text-red-500 text-2xl mb-2">{scoreData?.status}</span>
           <div className="flex flex-col items-center gap-1">
             <span className="text-red-900 text-[8px] uppercase">Kickoff Time</span>
             <div className="flex items-center gap-2 text-red-500 text-xl">
@@ -75,7 +114,8 @@ export function Scoreboard({ isVisible, gameName }: ScoreboardProps) {
               <span className="text-red-500 text-xs">
                 {team1.quarters[idx]} - {team2.quarters[idx]}
               </span>
-              <Trophy className="w-4 h-4 text-yellow-600 animate-pulse" />
+              {/* winners go here */}
+              <Trophy className="w-4 h-4 text-yellow-600 animate-pulse" /> 
             </div>
           </div>
         ))}

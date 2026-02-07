@@ -77,9 +77,9 @@ if (user) {
                     {game.gameName}
                   </h3>
                   <span className={`px-2 py-1 text-xs font-['Press_Start_2P'] ${
-                    game.status === 'open' ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
+                    game.isOpen ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
                   }`}>
-                    {game.status}
+                    {game.isOpen ? "Open" : "Closed"}
                   </span>
                 </div>
                 

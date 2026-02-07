@@ -15,7 +15,9 @@ namespace RSS_DB.Entities
         [Required]
         public bool InUse { get; set; }
         [Required]
-        public string GameName { get; set; }
+        public string HomeTeam { get; set; }
+        [Required]
+        public string AwayTeam { get; set; }
         [Required]
         public string GameStartTime { get; set; }
         [Required]
@@ -30,7 +32,6 @@ namespace RSS_DB.Entities
         public string Status { get; set; }
         public int CurrentHomeScore { get; set; }
         public int CurrentAwayScore { get; set; }
-        public string CurrentQuarter { get; set; } = string.Empty;
         public int Q1HomeScore { get; set; }
         public int Q1AwayScore { get; set; }
         public int Q2HomeScore { get; set; }
@@ -41,7 +42,7 @@ namespace RSS_DB.Entities
         public int Q4AwayScore { get; set; }
         public int OTHomeScore { get; set; }
         public int OTAwayScore { get; set; }
-        public virtual List<AvailableGames> AvailableGames { get; set; }
+        public ICollection<SquareGames> AvailableGames { get; set; } = new List<SquareGames>();
 
         public DailySportsGames()
         {

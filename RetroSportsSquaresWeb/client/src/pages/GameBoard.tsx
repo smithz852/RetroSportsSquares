@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,16 +6,44 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
-import { API_BASE_URL } from "../../../shared/routes";
+import { getSquareGameById } from "@/hooks/use-games";
+import { number } from "zod";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
   const params = useParams();
   const id = params.id as string;
   const { toast } = useToast();
+  
+  const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
+
+  const [topNumbers, setTopNumbers] = useState<(number | null)[]>(Array(10).fill(null));
+  const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(Array(10).fill(null));
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [gameStarted, setGameStarted] = useState(false);
+  const [homeTeam, setHomeTeam] = useState("");
+  const [awayTeam, setAwayTeam] = useState("");
+  
+  const [activePlayer, setActivePlayer] = useState(() => {
+    return localStorage.getItem("sports_squares_player") || "";
+  });
+  const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
+
+  // Odds Board State
+  const [multiplier, setMultiplier] = useState(0);
+  const [tempMultiplier, setTempMultiplier] = useState(0);
+  
+  // Update state when game data loads
+  useEffect(() => {
+    if (game) {
+      setHomeTeam(game.homeTeam || "");
+      setAwayTeam(game.awayTeam || "");
+      setMultiplier(game.pricePerSquare || 0);
+      setTempMultiplier(game.pricePerSquare || 0);
+    }
+  }, [game]);
   
   // Redirect if not authenticated
   if (authLoading) {
@@ -39,38 +67,15 @@ export default function GameBoard() {
     );
   }
   
-  // Validate game ID
-  if (!id || isNaN(Number(id))) {
+  // Validate game ID (GUID format)
+  const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !guidRegex.test(id)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <h2 className="text-red-500 font-pixel">INVALID GAME ID</h2>
       </div>
     );
   }
-  
-  const { data: game, isLoading: gameLoading, error } = useQuery({
-    queryKey: ['game', id],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/games/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch game');
-      return response.json();
-    },
-    enabled: !!id,
-  });
-
-  const [topNumbers, setTopNumbers] = useState<(number | null)[]>(Array(10).fill(null));
-  const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(Array(10).fill(null));
-  const [selections, setSelections] = useState<Record<string, string>>({});
-  const [gameStarted, setGameStarted] = useState(false);
-  
-  const [activePlayer, setActivePlayer] = useState(() => {
-    return localStorage.getItem("sports_squares_player") || "";
-  });
-  const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
-
-  // Odds Board State
-  const [multiplier, setMultiplier] = useState(5);
-  const [tempMultiplier, setTempMultiplier] = useState("5");
 
   const handleSetPlayer = () => {
     setActivePlayer(tempPlayerName);
@@ -82,10 +87,9 @@ export default function GameBoard() {
   };
 
   const handleSetMultiplier = () => {
-    const val = parseInt(tempMultiplier);
-    if (!isNaN(val)) {
-      setMultiplier(val);
-      toast({ title: "MULTIPLIER SET", description: `Wager per square: ${val} coins` });
+    if (tempMultiplier >= 0) {
+      setMultiplier(tempMultiplier);
+      toast({ title: "MULTIPLIER SET", description: `Wager per square: ${tempMultiplier} coins` });
     }
   };
 
@@ -149,7 +153,7 @@ export default function GameBoard() {
 
   return (
     <div className="flex flex-col items-center p-4 max-w-[1400px] mx-auto w-full">
-       <Scoreboard isVisible={gameStarted} gameName={(game as any)?.name} />
+       <Scoreboard isVisible={gameStarted} gameName={(game as any)?.name} squareGameId={id} />
       
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">
@@ -195,9 +199,26 @@ export default function GameBoard() {
               </div>
             )}
           </div>
-
-          <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
-            <div 
+          
+          {/* Game Board with Team Labels */}
+          <div className="flex items-center gap-4">
+            {/* Away Team Label (Rotated) */}
+            <div className="flex items-center justify-center">
+              <span className="-rotate-90 text-red-600 font-pixel text-sm whitespace-nowrap">
+                {awayTeam}
+              </span>
+            </div>
+            
+            {/* Grid Container */}
+            <div className="flex flex-col">
+              {/* Home Team Label */}
+              <div className="text-center mb-7 pl-10 md:pl-14">
+                <span className="text-red-600 font-pixel text-sm">{homeTeam}</span>
+              </div>
+              
+              {/* Game Grid */}
+              <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
+                <div 
               onClick={() => { if(confirm("RESET GAME?")) { setGameStarted(false); clearNumbers(); clearSelections(); }}}
               className="w-10 h-10 md:w-14 md:h-14 bg-red-600 border-2 border-red-900 flex items-center justify-center cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500 transition-colors"
             >
@@ -236,6 +257,8 @@ export default function GameBoard() {
                 })}
               </div>
             ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -253,7 +276,7 @@ export default function GameBoard() {
                 <div className="flex gap-2">
                   <Input 
                     value={tempMultiplier}
-                    onChange={(e) => setTempMultiplier(e.target.value)}
+                    onChange={(e) => setTempMultiplier(parseInt(e.target.value))}
                     className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
                   />
                   <Button 
