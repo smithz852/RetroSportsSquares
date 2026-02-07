@@ -23,7 +23,7 @@ return (
       </motion.h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <Link href="/arena/football" asChild>
+        <Link href="/arena/football/1" asChild>
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -41,7 +41,7 @@ return (
           </motion.div>
         </Link>
 
-        <Link href="/arena/basketball" asChild>
+        <Link href="/arena/basketball/12" asChild>
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

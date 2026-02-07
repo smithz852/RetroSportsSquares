@@ -19,11 +19,11 @@ namespace RSS.Controllers
             _mapperHelpers = mapperHelpers;
         }
 
-        [HttpGet("GetAvailableNflGameOptions")]
-        public IActionResult GetAvailableNflGameOptions()
+        [HttpGet("GetAvailable{gameType}League{leagueId}GameOptions")]
+        public IActionResult GetAvailableNflGameOptions(string gameType, string leagueId)
         {
-            int leagueId = 1;
-           var availableGameOptions = _sportsGameServices.GetAvailableSportsGameOptions(leagueId);
+            int leagueIdStringToInt = int.Parse(leagueId);
+           var availableGameOptions = _sportsGameServices.GetAvailableSportsGameOptions(gameType, leagueIdStringToInt);
             var availableSportsGamesOptionsDTO = new List<AvailableSportsGamesOptionsDTO>();
 
             if (availableGameOptions == null)
@@ -33,17 +33,11 @@ namespace RSS.Controllers
 
             foreach (var gameOption in availableGameOptions)
             {
-               var availableNflOption = _mapperHelpers.AvailableSportsGamesOptionsMapper(gameOption);
-               availableSportsGamesOptionsDTO.Add(availableNflOption);
+               var availableSportsGameOptions = _mapperHelpers.AvailableSportsGamesOptionsMapper(gameOption);
+               availableSportsGamesOptionsDTO.Add(availableSportsGameOptions);
             }
             return Ok(availableSportsGamesOptionsDTO);
         }
 
-        //will need fetch by id function/api route
-        //[HttpGet("FetchNflScoreData")]
-        //public IActionResult FetchNflScoreData(int apiGameId)
-        //{
-            
-        //}
     }
 }

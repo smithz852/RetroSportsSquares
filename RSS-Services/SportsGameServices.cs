@@ -81,12 +81,13 @@ namespace RSS_Services
         {
             foreach (var game in availableGames)
             {
+
                 //temp delete after testing is done
-                var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                var customDate = new DateTime(2026, 1, 31);
-                var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
-                var dateString = todayPst.ToString("yyyy-MM-dd");
-                var testGameData = DateTime.Parse(dateString);
+                //var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                //var customDate = new DateTime(2026, 1, 31);
+                //var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
+                //var dateString = todayPst.ToString("yyyy-MM-dd");
+                //var testGameData = DateTime.Parse(dateString);
 
                 DailySportsGames dailySportsGames = new DailySportsGames()
                 {
@@ -95,7 +96,7 @@ namespace RSS_Services
                     HomeTeam = game.HomeTeam,
                     AwayTeam = game.AwayTeam,
                     GameStartTime = game.GameStartTime,
-                    GameStartDate = testGameData,
+                    GameStartDate = game.GameStartDate,
                     SportType = game.SportType,
                     League = game.League,
                     LeagueId = game.LeagueId,
@@ -106,19 +107,24 @@ namespace RSS_Services
             }
         }
 
-        public List<DailySportsGames> GetAvailableSportsGameOptions(int leagueId)
+        public List<DailySportsGames> GetAvailableSportsGameOptions(string gameType, int leagueId)
         {
-            //var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+            if (gameType == "football")
+            {
+                gameType = "american-football";
+            }
+                
 
             //for testing delete after
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var customDate = new DateTime(2026, 1, 31);
-            var todayTest = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
-            var dateString = todayTest.ToString("yyyy-MM-dd");
-            var todayPst = DateTime.Parse(dateString);
+            //var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            //var customDate = new DateTime(2026, 1, 31);
+            //var todayTest = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
+            //var dateString = todayTest.ToString("yyyy-MM-dd");
+            //var todayPst = DateTime.Parse(dateString);
 
             var availbleGameOptions = _appDbContext.DailySportsGames
-                .Where(g => g.GameStartDate.Date == todayPst && g.LeagueId == leagueId)
+                .Where(g => g.GameStartDate.Date == todayPst && g.LeagueId == leagueId && g.SportType == gameType)
                 .ToList(); //add check for status != FT or AOT later
             return availbleGameOptions;
         }

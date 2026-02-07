@@ -40,12 +40,12 @@ export function useCreateGame() {
   });
 }
 
-export function useGetAvailableGameOptions() {
+export function useGetAvailableGameOptions(gameType: string, leagueId: string) {
   const queryClient = useQueryClient();
   return useQuery({
     queryKey: ['available-game-options'],
     queryFn: async (): Promise<AvailableGameOptions[]> => {
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.options}`);
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.options(gameType, leagueId)}`);
       if (!res.ok) throw new Error("Failed to fetch available game options");
      const data = await res.json();
      console.log(data);

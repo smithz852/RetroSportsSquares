@@ -3,7 +3,7 @@
 export interface SquareGame {
   gameId: string;
   gameName: string;
-  gameType: 'football' | 'basketball';
+  gameType: string;
   isOpen: boolean;
   pricePerSquare: number;
   createdAt: string;
@@ -50,7 +50,7 @@ export interface SquareSelection {
 
 export interface CreateSquareGameRequest {
   name: string;
-  gameType: 'football' | 'basketball';
+  gameType: string;
   playerCount: number;
   Status: 'open' | 'closed';
   pricePerSquare?: number;
