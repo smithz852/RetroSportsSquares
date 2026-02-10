@@ -34,7 +34,7 @@ namespace RSS.SportsDataAutomation
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {

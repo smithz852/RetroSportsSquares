@@ -25,7 +25,7 @@ namespace RSS.SportsDataAutomation
             var scope = _serviceProvider.CreateScope();
             var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             var gameId = nflGameServices.GetGameApiIdFromId(id);
-            var gameUrl = $"https://v1.{sportsType}.api-sports.io/games?id={gameId}";
+            var gameUrl = $"https://v1.{sportsType}.api-sports.io/games?id={gameId}&timezone=America%2FLos_Angeles";
 
             var game = await nflGameServices.GetSportsGameDataByGameId(gameUrl, sportsType);
             return game;

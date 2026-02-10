@@ -18,13 +18,13 @@ namespace RSS_Services
     {
         private readonly AppDbContext _appDbContext;
         private readonly HttpClient _httpClient;
-        private readonly NbaDataPullHelper _nbaDataPullHelper;
+        private readonly BasketballMapperHelper _nbaDataPullHelper;
         private readonly FootballMapperHelper _footballMapperHelper;
         private readonly GeneralServices _generalServices;
         private readonly TimeHelpers _timeHelpers;
         private readonly AvailableGamesServices _availableGamesServices;
 
-        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, BasketballMapperHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;
@@ -188,11 +188,11 @@ namespace RSS_Services
                 using var document = JsonDocument.Parse(json);
                 var responseArray = document.RootElement.GetProperty("response");
 
-                //if (sportType == "basketball")
-                //{
-                //    _nbaDataPullHelper.GetNbaGameData(responseArray, gamesList, sportType);
-                //    return gamesList;
-                //}
+                if (sportType == "basketball")
+                {
+                    var basketballGame = _nbaDataPullHelper.MapBasketballScoreData(responseArray, sportType);
+                    return basketballGame;
+                }
 
                 var game =_footballMapperHelper.MapFootballScoreData(responseArray, sportType);
                 return game;
