@@ -1,12 +1,12 @@
 import { GetGameScoreData } from "@/hooks/use-games";
 import { motion } from "framer-motion";
 import { Trophy, Clock } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 interface TeamData {
   name: string;
   score: number;
-  quarters: number[];
+  quarters: (number | null | undefined)[];
 }
 
 interface ScoreboardProps {
@@ -25,7 +25,112 @@ export function Scoreboard({
     isLoading,
     error,
   } = GetGameScoreData(squareGameId, isVisible ? 1 * 60 * 1000 : false);
-  console.log(scoreData)
+  console.log(scoreData);
+
+ // Use scoreData if available, otherwise show placeholder
+  const team1 = useMemo<TeamData>(
+    () =>
+      scoreData
+        ? {
+            name: scoreData.homeTeamName,
+            score: scoreData.currentHomeScore,
+            quarters: [
+              scoreData?.q1HomeScore,
+              scoreData?.q2HomeScore,
+              scoreData?.q3HomeScore,
+              scoreData?.q4HomeScore,
+              // scoreData?.oTHomeScore,
+            ],
+          }
+        : {
+            name: "HOME",
+            score: 0,
+            quarters: [null, null, null, null],
+          },
+    [scoreData],
+  );
+
+  const team2 = useMemo<TeamData>(
+    () =>
+      scoreData
+        ? {
+            name: scoreData.awayTeamName,
+            score: scoreData.currentAwayScore,
+            quarters: [
+              scoreData?.q1AwayScore,
+              scoreData?.q2AwayScore,
+              scoreData?.q3AwayScore,
+              scoreData?.q4AwayScore,
+              // scoreData?.oTAwayScore,
+            ],
+          }
+        : {
+            name: "AWAY",
+            score: 0,
+            quarters: [null, null, null, null],
+          },
+    [scoreData],
+  );
+
+   const PERIOD_MAP: Record<string, number> = {
+    Q1: 1,
+    Q2: 2,
+    HALF: 2,
+    Q3: 3,
+    Q4: 4,
+    FINAL: 4,
+    FT: 4,
+    OT: 5,
+  };
+
+ const getCurrentGamePeriodIndex = (period?: string | null): number => {
+    if (!period) return 0;
+
+    const upper = period.toUpperCase();
+
+    for (const key in PERIOD_MAP) {
+      if (upper.includes(key)) return PERIOD_MAP[key];
+    }
+
+    return 0;
+  };
+
+  const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
+
+  const sumThroughQuarter = (
+    quarters: (number | null | undefined)[],
+    throughQuarter: number,
+  ) =>
+    quarters
+      .slice(0, throughQuarter)
+      .reduce((sum: number, q) => sum + (q ?? 0), 0);
+
+   const getScoreAtQuarter = (
+    quarters: (number | null | undefined)[],
+    quarter: number,
+    currentQuarter: number,
+  ) => {
+    if (quarter > currentQuarter) return null;
+
+    return sumThroughQuarter(quarters, quarter);
+  };
+
+  const buildTotalsByQuarter = (
+    quarters: (number | null | undefined)[],
+    currentQuarter: number,
+  ) =>
+    quarters.map((_, i) => getScoreAtQuarter(quarters, i + 1, currentQuarter));
+
+   const team1Totals = useMemo(
+    () => buildTotalsByQuarter(team1.quarters, currentQuarter),
+    [team1.quarters, currentQuarter],
+  );
+
+  const team2Totals = useMemo(
+    () => buildTotalsByQuarter(team2.quarters, currentQuarter),
+    [team2.quarters, currentQuarter],
+  );
+
   if (!isVisible) return null;
 
   // Show loading state
@@ -37,49 +142,7 @@ export function Scoreboard({
     );
   }
 
-  let q2HomeScore =
-    (scoreData?.q1HomeScore ?? 0) + (scoreData?.q2HomeScore ?? 0);
-  let q3HomeScore = q2HomeScore + (scoreData?.q3HomeScore ?? 0);
-  let q4HomeScore = q3HomeScore + (scoreData?.q4HomeScore ?? 0);
-  let q2AwayScore =
-    (scoreData?.q1AwayScore ?? 0) + (scoreData?.q2AwayScore ?? 0);
-  let q3AwayScore = q2AwayScore + (scoreData?.q3AwayScore ?? 0);
-  let q4AwayScore = q3AwayScore + (scoreData?.q4AwayScore ?? 0);
-
-  // Use scoreData if available, otherwise show placeholder
-  const team1: TeamData = scoreData
-    ? {
-        name: scoreData.homeTeamName,
-        score: scoreData.currentHomeScore,
-        quarters: [
-          scoreData.q1HomeScore ?? 0,
-          q2HomeScore,
-          q3HomeScore,
-          q4HomeScore,
-        ],
-      }
-    : {
-        name: "HOME",
-        score: 0,
-        quarters: [0, 0, 0, 0],
-      };
-
-  const team2: TeamData = scoreData
-    ? {
-        name: scoreData.awayTeamName,
-        score: scoreData.currentAwayScore,
-        quarters: [
-          scoreData.q1AwayScore ?? 0,
-          q2AwayScore,
-          q3AwayScore,
-          q4AwayScore,
-        ],
-      }
-    : {
-        name: "AWAY",
-        score: 0,
-        quarters: [0, 0, 0, 0],
-      };
+  
 
   return (
     <motion.div
@@ -140,7 +203,7 @@ export function Scoreboard({
             </span>
             <div className="flex flex-col items-center gap-2">
               <span className="text-red-500 text-xs">
-                {team1.quarters[idx]} - {team2.quarters[idx]}
+                {team1Totals[idx] ?? "-"} - {team2Totals[idx] ?? "-"}
               </span>
               {/* winners go here */}
               <Trophy className="w-4 h-4 text-yellow-600 animate-pulse" />
