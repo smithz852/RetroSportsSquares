@@ -10,6 +10,7 @@ export interface SquareGame {
   sportGameId: number;
   homeTeam: string;
   awayTeam: string;
+  startTime: Date;
 }
 
 export interface SquareGameScoreData {

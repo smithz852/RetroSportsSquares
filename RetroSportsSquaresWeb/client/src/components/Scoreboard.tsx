@@ -1,7 +1,8 @@
 import { GetGameScoreData } from "@/hooks/use-games";
 import { motion } from "framer-motion";
 import { Trophy, Clock } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { start } from "repl";
 
 interface TeamData {
   name: string;
@@ -13,21 +14,71 @@ interface ScoreboardProps {
   isVisible: boolean;
   gameName?: string;
   squareGameId: string;
+  gameStartTime: Date | undefined;
 }
 
 export function Scoreboard({
   isVisible,
   gameName,
   squareGameId,
+  gameStartTime,
 }: ScoreboardProps) {
   const {
     data: scoreData,
     isLoading,
     error,
   } = GetGameScoreData(squareGameId, isVisible ? 1 * 60 * 1000 : false);
-  console.log(scoreData);
+  // console.log("GST: ", gameStartTime);
 
- // Use scoreData if available, otherwise show placeholder
+  const [hasGameStarted, setHasGameStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  const timeUntilGame = () => {
+  if (!gameStartTime) return <span>TBD</span>;
+  if (timeLeft === null) return null;
+
+  const totalMinutes = Math.floor(timeLeft / (1000 * 60));
+  const hoursLeft = Math.floor(totalMinutes / 60);
+  const minutesLeft = totalMinutes % 60;
+  const secondsLeft = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+  return (
+    <span>
+      {hoursLeft}h {minutesLeft}m {secondsLeft}s
+    </span>
+  );
+};
+
+
+  useEffect(() => {
+  if (!gameStartTime) return;
+
+  setHasGameStarted(false);
+
+  const calculateTimeLeft = () => {
+    const startTime = new Date(gameStartTime);
+    // console.log("ST", startTime)
+    const now = new Date();
+
+    const diff = startTime.getTime() - now.getTime();
+// console.log(diff)
+    if (diff <= 0) {
+      setHasGameStarted(true);
+      setTimeLeft(0);
+      return;
+    }
+
+    setTimeLeft(diff);
+  };
+
+  calculateTimeLeft();
+  const interval = setInterval(calculateTimeLeft, 1000);
+
+  return () => clearInterval(interval);
+
+}, [gameStartTime]);
+
+  // Use scoreData if available, otherwise show placeholder
   const team1 = useMemo<TeamData>(
     () =>
       scoreData
@@ -72,7 +123,7 @@ export function Scoreboard({
     [scoreData],
   );
 
-   const PERIOD_MAP: Record<string, number> = {
+  const PERIOD_MAP: Record<string, number> = {
     Q1: 1,
     Q2: 2,
     HALF: 2,
@@ -83,7 +134,7 @@ export function Scoreboard({
     OT: 5,
   };
 
- const getCurrentGamePeriodIndex = (period?: string | null): number => {
+  const getCurrentGamePeriodIndex = (period?: string | null): number => {
     if (!period) return 0;
 
     const upper = period.toUpperCase();
@@ -105,7 +156,7 @@ export function Scoreboard({
       .slice(0, throughQuarter)
       .reduce((sum: number, q) => sum + (q ?? 0), 0);
 
-   const getScoreAtQuarter = (
+  const getScoreAtQuarter = (
     quarters: (number | null | undefined)[],
     quarter: number,
     currentQuarter: number,
@@ -121,7 +172,7 @@ export function Scoreboard({
   ) =>
     quarters.map((_, i) => getScoreAtQuarter(quarters, i + 1, currentQuarter));
 
-   const team1Totals = useMemo(
+  const team1Totals = useMemo(
     () => buildTotalsByQuarter(team1.quarters, currentQuarter),
     [team1.quarters, currentQuarter],
   );
@@ -141,8 +192,6 @@ export function Scoreboard({
       </div>
     );
   }
-
-  
 
   return (
     <motion.div
@@ -173,15 +222,24 @@ export function Scoreboard({
           <span className="text-red-500 text-2xl mb-2">
             {scoreData?.status}
           </span>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-red-900 text-[8px] uppercase">
-              Kickoff Time
-            </span>
-            <div className="flex items-center gap-2 text-red-500 text-xl">
-              <Clock className="w-4 h-4" />
-              <span>13:08</span>
+          {hasGameStarted ? (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-red-900 text-[8px] uppercase">Leader</span>
+              <div className="flex items-center gap-2 text-red-500 text-xl">
+                <span>User2</span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-red-900 text-[8px] uppercase">
+                Game Time
+              </span>
+              <div className="flex items-center gap-2 text-red-500 text-xl">
+                <Clock className="w-4 h-4" />
+                {timeUntilGame()}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Team 2 */}

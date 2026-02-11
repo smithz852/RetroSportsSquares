@@ -25,6 +25,7 @@ export default function GameBoard() {
   const [gameStarted, setGameStarted] = useState(false);
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
+
   
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -151,9 +152,10 @@ export default function GameBoard() {
     return acc;
   }, {} as Record<string, number>);
 
+
   return (
     <div className="flex flex-col items-center p-4 max-w-[1400px] mx-auto w-full">
-       <Scoreboard isVisible={gameStarted} gameName={(game as any)?.name} squareGameId={id} />
+       <Scoreboard isVisible={gameStarted} gameName={(game as any)?.name} squareGameId={id} gameStartTime={game?.startTime} />
       
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">
@@ -176,7 +178,9 @@ export default function GameBoard() {
             {!gameStarted ? (
               <>
                 <Button 
-                  onClick={() => setGameStarted(true)}
+                  onClick={() => {
+                    setGameStarted(true)
+                  }}
                   className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
                 >
                   INSERT COIN / START GAME
