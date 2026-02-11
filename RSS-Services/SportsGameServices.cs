@@ -18,13 +18,13 @@ namespace RSS_Services
     {
         private readonly AppDbContext _appDbContext;
         private readonly HttpClient _httpClient;
-        private readonly NbaDataPullHelper _nbaDataPullHelper;
+        private readonly BasketballMapperHelper _nbaDataPullHelper;
         private readonly FootballMapperHelper _footballMapperHelper;
         private readonly GeneralServices _generalServices;
         private readonly TimeHelpers _timeHelpers;
         private readonly AvailableGamesServices _availableGamesServices;
 
-        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, NbaDataPullHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, BasketballMapperHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;
@@ -131,8 +131,7 @@ namespace RSS_Services
 
         public void SetGameInUse(string dailySportsGameId)
         {
-            var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
-            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
+            var game = GetDailySportGameById(dailySportsGameId);
             if (game != null)
             {
                 game.InUse = true;
@@ -188,11 +187,11 @@ namespace RSS_Services
                 using var document = JsonDocument.Parse(json);
                 var responseArray = document.RootElement.GetProperty("response");
 
-                //if (sportType == "basketball")
-                //{
-                //    _nbaDataPullHelper.GetNbaGameData(responseArray, gamesList, sportType);
-                //    return gamesList;
-                //}
+                if (sportType == "basketball")
+                {
+                    var basketballGame = _nbaDataPullHelper.MapBasketballScoreData(responseArray, sportType);
+                    return basketballGame;
+                }
 
                 var game =_footballMapperHelper.MapFootballScoreData(responseArray, sportType);
                 return game;
@@ -210,16 +209,45 @@ namespace RSS_Services
             return game.ApiGameId;
         }
 
+        public DailySportsGames GetDailySportGameById(string dailySportsGameId)
+        {
+            var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
+            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
+            return game;
+        }
+
+        //Guid overload 
+        public DailySportsGames GetDailySportGameById(Guid dailySportsGameId)
+        {
+            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameId);
+            return game;
+        }
+
         public List<SportsGamesInUseDTO> GetAllGamesInUse(string sportType)
         {
             var allGameInUse = _appDbContext.DailySportsGames
                 .Where(g => g.InUse == true && g.SportType == sportType)
                 .Select(g => new SportsGamesInUseDTO
                 {
-                    Id = g.Id
+                    Id = g.Id,
                 })
                 .ToList();
             return allGameInUse;
+        }
+
+        public bool HasGameStarted(Guid gameId)
+        {
+            var game = GetDailySportGameById(gameId);
+            var startTimeString = game.GameStartTime;
+
+            var gameStartTime = TimeSpan.Parse(startTimeString);
+            var currentTime = _timeHelpers.GetCurrentTimeInPst().TimeOfDay;
+
+            if (currentTime >= gameStartTime)
+            {
+                return true;
+            }
+            return false;
         }
 
     }

@@ -54,7 +54,7 @@ export function useGetAvailableGameOptions(gameType: string, leagueId: string) {
   });
 }
 
-export function GetGameScoreData(id: string) {
+export function GetGameScoreData(id: string, refetchInterval?: number | false) {
   return useQuery({
     queryKey: ['gameScoreData', id],
     queryFn: async (): Promise<SquareGameScoreData> => {
@@ -65,6 +65,7 @@ export function GetGameScoreData(id: string) {
      return data;
     },
     enabled: !!id,
+    refetchInterval,
   });
 }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RSS_DB.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,10 @@ namespace RSS_Services.Helpers
 {
     public class TimeHelpers
     {
+        public TimeHelpers()
+        {
+            
+        }
         public string GetTimeStringTodayInPst()
         {
             var todayPst = GetTimeDateTimeTodayInPst();
@@ -21,5 +26,14 @@ namespace RSS_Services.Helpers
             var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
             return todayPst;
         }
+
+        public DateTime GetCurrentTimeInPst()
+        {
+            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var currentTimePst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone);
+            return currentTimePst;
+        }
+
+        
     }
 }

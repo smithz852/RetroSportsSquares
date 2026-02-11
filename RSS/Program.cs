@@ -51,7 +51,7 @@ builder.Services.AddAuthentication(options =>
 
 // Your existing services
 builder.Services.AddScoped<RSS_Services.AvailableGamesServices>();
-builder.Services.AddScoped<NbaDataPullHelper>();
+builder.Services.AddScoped<BasketballMapperHelper>();
 builder.Services.AddScoped<FootballMapperHelper>();
 builder.Services.AddScoped<GeneralServices>();
 builder.Services.AddScoped<TimeHelpers>();
@@ -78,6 +78,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<NflAutomation>();
 builder.Services.AddHostedService<NbaAutomation>();
 builder.Services.AddHostedService<NflRefetchAutomation>();
+builder.Services.AddHostedService<BasketballRefetchAutomation>();
 
 var app = builder.Build();
 

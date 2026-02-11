@@ -2,6 +2,7 @@
 using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.DTOs;
+using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
@@ -27,14 +28,18 @@ namespace RSS.SportsDataAutomation
                 {
                     foreach (var game in gamesInUse)
                     {
-                        var newSportsData = await FetchSportGameData(game.Id);
-                        sportsServices.UpdateSportsData(newSportsData, game.Id); //done
+                        var hasGameStarted = sportsServices.HasGameStarted(game.Id);
+                        if (hasGameStarted)
+                        {
+                            var newSportsData = await FetchSportGameData(game.Id);
+                            sportsServices.UpdateSportsData(newSportsData, game.Id);
+                        }
                     }
                 }
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
