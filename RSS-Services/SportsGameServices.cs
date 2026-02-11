@@ -216,16 +216,38 @@ namespace RSS_Services
             return game;
         }
 
+        //Guid overload 
+        public DailySportsGames GetDailySportGameById(Guid dailySportsGameId)
+        {
+            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameId);
+            return game;
+        }
+
         public List<SportsGamesInUseDTO> GetAllGamesInUse(string sportType)
         {
             var allGameInUse = _appDbContext.DailySportsGames
                 .Where(g => g.InUse == true && g.SportType == sportType)
                 .Select(g => new SportsGamesInUseDTO
                 {
-                    Id = g.Id
+                    Id = g.Id,
                 })
                 .ToList();
             return allGameInUse;
+        }
+
+        public bool HasGameStarted(Guid gameId)
+        {
+            var game = GetDailySportGameById(gameId);
+            var startTimeString = game.GameStartTime;
+
+            var gameStartTime = TimeSpan.Parse(startTimeString);
+            var currentTime = _timeHelpers.GetCurrentTimeInPst().TimeOfDay;
+
+            if (currentTime >= gameStartTime)
+            {
+                return true;
+            }
+            return false;
         }
 
     }

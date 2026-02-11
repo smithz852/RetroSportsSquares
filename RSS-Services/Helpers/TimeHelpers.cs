@@ -9,11 +9,9 @@ namespace RSS_Services.Helpers
 {
     public class TimeHelpers
     {
-        private readonly SportsGameServices _sportsGameServices;
-
-        public TimeHelpers(SportsGameServices sportsGameServices)
+        public TimeHelpers()
         {
-            _sportsGameServices = sportsGameServices;
+            
         }
         public string GetTimeStringTodayInPst()
         {
@@ -36,19 +34,6 @@ namespace RSS_Services.Helpers
             return currentTimePst;
         }
 
-        public bool HasGameStarted(string gameId)
-        {
-            var game = _sportsGameServices.GetDailySportGameById(gameId);
-            var startTimeString = game.GameStartTime;
-
-            var gameStartTime = TimeSpan.Parse(startTimeString);
-            var currentTime = GetCurrentTimeInPst().TimeOfDay;
-
-            if (currentTime >= gameStartTime)
-            {
-                return true;
-            }
-            return false;
-        }
+        
     }
 }
