@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RSS.DTOs;
 using RSS.Helpers;
 using RSS_Services;
+using RSS_Services.Helpers;
 using System.Linq;
 using System.Security.Claims;
 
@@ -16,13 +17,15 @@ namespace RSS.Controllers
         private readonly MapperHelpers _mapperHelpers;
         private readonly GeneralServices _generalServices;
         private readonly SportsGameServices _sportsGameServices;
+        private readonly TimeHelpers _timeHelpers;
 
-        public AvailableGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
+        public AvailableGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, TimeHelpers timeHelpers)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
             _generalServices = generalServices;
             _sportsGameServices = sportsGameServices;
+            _timeHelpers = timeHelpers;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -60,7 +63,11 @@ namespace RSS.Controllers
             {
                 return BadRequest("Failed to save game data.");
             }
-            _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
+           var hasGameStarted = _timeHelpers.HasGameStarted(gameData.DailySportsGameId);
+            if (hasGameStarted)
+            {
+                _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
+            }
             var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
             return Ok(gameDto);
         }

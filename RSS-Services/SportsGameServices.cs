@@ -131,8 +131,7 @@ namespace RSS_Services
 
         public void SetGameInUse(string dailySportsGameId)
         {
-            var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
-            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
+            var game = GetDailySportGameById(dailySportsGameId);
             if (game != null)
             {
                 game.InUse = true;
@@ -208,6 +207,13 @@ namespace RSS_Services
         {
             var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == id);
             return game.ApiGameId;
+        }
+
+        public DailySportsGames GetDailySportGameById(string dailySportsGameId)
+        {
+            var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
+            var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
+            return game;
         }
 
         public List<SportsGamesInUseDTO> GetAllGamesInUse(string sportType)
