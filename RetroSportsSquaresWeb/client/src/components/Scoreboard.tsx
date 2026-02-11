@@ -27,7 +27,7 @@ export function Scoreboard({
     data: scoreData,
     isLoading,
     error,
-  } = GetGameScoreData(squareGameId, isVisible ? 1 * 60 * 1000 : false);
+  } = GetGameScoreData(squareGameId, isVisible ? 2 * 60 * 1000 : false);
   // console.log("GST: ", gameStartTime);
 
   const [hasGameStarted, setHasGameStarted] = useState(false);
