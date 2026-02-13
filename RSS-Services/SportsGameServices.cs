@@ -82,13 +82,6 @@ namespace RSS_Services
             foreach (var game in availableGames)
             {
 
-                //temp delete after testing is done
-                //var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                //var customDate = new DateTime(2026, 1, 31);
-                //var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
-                //var dateString = todayPst.ToString("yyyy-MM-dd");
-                //var testGameData = DateTime.Parse(dateString);
-
                 DailySportsGames dailySportsGames = new DailySportsGames()
                 {
                     ApiGameId = game.ApiGameId,
@@ -238,12 +231,9 @@ namespace RSS_Services
         public bool HasGameStarted(Guid gameId)
         {
             var game = GetDailySportGameById(gameId);
-            var startTimeString = game.GameStartTime;
+            var startTime = game.GameStartTime;
 
-            var gameStartTime = TimeSpan.Parse(startTimeString);
-            var currentTime = _timeHelpers.GetCurrentTimeInPst().TimeOfDay;
-
-            if (currentTime >= gameStartTime)
+            if (DateTimeOffset.UtcNow >= startTime)
             {
                 return true;
             }

@@ -26,6 +26,8 @@ namespace RSS_Services.Helpers
                 var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
                 var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
                 var status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString();
+                var gameStartTimeUnix = gameElement.GetProperty("game").GetProperty("date").GetProperty("timestamp").GetInt64();
+                var gameStartTime = DateTimeOffset.FromUnixTimeSeconds(gameStartTimeUnix);
 
                 if (status == null)
                 {
@@ -37,7 +39,7 @@ namespace RSS_Services.Helpers
                 {
                     ApiGameId = gameElement.GetProperty("game").GetProperty("id").GetInt32(),
                     InUse = false,
-                    GameStartTime = gameElement.GetProperty("game").GetProperty("date").GetProperty("time").GetString(),
+                    GameStartTime = gameStartTime, 
                     GameStartDate = gameStartDate,
                     HomeTeam = homeTeamName,
                     AwayTeam = awayTeamName,

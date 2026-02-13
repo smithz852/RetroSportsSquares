@@ -6,8 +6,8 @@
         public bool InUse { get; set; }
         public string HomeTeam { get; set; }
         public string AwayTeam { get; set; }
-        public string GameStartTime { get; set; }
-        public DateTime GameStartDate { get; set; }
+        public DateTimeOffset GameStartTime { get; set; }
+        public DateTimeOffset GameStartDate { get; set; }
         public string Status { get; set; }
         public string SportType { get; set; }
         public string League { get; set; }
