@@ -1,6 +1,6 @@
 ﻿namespace RSS.DTOs
 {
-    public class AvailableGamesDTO
+    public class SquareGamesDTO
     {
         public Guid GameId { get; set; }
         public string GameName { get; set; }

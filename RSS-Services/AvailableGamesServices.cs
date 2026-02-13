@@ -18,7 +18,7 @@ namespace RSS_Services
 
         public List<SquareGames> GetAllAvailableGames()
         {
-            return _appDbContext.AvailableGames
+            return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
                 .ToList();
         }
@@ -26,7 +26,7 @@ namespace RSS_Services
         public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
-            var createdAt = _timeHelpers.GetTimeDateTimeTodayInPst();
+            var createdAt = DateTimeOffset.UtcNow;
 
             var game = new SquareGames
             {
@@ -45,7 +45,7 @@ namespace RSS_Services
         public SquareGames GetGameById(string id)
         {
             var gameId = Guid.Parse(id);
-            return _appDbContext.AvailableGames
+            return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
                 .FirstOrDefault(g => g.Id == gameId);
         }
@@ -53,7 +53,7 @@ namespace RSS_Services
         public SquareGames GetAllScoreAndWinnerDataByGameId(string id)
         {
             var gameId = Guid.Parse(id);
-            return _appDbContext.AvailableGames
+            return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
                 .Include(g => g.WinnerQ1)
                 .Include(g => g.WinnerQ2)

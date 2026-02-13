@@ -5,7 +5,7 @@ namespace RSS_DB.Entities
     public class ApplicationUser : IdentityUser
     {
         public string? DisplayName { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }
