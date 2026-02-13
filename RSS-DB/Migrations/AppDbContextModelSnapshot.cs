@@ -159,7 +159,7 @@ namespace RSS_DB.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("DisplayName")
@@ -236,12 +236,11 @@ namespace RSS_DB.Migrations
                     b.Property<int>("CurrentHomeScore")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("GameStartDate")
+                    b.Property<DateTimeOffset>("GameStartDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("GameStartTime")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<DateTimeOffset>("GameStartTime")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("HomeTeam")
                         .IsRequired()
@@ -367,7 +366,7 @@ namespace RSS_DB.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("DailySportGameId")
@@ -414,7 +413,7 @@ namespace RSS_DB.Migrations
 
                     b.HasIndex("WinnerQ4Id");
 
-                    b.ToTable("AvailableGames");
+                    b.ToTable("SquareGames");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.Squares", b =>

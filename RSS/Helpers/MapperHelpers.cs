@@ -8,10 +8,6 @@ namespace RSS.Helpers
     {
         public SquareGamesDTO AvailableGamesMapper(SquareGames availableGames)
         {
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
-            var pstDateTime = todayPst.Add(TimeSpan.Parse(availableGames.DailySportGame.GameStartTime)); // e.g., "19:30"
-            var utcTime = TimeZoneInfo.ConvertTimeToUtc(pstDateTime, pstZone);
 
             return new SquareGamesDTO
             {
@@ -25,7 +21,7 @@ namespace RSS.Helpers
                 SportGameId = availableGames.DailySportGame.ApiGameId,
                 HomeTeam = availableGames.DailySportGame.HomeTeam,
                 AwayTeam = availableGames.DailySportGame.AwayTeam,
-                StartTime = utcTime
+                StartTime = availableGames.DailySportGame.GameStartTime
             };
         }
 
