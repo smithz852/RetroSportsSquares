@@ -118,3 +118,4 @@ C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net
 C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RSS\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

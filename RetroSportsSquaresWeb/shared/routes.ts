@@ -4,11 +4,11 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7
 // API endpoints for .NET backend
 export const endpoints = {
   games: {
-    list: '/AvailableGames/GetAvailableSquareGames',
-    create: '/AvailableGames/CreateGame',
+    list: '/SquareGames/GetAvailableSquareGames',
+    create: '/SquareGames/CreateGame',
     options: (gameType: string, leagueId: string) =>  `/AvailableSportsGames/GetAvailable${gameType}League${leagueId}GameOptions`,
-    scoreData: (gameId: string) => `/AvailableGames/GetSquareGameScoreData/${gameId}`,
-    squareGameById: (gameId: string) => `/AvailableGames/${gameId}`
+    scoreData: (gameId: string) => `/SquareGames/GetSquareGameScoreData/${gameId}`,
+    squareGameById: (gameId: string) => `/SquareGames/${gameId}`
   },
   selections: {
     list: (gameId: string) => `/games/${gameId}/selections`,
