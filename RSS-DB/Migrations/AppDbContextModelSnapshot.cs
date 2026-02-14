@@ -236,9 +236,6 @@ namespace RSS_DB.Migrations
                     b.Property<int>("CurrentHomeScore")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset>("GameStartDate")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<DateTimeOffset>("GameStartTime")
                         .HasColumnType("datetime(6)");
 

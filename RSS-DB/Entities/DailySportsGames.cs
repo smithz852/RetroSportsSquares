@@ -21,8 +21,6 @@ namespace RSS_DB.Entities
         [Required]
         public DateTimeOffset GameStartTime { get; set; }
         [Required]
-        public DateTimeOffset GameStartDate { get; set; }
-        [Required]
         public string SportType { get; set; }
         [Required]
         public string League {  get; set; }

@@ -93,7 +93,6 @@ namespace RSS_Services
                     HomeTeam = game.HomeTeam,
                     AwayTeam = game.AwayTeam,
                     GameStartTime = game.GameStartTime,
-                    GameStartDate = game.GameStartDate,
                     SportType = game.SportType,
                     League = game.League,
                     LeagueId = game.LeagueId,
@@ -106,14 +105,17 @@ namespace RSS_Services
 
         public List<DailySportsGames> GetAvailableSportsGameOptions(string gameType, int leagueId)
         {
-            var todayUtc = DateTimeOffset.UtcNow.Date;
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+
             if (gameType == "football")
             {
                 gameType = "american-football";
             }
 
             var availbleGameOptions = _appDbContext.DailySportsGames
-                .Where(g => g.GameStartDate.Date == todayUtc && g.LeagueId == leagueId && g.SportType == gameType)
+                .AsEnumerable()
+                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst && g.LeagueId == leagueId && g.SportType == gameType)
                 .ToList(); //add check for status != FT or AOT later
             return availbleGameOptions;
         }

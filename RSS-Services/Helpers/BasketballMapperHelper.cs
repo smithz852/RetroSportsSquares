@@ -28,15 +28,12 @@ namespace RSS_Services.Helpers
 
                 if (leagueId == 12)
                 {
-                    var gameStartString = gameElement.GetProperty("date").GetString();
-                    var gameStartDate = DateTime.Parse(gameStartString);
 
                     var gameDto = new SportsGamesAvailableDTO
                     {
                         ApiGameId = gameElement.GetProperty("id").GetInt32(),
                         InUse = false,
                         GameStartTime = gameStartTime,
-                        GameStartDate = gameStartDate,
                         HomeTeam = homeTeamName,
                         AwayTeam = awayTeamName,
                         Status = gameElement.GetProperty("status").GetProperty("short").GetString(),
