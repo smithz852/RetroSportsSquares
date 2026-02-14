@@ -160,7 +160,8 @@ export default function GameBoard() {
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">
           <div className="flex flex-col items-center gap-4 w-full max-w-xl">
-            <div className="flex gap-2 w-full">
+            {!gameStarted && (
+                <div className="flex gap-2 w-full">
               <Input 
                 value={tempPlayerName}
                 onChange={(e) => setTempPlayerName(e.target.value)}
@@ -174,7 +175,8 @@ export default function GameBoard() {
                 submit
               </Button>
             </div>
-
+            )}
+            
             {!gameStarted ? (
               <>
                 <Button 
