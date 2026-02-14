@@ -26,7 +26,7 @@ namespace RSS_DB.Entities
         public DateTimeOffset CreatedAt { get; set; }
         [Required]
         public int PlayerCount { get; set; }
-        public int PricePerSquare { get; set; }
+        public int PricePerSquare { get; set; } = 0;
         public string? WinnerQ1Id { get; set; }
         [ForeignKey(nameof(WinnerQ1Id))]
         public ApplicationUser? WinnerQ1 { get; set; }

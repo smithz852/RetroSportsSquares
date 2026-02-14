@@ -54,7 +54,7 @@ export interface CreateSquareGameRequest {
   gameType: string;
   playerCount: number;
   Status: 'open' | 'closed';
-  pricePerSquare?: number;
+  pricePerSquare: number | null;
   dailySportsGameId: string;
 }
 
