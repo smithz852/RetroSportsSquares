@@ -38,10 +38,14 @@ namespace RSS_Services
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
         {
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
-            //make query specific to sport
             return _appDbContext.DailySportsGames
-                .Any(g => g.GameStartDate.Date == todayPst && g.SportType == sportType && g.LeagueId == leagueId);
+                    .AsEnumerable()
+                    .Any(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst
+                        && g.SportType == sportType
+                        && g.LeagueId == leagueId);
         }
 
         public async Task<List<SportsGamesAvailableDTO>> GetGamesAvailableToday(string sportType, string gameUrl)

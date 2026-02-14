@@ -6,7 +6,7 @@ namespace RSS.SportsDataAutomation
     public class NbaAutomation : BaseSportsAutomation
     {
         protected override string SportName => "NBA";
-        protected override int LoadHourPst => 1; // 1 AM PST
+        protected override int LoadHourPst => 1; //  AM PST
 
         private string SportsType = "basketball";
         private int LeagueId = 12;
