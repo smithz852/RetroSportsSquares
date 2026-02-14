@@ -23,18 +23,17 @@ namespace RSS_Services.Helpers
                 var leagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32();
                 var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
                 var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
+                var gameStartTimeUnix = gameElement.GetProperty("timestamp").GetInt64();
+                var gameStartTime = DateTimeOffset.FromUnixTimeSeconds(gameStartTimeUnix);
 
                 if (leagueId == 12)
                 {
-                    var gameStartString = gameElement.GetProperty("date").GetString();
-                    var gameStartDate = DateTime.Parse(gameStartString);
 
                     var gameDto = new SportsGamesAvailableDTO
                     {
                         ApiGameId = gameElement.GetProperty("id").GetInt32(),
                         InUse = false,
-                        GameStartTime = gameElement.GetProperty("time").GetString(),
-                        GameStartDate = gameStartDate,
+                        GameStartTime = gameStartTime,
                         HomeTeam = homeTeamName,
                         AwayTeam = awayTeamName,
                         Status = gameElement.GetProperty("status").GetProperty("short").GetString(),

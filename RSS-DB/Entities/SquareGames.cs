@@ -23,7 +23,7 @@ namespace RSS_DB.Entities
         [Required]
         public bool isOpen { get; set; }
         [Required]
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
         [Required]
         public int PlayerCount { get; set; }
         public int PricePerSquare { get; set; }

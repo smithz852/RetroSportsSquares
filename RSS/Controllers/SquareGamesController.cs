@@ -11,14 +11,14 @@ namespace RSS.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AvailableGamesController : ControllerBase
+    public class SquareGamesController : ControllerBase
     {
         private readonly AvailableGamesServices _availableGamesServices;
         private readonly MapperHelpers _mapperHelpers;
         private readonly GeneralServices _generalServices;
         private readonly SportsGameServices _sportsGameServices;
 
-        public AvailableGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -30,11 +30,11 @@ namespace RSS.Controllers
         public IActionResult GetAvailableSquareGames()
         {
             var availableGames = _availableGamesServices.GetAllAvailableGames();
-            var gamesDtoList = new List<AvailableGamesDTO>();
+            var gamesDtoList = new List<SquareGamesDTO>();
 
             if (availableGames == null || !availableGames.Any())
             {
-                return Ok(new List<AvailableGamesDTO>());
+                return Ok(new List<SquareGamesDTO>());
             }
 
             foreach (var availableGame in availableGames)

@@ -42,64 +42,6 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "RSS.Controllers.AvailableGamesController",
-    "Method": "GetSquareGameById",
-    "RelativePath": "AvailableGames/{id}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RSS.Controllers.AvailableGamesController",
-    "Method": "CreateGame",
-    "RelativePath": "AvailableGames/CreateGame",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "gameData",
-        "Type": "RSS.DTOs.CreateGameDTO",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RSS.Controllers.AvailableGamesController",
-    "Method": "GetAvailableSquareGames",
-    "RelativePath": "AvailableGames/GetAvailableSquareGames",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "RSS.Controllers.AvailableGamesController",
-    "Method": "GetGameScoreData",
-    "RelativePath": "AvailableGames/GetSquareGameScoreData/{id}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "RSS.Controllers.AvailableSportsGamesController",
     "Method": "GetAvailableNflGameOptions",
     "RelativePath": "AvailableSportsGames/GetAvailable{gameType}League{leagueId}GameOptions",
@@ -114,6 +56,64 @@
       },
       {
         "Name": "leagueId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.SquareGamesController",
+    "Method": "GetSquareGameById",
+    "RelativePath": "SquareGames/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.SquareGamesController",
+    "Method": "CreateGame",
+    "RelativePath": "SquareGames/CreateGame",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "gameData",
+        "Type": "RSS.DTOs.CreateGameDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.SquareGamesController",
+    "Method": "GetAvailableSquareGames",
+    "RelativePath": "SquareGames/GetAvailableSquareGames",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "RSS.Controllers.SquareGamesController",
+    "Method": "GetGameScoreData",
+    "RelativePath": "SquareGames/GetSquareGameScoreData/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
         "Type": "System.String",
         "IsRequired": true
       }

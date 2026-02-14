@@ -6,14 +6,10 @@ namespace RSS.Helpers
 {
     public class MapperHelpers
     {
-        public AvailableGamesDTO AvailableGamesMapper(SquareGames availableGames)
+        public SquareGamesDTO AvailableGamesMapper(SquareGames availableGames)
         {
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
-            var pstDateTime = todayPst.Add(TimeSpan.Parse(availableGames.DailySportGame.GameStartTime)); // e.g., "19:30"
-            var utcTime = TimeZoneInfo.ConvertTimeToUtc(pstDateTime, pstZone);
 
-            return new AvailableGamesDTO
+            return new SquareGamesDTO
             {
                 GameId = availableGames.Id,
                 GameName = availableGames.GameName,
@@ -25,7 +21,7 @@ namespace RSS.Helpers
                 SportGameId = availableGames.DailySportGame.ApiGameId,
                 HomeTeam = availableGames.DailySportGame.HomeTeam,
                 AwayTeam = availableGames.DailySportGame.AwayTeam,
-                StartTime = utcTime
+                StartTime = availableGames.DailySportGame.GameStartTime
             };
         }
 

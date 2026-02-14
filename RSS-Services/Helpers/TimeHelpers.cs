@@ -23,7 +23,7 @@ namespace RSS_Services.Helpers
         public DateTime GetTimeDateTimeTodayInPst()
         {
             var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone).Date;
+            var todayPst = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, pstZone).Date;
             return todayPst;
         }
 

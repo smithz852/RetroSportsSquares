@@ -38,10 +38,14 @@ namespace RSS_Services
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
         {
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
-            //make query specific to sport
             return _appDbContext.DailySportsGames
-                .Any(g => g.GameStartDate.Date == todayPst && g.SportType == sportType && g.LeagueId == leagueId);
+                    .AsEnumerable()
+                    .Any(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst
+                        && g.SportType == sportType
+                        && g.LeagueId == leagueId);
         }
 
         public async Task<List<SportsGamesAvailableDTO>> GetGamesAvailableToday(string sportType, string gameUrl)
@@ -82,13 +86,6 @@ namespace RSS_Services
             foreach (var game in availableGames)
             {
 
-                //temp delete after testing is done
-                //var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-                //var customDate = new DateTime(2026, 1, 31);
-                //var todayPst = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
-                //var dateString = todayPst.ToString("yyyy-MM-dd");
-                //var testGameData = DateTime.Parse(dateString);
-
                 DailySportsGames dailySportsGames = new DailySportsGames()
                 {
                     ApiGameId = game.ApiGameId,
@@ -96,7 +93,6 @@ namespace RSS_Services
                     HomeTeam = game.HomeTeam,
                     AwayTeam = game.AwayTeam,
                     GameStartTime = game.GameStartTime,
-                    GameStartDate = game.GameStartDate,
                     SportType = game.SportType,
                     League = game.League,
                     LeagueId = game.LeagueId,
@@ -109,22 +105,17 @@ namespace RSS_Services
 
         public List<DailySportsGames> GetAvailableSportsGameOptions(string gameType, int leagueId)
         {
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+
             if (gameType == "football")
             {
                 gameType = "american-football";
             }
-                
-
-            //for testing delete after
-            //var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            //var customDate = new DateTime(2026, 1, 31);
-            //var todayTest = TimeZoneInfo.ConvertTimeFromUtc(customDate, pstZone).Date;
-            //var dateString = todayTest.ToString("yyyy-MM-dd");
-            //var todayPst = DateTime.Parse(dateString);
 
             var availbleGameOptions = _appDbContext.DailySportsGames
-                .Where(g => g.GameStartDate.Date == todayPst && g.LeagueId == leagueId && g.SportType == gameType)
+                .AsEnumerable()
+                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst && g.LeagueId == leagueId && g.SportType == gameType)
                 .ToList(); //add check for status != FT or AOT later
             return availbleGameOptions;
         }
@@ -238,12 +229,9 @@ namespace RSS_Services
         public bool HasGameStarted(Guid gameId)
         {
             var game = GetDailySportGameById(gameId);
-            var startTimeString = game.GameStartTime;
+            var startTime = game.GameStartTime;
 
-            var gameStartTime = TimeSpan.Parse(startTimeString);
-            var currentTime = _timeHelpers.GetCurrentTimeInPst().TimeOfDay;
-
-            if (currentTime >= gameStartTime)
+            if (DateTimeOffset.UtcNow >= startTime)
             {
                 return true;
             }

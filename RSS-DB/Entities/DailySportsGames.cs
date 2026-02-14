@@ -19,9 +19,7 @@ namespace RSS_DB.Entities
         [Required]
         public string AwayTeam { get; set; }
         [Required]
-        public string GameStartTime { get; set; }
-        [Required]
-        public DateTime GameStartDate { get; set; }
+        public DateTimeOffset GameStartTime { get; set; }
         [Required]
         public string SportType { get; set; }
         [Required]
