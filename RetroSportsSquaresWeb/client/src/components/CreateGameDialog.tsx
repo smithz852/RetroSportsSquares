@@ -53,7 +53,7 @@ export function CreateGameDialog() {
         playerCount: parseInt(playerCount),
         Status: gameStatus,
         dailySportsGameId,
-        pricePerSquare: parseInt(wagerAmount),
+        pricePerSquare: parseInt(wagerAmount) || 0,
       },
       {
         onSuccess: (createdGame) => {

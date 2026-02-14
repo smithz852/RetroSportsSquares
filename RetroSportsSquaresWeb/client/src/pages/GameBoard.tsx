@@ -180,22 +180,13 @@ export default function GameBoard() {
                 <Button 
                   onClick={() => {
                     setGameStarted(true)
+                    generateNumbers()
                   }}
                   className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
                 >
                   INSERT COIN / START GAME
                 </Button>
-                <div className="flex gap-4">
-                  <Button onClick={generateNumbers} variant="outline" className="border-2 border-red-600 text-red-600 font-pixel text-xs rounded-none hover:bg-red-600 hover:text-black">
-                    GENERATE NUMS
-                  </Button>
-                  <Button onClick={clearNumbers} variant="ghost" className="text-red-900 font-pixel text-[10px] rounded-none hover:text-red-500">
-                    CLEAR NUMS
-                  </Button>
-                  <Button onClick={clearSelections} variant="ghost" className="text-red-900 font-pixel text-[10px] rounded-none hover:text-red-500">
-                    CLEAR SELECTIONS
-                  </Button>
-                </div>
+               
               </>
             ) : (
               <div className="w-full bg-red-900/20 border-2 border-red-600 p-4 font-pixel text-red-500 animate-pulse text-center uppercase">

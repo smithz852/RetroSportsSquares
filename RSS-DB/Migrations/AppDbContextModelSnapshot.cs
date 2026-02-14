@@ -294,6 +294,33 @@ namespace RSS_DB.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DailySportsGames");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b8a1c73c-90cc-db79-a168-6a039c88804e"),
+                            ApiGameId = 12345,
+                            AwayTeam = "Warriors",
+                            CurrentAwayScore = 0,
+                            CurrentHomeScore = 0,
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 14, 17, 47, 20, 534, DateTimeKind.Unspecified).AddTicks(8118), new TimeSpan(0, 0, 0, 0, 0)),
+                            HomeTeam = "Lakers",
+                            InUse = false,
+                            League = "NBA",
+                            LeagueId = 12,
+                            OTAwayScore = 0,
+                            OTHomeScore = 0,
+                            Q1AwayScore = 0,
+                            Q1HomeScore = 0,
+                            Q2AwayScore = 0,
+                            Q2HomeScore = 0,
+                            Q3AwayScore = 0,
+                            Q3HomeScore = 0,
+                            Q4AwayScore = 0,
+                            Q4HomeScore = 0,
+                            SportType = "basketball",
+                            Status = "NS"
+                        });
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>

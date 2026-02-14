@@ -73,6 +73,26 @@ namespace RSS_DB
             }
 
             builder.Entity<Squares>().HasData(squares);
+
+            var nbaGameSeeds = new List<DailySportsGames>
+            {
+                new DailySportsGames
+                {
+                    Id = CreateGuid("nba-game-1"),
+                    ApiGameId = 12345,
+                    HomeTeam = "Lakers",
+                    AwayTeam = "Warriors",
+                    GameStartTime = DateTimeOffset.UtcNow,
+                    SportType = "basketball",
+                    League = "NBA",
+                    LeagueId = 12,
+                    Status = "NS",
+                    InUse = false
+                },
+                // Add more games...
+            };
+
+            builder.Entity<DailySportsGames>().HasData(nbaGameSeeds);
         }
     }
 }
