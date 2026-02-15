@@ -40,13 +40,11 @@ export interface SquareGameScoreData {
 }
 
 export interface SquareSelection {
-  id: number;
-  gameId: number;
+  id: string;
+  // gameId: number; enable later...
   userId: string;
-  row: number;
-  col: number;
-  playerName: string;
-  createdAt: string;
+  squareId: string
+  createdAt: Date;
 }
 
 export interface CreateSquareGameRequest {
@@ -60,9 +58,13 @@ export interface CreateSquareGameRequest {
 
 export interface CreateSquareSelectionRequest {
   userId: string;
-  row: number;
-  col: number;
-  playerName: string;
+  selections: Array<{
+    squareId: string;
+  }>;
+}
+
+export interface SquareSelectionResponse {
+  selections:  SquareSelection[];
 }
 
 export interface AvailableGameOptions {

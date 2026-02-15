@@ -11,9 +11,7 @@ export const endpoints = {
     squareGameById: (gameId: string) => `/SquareGames/${gameId}`
   },
   selections: {
-    list: (gameId: string) => `/games/${gameId}/selections`,
-    create: (gameId: string) => `/games/${gameId}/selections`,
-    clear: (gameId: string) => `/games/${gameId}/selections`,
+    create: (userId: string) => `/SquareGames/SquareSelections/${userId}`,
   },
   auth: {
     login: '/Auth/login',

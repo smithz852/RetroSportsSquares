@@ -90,5 +90,18 @@ namespace RSS.Controllers
             var gameDto = _mapperHelpers.ScoreDataMapper(scoreData);
             return Ok(gameDto);
         }
+
+        [HttpPost("SquareSelections/{userId}")]
+        [Authorize]
+        public IActionResult SelectSquare(string userId)
+        {
+            //var selectedSquare = _availableGamesServices.SelectSquare(squareId, userId, gameId);
+            //if (selectedSquare == null)
+            //{
+            //    return NotFound();
+            //}
+            var squareDto = "Not implemented";//_mapperHelpers.SquareMapper(selectedSquare);
+            return Ok(squareDto);
+        }
     }
 }

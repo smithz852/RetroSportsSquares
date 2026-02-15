@@ -10,6 +10,7 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
+import { usePostSquareSelection } from "@/hooks/use-gameplay";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -26,14 +27,15 @@ export default function GameBoard() {
     Array(10).fill(null),
   );
   const [selections, setSelections] = useState<Record<string, string>>({});
+  // console.log(selections);
   const [gameStarted, setGameStarted] = useState(false);
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
+  const { mutate, isPending } = usePostSquareSelection();
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
   });
-  const [tempPlayerName, setTempPlayerName] = useState(activePlayer);
 
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
@@ -123,6 +125,39 @@ export default function GameBoard() {
     setSelections({});
   };
 
+  const handleSubmit = () => {
+    const selectionArray = Object.keys(selections).map((key) => {
+      return { squareId: key };
+    });
+
+    mutate(
+      {
+        userId: user.id,
+        selections: selectionArray,
+      },
+      {
+        onSuccess: (response) => {
+          clearSelections();
+          toast({
+            title: "SQUARES SAVED",
+            description: `${response.selections.length} squares claimed!`,
+            className:
+              "bg-black border-2 border-primary text-primary font-['VT323']",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "ERROR",
+            description: "FAILED TO SAVE SELECTIONS.",
+            variant: "destructive",
+            className:
+              "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+          });
+        },
+      },
+    );
+  };
+
   const handleSquareClick = (row: number, col: number) => {
     if (gameStarted) return;
     const key = `${row}-${col}`;
@@ -184,7 +219,7 @@ export default function GameBoard() {
 
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">
-          <div className="flex flex-col items-center gap-4 w-full max-w-xl">
+          <div className="flex items-center gap-4 w-full max-w-xl">
             {/* {!gameStarted && (
                 <div className="flex gap-2 w-full">
               <Input 
@@ -204,22 +239,25 @@ export default function GameBoard() {
 
             {!gameStarted ? (
               <>
-                <Button
-                  onClick={() => {
-                    setGameStarted(true);
-                    generateNumbers();
-                  }}
-                  className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
-                >
-                  INSERT COIN / START GAME
-                </Button>
+                
+                  <Button
+                    onClick={() => {
+                      setGameStarted(true);
+                      generateNumbers();
+                    }}
+                    className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                  >
+                    INSERT COIN / START GAME
+                  </Button>
 
-                <Button
-                  onClick={() => {}}
-                  className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
-                >
-                  Submit
-                </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isPending}
+                    className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                  >
+                    Submit
+                  </Button>
+                
               </>
             ) : (
               <div className="w-full bg-red-900/20 border-2 border-red-600 p-4 font-pixel text-red-500 animate-pulse text-center uppercase">
