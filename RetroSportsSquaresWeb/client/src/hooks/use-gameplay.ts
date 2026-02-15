@@ -10,7 +10,7 @@ export function usePostSquareSelection() {
         const token = localStorage.getItem('token');
         if (!token) throw new Error("Please login to create a game");
         
-        const res = await fetch(`${API_BASE_URL}${endpoints.selections.create(data.userId)}`, {
+        const res = await fetch(`${API_BASE_URL}${endpoints.selections.create}`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",

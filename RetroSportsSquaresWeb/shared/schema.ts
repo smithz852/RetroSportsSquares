@@ -43,7 +43,7 @@ export interface SquareSelection {
   id: string;
   // gameId: number; enable later...
   userId: string;
-  squareId: string
+  squareName: string
   createdAt: Date;
 }
 
@@ -57,9 +57,8 @@ export interface CreateSquareGameRequest {
 }
 
 export interface CreateSquareSelectionRequest {
-  userId: string;
   selections: Array<{
-    squareId: string;
+    squareName: string;
   }>;
 }
 

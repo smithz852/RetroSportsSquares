@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RSS.DTOs;
 using RSS.Helpers;
 using RSS_Services;
+using RSS_Services.DTOs;
 using RSS_Services.Helpers;
 using System.Linq;
 using System.Security.Claims;
@@ -17,6 +18,7 @@ namespace RSS.Controllers
         private readonly MapperHelpers _mapperHelpers;
         private readonly GeneralServices _generalServices;
         private readonly SportsGameServices _sportsGameServices;
+
 
         public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
         {
@@ -91,11 +93,12 @@ namespace RSS.Controllers
             return Ok(gameDto);
         }
 
-        [HttpPost("SquareSelections/{userId}")]
+        [HttpPost("SquareSelections}")]
         [Authorize]
-        public IActionResult SelectSquare(string userId)
+        public IActionResult SelectSquare([FromBody] SquareSelectionDTO squareSelections)
         {
-            //var selectedSquare = _availableGamesServices.SelectSquare(squareId, userId, gameId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var selectedSquare = _squareServices.CreateSquareSelections(squareSelections.SquareName);
             //if (selectedSquare == null)
             //{
             //    return NotFound();

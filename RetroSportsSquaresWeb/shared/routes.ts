@@ -11,7 +11,7 @@ export const endpoints = {
     squareGameById: (gameId: string) => `/SquareGames/${gameId}`
   },
   selections: {
-    create: (userId: string) => `/SquareGames/SquareSelections/${userId}`,
+    create: `/SquareGames/SquareSelections`,
   },
   auth: {
     login: '/Auth/login',

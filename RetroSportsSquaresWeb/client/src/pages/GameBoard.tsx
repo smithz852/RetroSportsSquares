@@ -127,12 +127,11 @@ export default function GameBoard() {
 
   const handleSubmit = () => {
     const selectionArray = Object.keys(selections).map((key) => {
-      return { squareId: key };
+      return { squareName: key };
     });
 
     mutate(
       {
-        userId: user.id,
         selections: selectionArray,
       },
       {
