@@ -8,6 +8,6 @@ namespace RSS_Services.DTOs
 {
     public class SquareSelectionDTO
     {
-        public List<string> SquareName { get; set; } = new List<string>();
+        public List<string> Selections { get; set; } = new List<string>();
     }
 }

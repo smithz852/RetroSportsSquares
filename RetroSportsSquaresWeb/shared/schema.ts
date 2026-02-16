@@ -43,8 +43,8 @@ export interface SquareSelection {
   id: string;
   // gameId: number; enable later...
   userId: string;
-  squareName: string
-  createdAt: Date;
+  squareId: string;
+  selectedAt: Date;
 }
 
 export interface CreateSquareGameRequest {

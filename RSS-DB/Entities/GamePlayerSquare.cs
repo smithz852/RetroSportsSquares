@@ -15,5 +15,6 @@ namespace RSS_DB.Entities
         public GamePlayer GamePlayer { get; set; }
         public Guid SquareId { get; set; }
         public Squares Squares { get; set; }
+        public DateTimeOffset SelectedAt { get; set; }
     }
 }

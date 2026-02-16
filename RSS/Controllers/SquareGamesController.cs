@@ -18,14 +18,16 @@ namespace RSS.Controllers
         private readonly MapperHelpers _mapperHelpers;
         private readonly GeneralServices _generalServices;
         private readonly SportsGameServices _sportsGameServices;
+        private readonly SquareServices _squareServices;
 
-
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
             _generalServices = generalServices;
             _sportsGameServices = sportsGameServices;
+            _squareServices = squareServices;
+
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -93,18 +95,23 @@ namespace RSS.Controllers
             return Ok(gameDto);
         }
 
-        [HttpPost("SquareSelections}")]
+        [HttpPost("SquareSelections")]
         [Authorize]
         public IActionResult SelectSquare([FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var selectedSquare = _squareServices.CreateSquareSelections(squareSelections.SquareName);
-            //if (selectedSquare == null)
+            var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId);
+            //foreach (var square in selectedSquares)
             //{
-            //    return NotFound();
+            //    var dataSaved = _generalServices.SaveData(square);
+            //    if (!dataSaved)
+            //    {
+            //        return BadRequest("Failed to save square selection data.");
+            //    }
             //}
-            var squareDto = "Not implemented";//_mapperHelpers.SquareMapper(selectedSquare);
-            return Ok(squareDto);
+
+            var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
+            return Ok(squareDtos);
         }
     }
 }
