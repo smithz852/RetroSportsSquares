@@ -13,7 +13,7 @@ namespace RSS_DB.Entities
         public Guid Id { get; set; }
         public Guid GamePlayerId { get; set; }
         public GamePlayer GamePlayer { get; set; }
-        public Guid SquareId { get; set; }
+        public Guid SquaresId { get; set; }
         public Squares Squares { get; set; }
         public DateTimeOffset SelectedAt { get; set; }
     }

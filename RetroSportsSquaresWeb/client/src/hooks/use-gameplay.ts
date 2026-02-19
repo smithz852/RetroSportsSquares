@@ -5,7 +5,7 @@ import {
   type CreateSquareSelectionRequest,
 } from "@shared/schema";
 
-export function usePostSquareSelection() {
+export function usePostSquareSelection(gameId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -15,7 +15,7 @@ export function usePostSquareSelection() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please login to create a game");
       console.log("Squaredata:", data);
-      const res = await fetch(`${API_BASE_URL}${endpoints.selections.create}`, {
+      const res = await fetch(`${API_BASE_URL}${endpoints.selections.create(gameId)}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -25,9 +25,14 @@ export function usePostSquareSelection() {
           selections: data.selections.map((s) => s.squareName),
         }),
       });
+      console.log("res status:", res.status, "ok:", res.ok);
       if (!res.ok) throw new Error("Failed to save squares");
-      console.log(res.json())
-      return res.json();
+      
+      const selectionData = await res.json();
+      console.log("selectionResponse:", selectionData);
+      
+      // Backend returns array directly, wrap it in expected format
+      return { selections: selectionData };
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["createSelections"] }),

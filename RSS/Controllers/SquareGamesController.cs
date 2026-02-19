@@ -112,20 +112,20 @@ namespace RSS.Controllers
             return Ok(gameDto);
         }
 
-        [HttpPost("SquareSelections")]
+        [HttpPost("SquareSelections/{gameId}")]
         [Authorize]
-        public IActionResult SelectSquare([FromBody] SquareSelectionDTO squareSelections)
+        public IActionResult SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId);
-            //foreach (var square in selectedSquares)
-            //{
-            //    var dataSaved = _generalServices.SaveData(square);
-            //    if (!dataSaved)
-            //    {
-            //        return BadRequest("Failed to save square selection data.");
-            //    }
-            //}
+            var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+            foreach (var square in selectedSquares)
+            {
+                var dataSaved = _generalServices.SaveData(square);
+                if (!dataSaved)
+                {
+                    return BadRequest("Failed to save square selection data.");
+                }
+            }
 
             var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
             return Ok(squareDtos);

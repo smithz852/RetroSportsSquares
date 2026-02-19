@@ -303,7 +303,7 @@ namespace RSS_DB.Migrations
                             AwayTeam = "Warriors",
                             CurrentAwayScore = 0,
                             CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 19, 0, 45, 7, 378, DateTimeKind.Unspecified).AddTicks(2442), new TimeSpan(0, 0, 0, 0, 0)),
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 19, 1, 37, 41, 311, DateTimeKind.Unspecified).AddTicks(2112), new TimeSpan(0, 0, 0, 0, 0)),
                             HomeTeam = "Lakers",
                             InUse = false,
                             League = "NBA",
@@ -354,7 +354,7 @@ namespace RSS_DB.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("GamePlayer");
+                    b.ToTable("GamePlayers");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.GamePlayerSquare", b =>
@@ -369,9 +369,6 @@ namespace RSS_DB.Migrations
                     b.Property<DateTimeOffset>("SelectedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("SquareId")
-                        .HasColumnType("char(36)");
-
                     b.Property<Guid>("SquaresId")
                         .HasColumnType("char(36)");
 
@@ -381,7 +378,7 @@ namespace RSS_DB.Migrations
 
                     b.HasIndex("SquaresId");
 
-                    b.ToTable("GamePlayerSquare");
+                    b.ToTable("GamePlayerSquares");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>

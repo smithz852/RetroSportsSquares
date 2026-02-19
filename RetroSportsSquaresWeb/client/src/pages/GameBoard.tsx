@@ -31,7 +31,7 @@ export default function GameBoard() {
   const [gameStarted, setGameStarted] = useState(false);
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
-  const { mutate, isPending } = usePostSquareSelection();
+  const { mutate, isPending } = usePostSquareSelection(id);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";

@@ -66,7 +66,7 @@ namespace RSS.Helpers
         {
             var stringId = square.Id.ToString();
             var stringUserId = square.GamePlayerId.ToString();
-            var stringSquareId = square.SquareId.ToString();
+            var stringSquareId = square.SquaresId.ToString();
 
             return new SelectedGamePlayerSquaresDTO()
             {

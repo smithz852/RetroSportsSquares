@@ -16,11 +16,13 @@ namespace RSS_Services
             _appDbContext = appDbContext;
         }
 
-        public List<GamePlayerSquare> CreateSquareSelections(List<string> squareSelections, string userId)
+        public List<GamePlayerSquare> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
         {
             var gamePlayerSquares = new List<GamePlayerSquare>();
-            var userIdGuid = Guid.Parse(userId);
+            var gameIdGuid = Guid.Parse(gameId);
             var createdAt = DateTimeOffset.UtcNow;
+
+           var gamePlayer = _appDbContext.GamePlayers.FirstOrDefault(g => g.GameId == gameIdGuid && g.ApplicationUserId == userId);
 
             foreach (var square in squareSelections)
             {
@@ -28,8 +30,8 @@ namespace RSS_Services
                 GamePlayerSquare gamePlayerSquare = new GamePlayerSquare()
                 {
                     SelectedAt = createdAt,
-                    GamePlayerId = userIdGuid,
-                    SquareId = selectedSquare.Id
+                    GamePlayerId = gamePlayer.Id,
+                    SquaresId = selectedSquare.Id
                 };
                 gamePlayerSquares.Add(gamePlayerSquare);
             }
