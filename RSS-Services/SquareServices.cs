@@ -56,5 +56,13 @@ namespace RSS_Services
             }  
             return unavailableSquares;
         }
+
+        public List<GamePlayerSquare> GetAllSelectedSquares(string gameId)
+        {
+            var gameIdGuid = Guid.Parse(gameId);
+            return _appDbContext.GamePlayerSquares
+                .Where(gps => gps.GamePlayer.GameId == gameIdGuid)
+                .ToList();
+        }
     }
 }

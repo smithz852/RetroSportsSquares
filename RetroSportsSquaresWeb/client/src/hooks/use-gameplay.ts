@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import {
   SquareSelectionResponse,
-  type CreateSquareSelectionRequest,
+  type CreateSquareSelectionRequest, type SelectedSquares
 } from "@shared/schema";
 
 export function usePostSquareSelection(gameId: string) {
@@ -52,5 +52,18 @@ export function usePostSquareSelection(gameId: string) {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["createSelections"] }),
+  });
+}
+
+export function useGetSelectedSquares(gameId: string) {
+   return useQuery({
+    queryKey: ["gameSelections", gameId],
+    queryFn: async (): Promise<SelectedSquares[]> => {
+      const res = await fetch(`${API_BASE_URL}${endpoints.selections.get(gameId)}`);
+      if (!res.ok) throw new Error("Failed to fetch selections");
+      const data = await res.json();
+      return data;
+    },
+    enabled: !!gameId,
   });
 }

@@ -67,6 +67,11 @@ export interface SquareSelectionResponse {
   selections:  SquareSelection[];
 }
 
+export interface SelectedSquares {
+  squareName: string;
+  displayName: string | null;
+}
+
 export interface AvailableGameOptions {
   id: string;
   homeTeam: string;

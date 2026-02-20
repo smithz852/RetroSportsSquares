@@ -11,12 +11,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
 import { usePostSquareSelection } from "@/hooks/use-gameplay";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
   const params = useParams();
   const id = params.id as string;
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
 
@@ -159,8 +161,7 @@ export default function GameBoard() {
           
           if (unavailableSquares?.length > 0) {
             // Refetch game data to get updated square selections
-            // This will show which squares are now taken
-            // TODO: Add queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
+            queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
           }
         },
       },

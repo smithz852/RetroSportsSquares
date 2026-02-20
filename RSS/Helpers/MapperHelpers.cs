@@ -77,5 +77,14 @@ namespace RSS.Helpers
             };
 
         }
+
+        public SelectedSquaresByGameDTO SelectedSquaresByGameMapper(GamePlayerSquare squares)
+        {
+            return new SelectedSquaresByGameDTO()
+            {
+                SquareName = squares.Squares.Name,
+                displayName = squares.GamePlayer.User.DisplayName,
+            };
+        }
     }
 }

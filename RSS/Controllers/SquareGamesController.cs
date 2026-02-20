@@ -135,5 +135,17 @@ namespace RSS.Controllers
             var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
             return Ok(squareDtos);
         }
+
+        [HttpGet("GetAllSelectedSquares/{gameId}")]
+        public IActionResult GetAllSelectedSquares(string gameId)
+        {
+            var allSquares = _squareServices.GetAllSelectedSquares(gameId);
+            if (allSquares.Any())
+            {
+                var squareDto = allSquares.Select(s => _mapperHelpers.SelectedSquaresByGameMapper(s)).ToList();
+                return Ok(squareDto);
+            }
+            return Ok(new List<SelectedSquaresByGameDTO>());
+        }
     }
 }
