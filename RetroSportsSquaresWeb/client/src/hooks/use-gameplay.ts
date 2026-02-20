@@ -28,16 +28,20 @@ export function usePostSquareSelection(gameId: string) {
       
       if (!res.ok) {
         let errorMessage = "Failed to save squares";
+        let errorDetails = null;
         try {
           const errorData = await res.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-          // console.log("Error from backend:", errorMessage);
-          //******* add check for refetching data for the unavialble square once the fetch is made ********
+          // If backend returns a list of unavailable squares
+          errorDetails = errorData.unavailableSquares || errorData.errors || null;
         } catch {
-          // If JSON parsing fails, use status text or default
           errorMessage = res.statusText || errorMessage;
         }
-        throw new Error(errorMessage);
+        
+        // Create custom error with details
+        const error = new Error(errorMessage) as Error & { details?: any };
+        error.details = errorDetails;
+        throw error;
       }
       
       const selectionData = await res.json();

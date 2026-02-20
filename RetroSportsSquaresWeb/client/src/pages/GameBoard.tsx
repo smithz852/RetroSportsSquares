@@ -145,14 +145,23 @@ export default function GameBoard() {
           });
           // TODO: Refetch game selections to show all players' squares
         },
-        onError: (error) => {
+        onError: (error: any) => {
+          const message = error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.";
+          const unavailableSquares = error?.details;
+          
           toast({
             title: "ERROR",
-            description: error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.",
+            description: message,
             variant: "destructive",
             className:
               "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
           });
+          
+          if (unavailableSquares?.length > 0) {
+            // Refetch game data to get updated square selections
+            // This will show which squares are now taken
+            // TODO: Add queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
+          }
         },
       },
     );
