@@ -117,6 +117,11 @@ namespace RSS.Controllers
         public IActionResult SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
+            if (unavailableSquares.Any())
+            {
+                return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
+            }
             var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
             foreach (var square in selectedSquares)
             {

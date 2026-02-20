@@ -136,18 +136,19 @@ export default function GameBoard() {
       },
       {
         onSuccess: (response) => {
-          clearSelections();
+          // Keep selections visible instead of clearing
           toast({
             title: "SQUARES SAVED",
             description: `${response.selections.length} squares claimed!`,
             className:
               "bg-black border-2 border-primary text-primary font-['VT323']",
           });
+          // TODO: Refetch game selections to show all players' squares
         },
-        onError: () => {
+        onError: (error) => {
           toast({
             title: "ERROR",
-            description: "FAILED TO SAVE SELECTIONS.",
+            description: error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.",
             variant: "destructive",
             className:
               "bg-black border-2 border-red-900 text-red-500 font-['VT323']",

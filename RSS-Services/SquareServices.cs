@@ -37,5 +37,24 @@ namespace RSS_Services
             }
             return gamePlayerSquares;
         }
+
+        public List<string> CheckIfSquaresAreSelected(string gameId, List<string> squareSelections)
+        {
+            var gameIdGuid = Guid.Parse(gameId);
+            var unavailableSquares = new List<string>();
+
+            foreach (var square in squareSelections)
+            {
+                var isSquareTaken = _appDbContext.GamePlayerSquares
+            .Any(gps => gps.Squares.Name == square &&
+                        gps.GamePlayer.GameId == gameIdGuid);
+
+                if (isSquareTaken)
+                {
+                    unavailableSquares.Add(square);
+                }
+            }  
+            return unavailableSquares;
+        }
     }
 }
