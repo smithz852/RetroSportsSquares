@@ -145,7 +145,7 @@ export default function GameBoard() {
             className:
               "bg-black border-2 border-primary text-primary font-['VT323']",
           });
-          // TODO: Refetch game selections to show all players' squares
+          queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
         },
         onError: (error: any) => {
           const message = error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.";
@@ -158,11 +158,7 @@ export default function GameBoard() {
             className:
               "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
           });
-          
-          if (unavailableSquares?.length > 0) {
-            // Refetch game data to get updated square selections
             queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
-          }
         },
       },
     );
