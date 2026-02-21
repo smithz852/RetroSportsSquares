@@ -303,7 +303,7 @@ namespace RSS_DB.Migrations
                             AwayTeam = "Warriors",
                             CurrentAwayScore = 0,
                             CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 19, 1, 37, 41, 311, DateTimeKind.Unspecified).AddTicks(2112), new TimeSpan(0, 0, 0, 0, 0)),
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 21, 23, 1, 13, 163, DateTimeKind.Unspecified).AddTicks(5219), new TimeSpan(0, 0, 0, 0, 0)),
                             HomeTeam = "Lakers",
                             InUse = false,
                             League = "NBA",
@@ -379,6 +379,33 @@ namespace RSS_DB.Migrations
                     b.HasIndex("SquaresId");
 
                     b.ToTable("GamePlayerSquares");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GameSquares", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("SquareGamesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("SquareValue")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SquaresId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SquareGamesId");
+
+                    b.HasIndex("SquaresId");
+
+                    b.ToTable("GameSquares");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
@@ -1143,6 +1170,25 @@ namespace RSS_DB.Migrations
                     b.Navigation("Squares");
                 });
 
+            modelBuilder.Entity("RSS_DB.Entities.GameSquares", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.SquareGames", "SquareGames")
+                        .WithMany("GameSquares")
+                        .HasForeignKey("SquareGamesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RSS_DB.Entities.Squares", "Squares")
+                        .WithMany("GameSquares")
+                        .HasForeignKey("SquaresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SquareGames");
+
+                    b.Navigation("Squares");
+                });
+
             modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
                 {
                     b.HasOne("RSS_DB.Entities.DailySportsGames", "DailySportGame")
@@ -1196,11 +1242,15 @@ namespace RSS_DB.Migrations
             modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
                 {
                     b.Navigation("GamePlayers");
+
+                    b.Navigation("GameSquares");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.Squares", b =>
                 {
                     b.Navigation("GamePlayerSquare");
+
+                    b.Navigation("GameSquares");
                 });
 #pragma warning restore 612, 618
         }

@@ -86,5 +86,17 @@ namespace RSS.Helpers
                 displayName = squares.GamePlayer.User.DisplayName,
             };
         }
+
+        public OutsideSquareItem OutsideSquareMapper(GameSquares square)
+        {
+            var gameSquareIdString = square.Id.ToString();
+
+            return new OutsideSquareItem()
+            {
+                SquareName = square.Squares.Name,
+                SquareValue = square.SquareValue,
+                Id = gameSquareIdString
+            };
+        }
     }
 }

@@ -1,6 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Humanizer;
+using Microsoft.EntityFrameworkCore;
+using RSS;
+using RSS.DTOs;
 using RSS_DB;
 using RSS_DB.Entities;
+using RSS_Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,5 +72,26 @@ namespace RSS_Services
                  .Where(gps => gps.GamePlayer.GameId == gameIdGuid)
                  .ToList();
         }
+
+        public List<GameSquares> SetOutsideGameSquares(string gameId, OutsideSquareNumbersDTO outsideSquares)
+        {
+            var gameIdGuid = Guid.Parse(gameId);
+            var gameSquares = new List<GameSquares>();
+
+            foreach (var item in outsideSquares.OutsideSquares)
+            {
+                var setSquare = _appDbContext.Squares.FirstOrDefault(s => s.Name == item.SquareName);
+                gameSquares.Add(new GameSquares()
+                {
+                    SquareGamesId = gameIdGuid,
+                    SquaresId = setSquare.Id,
+                    SquareValue = item.SquareValue
+                });
+            }
+
+            return gameSquares;
+        }
+
+       }
     }
-}
+

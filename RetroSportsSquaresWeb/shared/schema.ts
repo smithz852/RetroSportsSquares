@@ -63,6 +63,23 @@ export interface CreateSquareSelectionRequest {
   }>;
 }
 
+export interface OutsideSquare {
+  id: string;
+  squareName: string;
+  squareValue: number;
+}
+
+export interface CreateOutsideSquareNumbersRequest {
+  outsideSquares: Array<{
+    squareName: string;
+    squareValue: number;
+  }>;
+}
+
+export interface OutsdieSquareNumbersResponse {
+    outsideSquares: OutsideSquare[];
+}
+
 export interface SquareSelectionResponse {
   selections:  SquareSelection[];
 }

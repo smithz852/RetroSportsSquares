@@ -24,6 +24,8 @@ namespace RSS_DB
         public DbSet<Squares> Squares { get; set; }
         public DbSet<GamePlayer> GamePlayers { get; set; }
         public DbSet<GamePlayerSquare> GamePlayerSquares { get; set; }
+        public DbSet<GameSquares> GameSquares { get; set; }
+
 
 
         private static Guid CreateGuid(string input)

@@ -136,6 +136,28 @@ namespace RSS.Controllers
             return Ok(squareDtos);
         }
 
+        [HttpPost("SetOutsideSquareNumbers/{gameId}")]
+        [Authorize]
+        public IActionResult SetOutsideSquareNumbers(string gameId, [FromBody] OutsideSquareNumbersDTO outsideSquares)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //set check for if game squares are already set
+            var setOutsideSquares = _squareServices.SetOutsideGameSquares(gameId, outsideSquares);
+            using var transaction = _appDbContext.Database.BeginTransaction();
+            foreach (var square in setOutsideSquares)
+            {
+                var dataSaved = _generalServices.SaveData(square);
+                if (!dataSaved)
+                {
+                    transaction.Rollback();
+                    return BadRequest("Failed to save outside square numbers data.");
+                }
+            }
+            transaction.Commit();
+            var outsideSquaresDtos = setOutsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
+            return Ok(outsideSquaresDtos);
+        }
+
         [HttpGet("GetAllSelectedSquares/{gameId}")]
         public IActionResult GetAllSelectedSquares(string gameId)
         {
@@ -147,5 +169,7 @@ namespace RSS.Controllers
             }
             return Ok(new List<SelectedSquaresByGameDTO>());
         }
+
+
     }
 }

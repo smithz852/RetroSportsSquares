@@ -111,8 +111,22 @@ export default function GameBoard() {
 
   const generateNumbers = () => {
     const nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    setTopNumbers([...nums].sort(() => Math.random() - 0.5));
-    setLeftNumbers([...nums].sort(() => Math.random() - 0.5));
+    const newTopNumbers = [...nums].sort(() => Math.random() - 0.5);
+    const newLeftNumbers = [...nums].sort(() => Math.random() - 0.5);
+    
+    setTopNumbers(newTopNumbers);
+    setLeftNumbers(newLeftNumbers);
+    
+    return { topNumbers: newTopNumbers, leftNumbers: newLeftNumbers };
+  };
+
+  const handleStartGame = async () => {
+    const numbers = generateNumbers();
+    setGameStarted(true);
+    
+    // TODO: Save numbers to backend
+    // await saveGameNumbers(id, numbers.topNumbers, numbers.leftNumbers);
+    
     toast({
       title: "NUMBERS GENERATED",
       description: "Random numbers assigned to red squares.",
@@ -165,6 +179,10 @@ export default function GameBoard() {
     );
     setSelections({});
   };
+
+  const saveOutsideNumbers = async () => {
+    
+  }
 
   const handleSquareClick = (row: number, col: number) => {
     if (gameStarted) return;
@@ -261,10 +279,7 @@ export default function GameBoard() {
               <>
                 
                   <Button
-                    onClick={() => {
-                      setGameStarted(true);
-                      generateNumbers();
-                    }}
+                    onClick={handleStartGame}
                     className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
                   >
                     INSERT COIN / START GAME
