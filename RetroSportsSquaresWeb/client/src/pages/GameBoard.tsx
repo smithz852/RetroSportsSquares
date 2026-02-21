@@ -10,7 +10,7 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
-import { usePostSquareSelection } from "@/hooks/use-gameplay";
+import { usePostSquareSelection, useGetSelectedSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function GameBoard() {
@@ -21,6 +21,7 @@ export default function GameBoard() {
   const queryClient = useQueryClient();
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
+  const { data: savedSquares } = useGetSelectedSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
     Array(10).fill(null),
@@ -162,11 +163,24 @@ export default function GameBoard() {
         },
       },
     );
+    setSelections({});
   };
 
   const handleSquareClick = (row: number, col: number) => {
     if (gameStarted) return;
     const key = `${row}-${col}`;
+    
+    // Check if square is already saved in DB
+    const savedSquare = savedSquares?.find(s => s.squareName === key);
+    if (savedSquare) {
+      toast({
+        title: "SQUARE TAKEN",
+        description: `This square belongs to ${savedSquare.displayName}`,
+        variant: "destructive",
+      });
+      return;
+    }
+   
     if (selections[key]) {
       const newSelections = { ...selections };
       delete newSelections[key];
@@ -326,20 +340,24 @@ export default function GameBoard() {
 
                     {Array.from({ length: 10 }).map((_, colIndex) => {
                       const squareId = `${rowIndex}-${colIndex}`;
-                      const name = selections[squareId];
+                      const localSelection = selections[squareId];
+                      const savedSquare = savedSquares?.find(s => s.squareName === squareId);
+                      const displayName = savedSquare?.displayName || localSelection || "OPEN";
+                      const isSelected = savedSquare || localSelection;
+                      
                       return (
                         <div
                           key={squareId}
                           data-square-id={squareId}
                           onClick={() => handleSquareClick(rowIndex, colIndex)}
                           className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
-                            name ? "bg-red-600/20" : "hover:bg-red-900/10"
+                            isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
                           }`}
                         >
                           <span
-                            className={`font-pixel text-[6px] md:text-[8px] text-center px-1 leading-tight ${name ? "text-red-500" : "text-red-900/40"}`}
+                            className={`font-pixel text-[6px] md:text-[8px] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
                           >
-                            {name || "OPEN"}
+                            {displayName}
                           </span>
                         </div>
                       );

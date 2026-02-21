@@ -1,4 +1,5 @@
-﻿using RSS_DB;
+﻿using Microsoft.EntityFrameworkCore;
+using RSS_DB;
 using RSS_DB.Entities;
 using System;
 using System.Collections.Generic;
@@ -61,8 +62,11 @@ namespace RSS_Services
         {
             var gameIdGuid = Guid.Parse(gameId);
             return _appDbContext.GamePlayerSquares
-                .Where(gps => gps.GamePlayer.GameId == gameIdGuid)
-                .ToList();
+                 .Include(gps => gps.GamePlayer)
+                  .ThenInclude(gp => gp.User)
+                 .Include(gps => gps.Squares)
+                 .Where(gps => gps.GamePlayer.GameId == gameIdGuid)
+                 .ToList();
         }
     }
 }
