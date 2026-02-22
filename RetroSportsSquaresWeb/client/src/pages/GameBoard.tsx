@@ -10,7 +10,7 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
-import { usePostSquareSelection, useGetSelectedSquares } from "@/hooks/use-gameplay";
+import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function GameBoard() {
@@ -35,6 +35,7 @@ export default function GameBoard() {
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
+  const { mutate: mutateOutsideNumbers } = useSetOutsideSquareNumbers(id);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -124,13 +125,40 @@ export default function GameBoard() {
     const numbers = generateNumbers();
     setGameStarted(true);
     
-    // TODO: Save numbers to backend
-    // await saveGameNumbers(id, numbers.topNumbers, numbers.leftNumbers);
-    
-    toast({
-      title: "NUMBERS GENERATED",
-      description: "Random numbers assigned to red squares.",
+    // Create outside numbers object: { "top-0": 5, "top-1": 3, "left-0": 7, ... }
+    const outsideNumbers: Record<string, number> = {};
+    numbers.topNumbers.forEach((num, i) => {
+      outsideNumbers[`top-${i}`] = num;
     });
+    numbers.leftNumbers.forEach((num, i) => {
+      outsideNumbers[`row-${i}`] = num;
+    });
+    
+    // Convert to array format for API
+    const outsideNumbersArray = Object.keys(outsideNumbers).map((key) => ({
+      squareName: key,
+      squareValue: outsideNumbers[key]
+    }));
+    
+    // Save to backend
+    mutateOutsideNumbers(
+      { outsideSquares: outsideNumbersArray },
+      {
+        onSuccess: () => {
+          toast({
+            title: "NUMBERS GENERATED",
+            description: "Random numbers assigned to red squares.",
+          });
+        },
+        onError: () => {
+          toast({
+            title: "ERROR",
+            description: "Failed to save numbers.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const clearNumbers = () => {
@@ -180,9 +208,7 @@ export default function GameBoard() {
     setSelections({});
   };
 
-  const saveOutsideNumbers = async () => {
-    
-  }
+  
 
   const handleSquareClick = (row: number, col: number) => {
     if (gameStarted) return;

@@ -76,7 +76,7 @@ export interface CreateOutsideSquareNumbersRequest {
   }>;
 }
 
-export interface OutsdieSquareNumbersResponse {
+export interface OutsideSquareNumbersResponse {
     outsideSquares: OutsideSquare[];
 }
 

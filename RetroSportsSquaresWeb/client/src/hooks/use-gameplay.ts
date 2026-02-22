@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import {
   CreateOutsideSquareNumbersRequest,
-  OutsdieSquareNumbersResponse,
+  OutsideSquareNumbersResponse,
   SquareSelectionResponse,
   type CreateSquareSelectionRequest, type SelectedSquares
 } from "@shared/schema";
@@ -76,10 +76,10 @@ export function useSetOutsideSquareNumbers(gameId: string) {
   return useMutation({
     mutationFn: async (
       data: CreateOutsideSquareNumbersRequest,
-    ): Promise<OutsdieSquareNumbersResponse> => {
+    ): Promise<OutsideSquareNumbersResponse> => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please login to start a game");
-      // console.log("OutsideSquareData:", data);
+      console.log("OutsideSquareData:", data);
       const res = await fetch(`${API_BASE_URL}${endpoints.selections.setGameNumbers(gameId)}`, {
         method: "POST",
         headers: {
@@ -87,9 +87,9 @@ export function useSetOutsideSquareNumbers(gameId: string) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          outsideSquares: data.outsideSquares.map((s) => ({
-            squareName: s.squareName,
-            squareValue: s.squareValue
+          OutsideSquares: data.outsideSquares.map((s) => ({
+            SquareName: s.squareName,
+            SquareValue: s.squareValue
           })),
         }),
       });
@@ -100,12 +100,13 @@ export function useSetOutsideSquareNumbers(gameId: string) {
         try {
           const errorData = await res.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
+
           // If backend returns a list of unavailable squares
           errorDetails = errorData.unavailableSquares || errorData.errors || null;
         } catch {
           errorMessage = res.statusText || errorMessage;
         }
-        
+        console.log("EM: ", errorMessage)
         // Create custom error with details
         const error = new Error(errorMessage) as Error & { details?: any };
         error.details = errorDetails;
