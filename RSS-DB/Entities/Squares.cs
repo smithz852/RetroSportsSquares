@@ -13,7 +13,7 @@ namespace RSS_DB.Entities
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public ICollection<GamePlayerSquare> GamePlayerSquare { get; set; } = new List<GamePlayerSquare>();
-
+        public ICollection<GameSquares> GameSquares { get; set; } = new List<GameSquares>();
 
         public Squares() 
         {

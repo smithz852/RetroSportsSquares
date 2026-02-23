@@ -303,7 +303,7 @@ namespace RSS_DB.Migrations
                             AwayTeam = "Warriors",
                             CurrentAwayScore = 0,
                             CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 14, 17, 47, 20, 534, DateTimeKind.Unspecified).AddTicks(8118), new TimeSpan(0, 0, 0, 0, 0)),
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 2, 21, 23, 1, 13, 163, DateTimeKind.Unspecified).AddTicks(5219), new TimeSpan(0, 0, 0, 0, 0)),
                             HomeTeam = "Lakers",
                             InUse = false,
                             League = "NBA",
@@ -329,8 +329,9 @@ namespace RSS_DB.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ApplicationUserId")
-                        .HasColumnType("char(36)");
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
 
                     b.Property<Guid>("GameId")
                         .HasColumnType("char(36)");
@@ -347,17 +348,13 @@ namespace RSS_DB.Migrations
                     b.Property<int>("TurnOrder")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GamePlayer");
+                    b.ToTable("GamePlayers");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.GamePlayerSquare", b =>
@@ -369,8 +366,8 @@ namespace RSS_DB.Migrations
                     b.Property<Guid>("GamePlayerId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("SquareId")
-                        .HasColumnType("char(36)");
+                    b.Property<DateTimeOffset>("SelectedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("SquaresId")
                         .HasColumnType("char(36)");
@@ -381,7 +378,34 @@ namespace RSS_DB.Migrations
 
                     b.HasIndex("SquaresId");
 
-                    b.ToTable("GamePlayerSquare");
+                    b.ToTable("GamePlayerSquares");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GameSquares", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("SquareGamesId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("SquareValue")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SquaresId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SquareGamesId");
+
+                    b.HasIndex("SquaresId");
+
+                    b.ToTable("GameSquares");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
@@ -1110,15 +1134,15 @@ namespace RSS_DB.Migrations
 
             modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>
                 {
-                    b.HasOne("RSS_DB.Entities.SquareGames", "Game")
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "User")
                         .WithMany("GamePlayers")
-                        .HasForeignKey("GameId")
+                        .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RSS_DB.Entities.ApplicationUser", "User")
+                    b.HasOne("RSS_DB.Entities.SquareGames", "Game")
                         .WithMany("GamePlayers")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1142,6 +1166,25 @@ namespace RSS_DB.Migrations
                         .IsRequired();
 
                     b.Navigation("GamePlayer");
+
+                    b.Navigation("Squares");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GameSquares", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.SquareGames", "SquareGames")
+                        .WithMany("GameSquares")
+                        .HasForeignKey("SquareGamesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RSS_DB.Entities.Squares", "Squares")
+                        .WithMany("GameSquares")
+                        .HasForeignKey("SquaresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SquareGames");
 
                     b.Navigation("Squares");
                 });
@@ -1199,11 +1242,15 @@ namespace RSS_DB.Migrations
             modelBuilder.Entity("RSS_DB.Entities.SquareGames", b =>
                 {
                     b.Navigation("GamePlayers");
+
+                    b.Navigation("GameSquares");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.Squares", b =>
                 {
                     b.Navigation("GamePlayerSquare");
+
+                    b.Navigation("GameSquares");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using RSS.DTOs;
 using RSS.Helpers;
+using RSS_DB;
 using RSS_Services;
+using RSS_Services.DTOs;
 using RSS_Services.Helpers;
 using System.Linq;
 using System.Security.Claims;
@@ -17,13 +19,19 @@ namespace RSS.Controllers
         private readonly MapperHelpers _mapperHelpers;
         private readonly GeneralServices _generalServices;
         private readonly SportsGameServices _sportsGameServices;
+        private readonly SquareServices _squareServices;
+        private readonly AppDbContext _appDbContext;
+        private readonly GamePlayerServices _gamePlayerServices;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
             _generalServices = generalServices;
             _sportsGameServices = sportsGameServices;
+            _squareServices = squareServices;
+            _appDbContext = appDbContext;
+            _gamePlayerServices = gamePlayerServices;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -50,20 +58,33 @@ namespace RSS.Controllers
         [Authorize]
         public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
         {
-            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (string.IsNullOrEmpty(userId))
-            //{
-            //    return Unauthorized();
-            //}
-            var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
-           var dataSaved = _generalServices.SaveData(createdGame);
-            if (!dataSaved)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
             {
+                return Unauthorized();
+            }
+
+            using var transaction = _appDbContext.Database.BeginTransaction();
+            try
+            {
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
+                _generalServices.SaveData(createdGame);
+
+                var createGamePlayerHost = _gamePlayerServices.CreatePlayerHostedGame(userId, createdGame.Id);
+                _generalServices.SaveData(createGamePlayerHost);
+
+                _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
+
+                transaction.Commit();
+
+                var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
+                return Ok(gameDto);
+            }
+            catch
+            {
+                transaction.Rollback();
                 return BadRequest("Failed to save game data.");
             }
-            _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
-            var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
-            return Ok(gameDto);
         }
 
         [HttpGet("{id}")]
@@ -90,5 +111,77 @@ namespace RSS.Controllers
             var gameDto = _mapperHelpers.ScoreDataMapper(scoreData);
             return Ok(gameDto);
         }
+
+        [HttpPost("SquareSelections/{gameId}")]
+        [Authorize]
+        public IActionResult SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
+            if (unavailableSquares.Any())
+            {
+                return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
+            }
+            var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+            foreach (var square in selectedSquares)
+            {
+                var dataSaved = _generalServices.SaveData(square);
+                if (!dataSaved)
+                {
+                    return BadRequest("Failed to save square selection data.");
+                }
+            }
+
+            var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
+            return Ok(squareDtos);
+        }
+
+        [HttpPost("SetOutsideSquareNumbers/{gameId}")]
+        [Authorize]
+        public IActionResult SetOutsideSquareNumbers(string gameId, [FromBody] OutsideSquareNumbersDTO outsideSquares)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //set check for if game squares are already set
+            var setOutsideSquares = _squareServices.SetOutsideGameSquares(gameId, outsideSquares);
+            using var transaction = _appDbContext.Database.BeginTransaction();
+            foreach (var square in setOutsideSquares)
+            {
+                var dataSaved = _generalServices.SaveData(square);
+                if (!dataSaved)
+                {
+                    transaction.Rollback();
+                    return BadRequest("Failed to save outside square numbers data.");
+                }
+            }
+            transaction.Commit();
+            var outsideSquaresDtos = setOutsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
+            return Ok(outsideSquaresDtos);
+        }
+
+        [HttpGet("GetAllSelectedSquares/{gameId}")]
+        public IActionResult GetAllSelectedSquares(string gameId)
+        {
+            var allSquares = _squareServices.GetAllSelectedSquares(gameId);
+            if (allSquares.Any())
+            {
+                var squareDto = allSquares.Select(s => _mapperHelpers.SelectedSquaresByGameMapper(s)).ToList();
+                return Ok(squareDto);
+            }
+            return Ok(new List<SelectedSquaresByGameDTO>());
+        }
+
+        [HttpGet("GetOutsideSquareNumbers/{gameId}")]
+        public IActionResult GetSelectedSquares(string gameId)
+        {
+            var outsideSquares = _squareServices.GetOutsideSquares(gameId);
+            if (outsideSquares.Any())
+            {
+                var outsideSquaresDto = outsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
+                return Ok(outsideSquaresDto);
+            }
+            return Ok(new List<OutsideSquareNumbersDTO>());
+        }
+
+
     }
 }

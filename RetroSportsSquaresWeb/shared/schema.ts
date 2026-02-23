@@ -6,6 +6,7 @@ export interface SquareGame {
   gameType: string;
   isOpen: boolean;
   pricePerSquare: number;
+  playerCount: number;
   createdAt: string;
   sportGameId: number;
   homeTeam: string;
@@ -40,13 +41,11 @@ export interface SquareGameScoreData {
 }
 
 export interface SquareSelection {
-  id: number;
-  gameId: number;
+  id: string;
+  // gameId: number; enable later...
   userId: string;
-  row: number;
-  col: number;
-  playerName: string;
-  createdAt: string;
+  squareId: string;
+  selectedAt: Date;
 }
 
 export interface CreateSquareGameRequest {
@@ -59,10 +58,35 @@ export interface CreateSquareGameRequest {
 }
 
 export interface CreateSquareSelectionRequest {
-  userId: string;
-  row: number;
-  col: number;
-  playerName: string;
+  selections: Array<{
+    squareName: string;
+  }>;
+}
+
+export interface OutsideSquare {
+  id: string | null;
+  squareName: string;
+  squareValue: number;
+}
+
+export interface CreateOutsideSquareNumbersRequest {
+  outsideSquares: Array<{
+    squareName: string;
+    squareValue: number;
+  }>;
+}
+
+export interface OutsideSquareNumbersResponse {
+    outsideSquares: OutsideSquare[];
+}
+
+export interface SquareSelectionResponse {
+  selections:  SquareSelection[];
+}
+
+export interface SelectedSquares {
+  squareName: string;
+  displayName: string | null;
 }
 
 export interface AvailableGameOptions {

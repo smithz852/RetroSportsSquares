@@ -61,5 +61,42 @@ namespace RSS.Helpers
                 WinnerQ4 = squaregame.WinnerQ4?.DisplayName,
             };
         }
+
+        public SelectedGamePlayerSquaresDTO SelectedGamePlayerSquaresMapper(GamePlayerSquare square)
+        {
+            var stringId = square.Id.ToString();
+            var stringUserId = square.GamePlayerId.ToString();
+            var stringSquareId = square.SquaresId.ToString();
+
+            return new SelectedGamePlayerSquaresDTO()
+            {
+                Id = stringId,
+                UserId = stringUserId,
+                SquareId = stringSquareId,
+                SelectedAt = square.SelectedAt,
+            };
+
+        }
+
+        public SelectedSquaresByGameDTO SelectedSquaresByGameMapper(GamePlayerSquare squares)
+        {
+            return new SelectedSquaresByGameDTO()
+            {
+                SquareName = squares.Squares.Name,
+                displayName = squares.GamePlayer.User.DisplayName,
+            };
+        }
+
+        public OutsideSquareItem OutsideSquareMapper(GameSquares square)
+        {
+            var gameSquareIdString = square.Id.ToString();
+
+            return new OutsideSquareItem()
+            {
+                SquareName = square.Squares.Name,
+                SquareValue = square.SquareValue,
+                Id = gameSquareIdString
+            };
+        }
     }
 }

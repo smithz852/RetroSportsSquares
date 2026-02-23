@@ -40,7 +40,7 @@ namespace RSS_DB.Entities
         [ForeignKey(nameof(WinnerQ4Id))]
         public ApplicationUser? WinnerQ4 { get; set; }
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
-
+        public ICollection<GameSquares> GameSquares { get; set; } = new List<GameSquares>();
 
         public SquareGames()
         {
