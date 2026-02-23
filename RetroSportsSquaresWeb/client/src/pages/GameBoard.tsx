@@ -10,7 +10,7 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
-import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers } from "@/hooks/use-gameplay";
+import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function GameBoard() {
@@ -22,6 +22,7 @@ export default function GameBoard() {
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
   const { data: savedSquares } = useGetSelectedSquares(id);
+  const { data: outsideSquares } = useGetOutsideSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
     Array(10).fill(null),
@@ -62,6 +63,28 @@ export default function GameBoard() {
       }
     }
   }, [game]);
+
+  // Load outside squares from DB
+  useEffect(() => {
+    if (outsideSquares && outsideSquares.length > 0) {
+      const newTopNumbers = Array(10).fill(null);
+      const newLeftNumbers = Array(10).fill(null);
+      
+      outsideSquares.forEach(square => {
+        if (square.squareName.startsWith('top-')) {
+          const index = parseInt(square.squareName.split('-')[1]);
+          newTopNumbers[index] = square.squareValue;
+        } else if (square.squareName.startsWith('row-')) {
+          const index = parseInt(square.squareName.split('-')[1]);
+          newLeftNumbers[index] = square.squareValue;
+        }
+      });
+      
+      setTopNumbers(newTopNumbers);
+      setLeftNumbers(newLeftNumbers);
+      setGameStarted(true);
+    }
+  }, [outsideSquares]);
 
   // Redirect if not authenticated
   if (authLoading) {

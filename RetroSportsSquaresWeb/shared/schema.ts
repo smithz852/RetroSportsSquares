@@ -64,7 +64,7 @@ export interface CreateSquareSelectionRequest {
 }
 
 export interface OutsideSquare {
-  id: string;
+  id: string | null;
   squareName: string;
   squareValue: number;
 }

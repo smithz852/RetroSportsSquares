@@ -92,6 +92,19 @@ namespace RSS_Services
             return gameSquares;
         }
 
+        public List<GameSquares> GetOutsideSquares(string gameId)
+        {
+            var gameIdGuid = Guid.Parse(gameId);
+            var outsideSquares = new List<GameSquares>();
+
+            var gameSquares = _appDbContext.GameSquares
+                .Include(gs => gs.Squares)
+                .Where(gs => gs.SquareGamesId == gameIdGuid)
+                .ToList();
+
+            return gameSquares;
+        }
+
        }
     }
 

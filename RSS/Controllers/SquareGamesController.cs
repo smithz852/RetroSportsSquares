@@ -170,6 +170,18 @@ namespace RSS.Controllers
             return Ok(new List<SelectedSquaresByGameDTO>());
         }
 
+        [HttpGet("GetOutsideSquareNumbers/{gameId}")]
+        public IActionResult GetSelectedSquares(string gameId)
+        {
+            var outsideSquares = _squareServices.GetOutsideSquares(gameId);
+            if (outsideSquares.Any())
+            {
+                var outsideSquaresDto = outsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
+                return Ok(outsideSquaresDto);
+            }
+            return Ok(new List<OutsideSquareNumbersDTO>());
+        }
+
 
     }
 }

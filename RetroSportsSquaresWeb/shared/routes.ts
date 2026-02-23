@@ -13,6 +13,7 @@ export const endpoints = {
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,
     setGameNumbers: (gameId: string) => `/SquareGames/SetOutsideSquareNumbers/${gameId}`,
+    getGameNumbers: (gameId: string) => `/SquareGames/GetOutsideSquareNumbers/${gameId}`,
     get: (gameId: string) => `/SquareGames/GetAllSelectedSquares/${gameId}`
   },
   auth: {

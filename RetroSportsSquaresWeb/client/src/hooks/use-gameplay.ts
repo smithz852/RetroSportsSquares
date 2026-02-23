@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import {
   CreateOutsideSquareNumbersRequest,
+  OutsideSquare,
   OutsideSquareNumbersResponse,
   SquareSelectionResponse,
   type CreateSquareSelectionRequest, type SelectedSquares
@@ -120,20 +121,19 @@ export function useSetOutsideSquareNumbers(gameId: string) {
       return { outsideSquares: outsideSquareData };
     },
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["setOutsideSquares"] }),
+      queryClient.invalidateQueries({ queryKey: ["OutsideSquares", gameId] }),
   });
 }
 
-
-// TODO: Add this when you need to fetch outside squares
-// export function useGetOutsideSquares(gameId: string) {
-//   return useQuery({
-//     queryKey: ["setOutsideSquares", gameId], // ← Must match invalidation key
-//     queryFn: async () => {
-//       const res = await fetch(`${API_BASE_URL}${endpoints.selections.getGameNumbers(gameId)}`);
-//       if (!res.ok) throw new Error("Failed to fetch outside squares");
-//       return res.json();
-//     },
-//     enabled: !!gameId,
-//   });
-// }
+export function useGetOutsideSquares(gameId: string) {
+  return useQuery({
+    queryKey: ["OutsideSquares", gameId], 
+    queryFn: async (): Promise<OutsideSquare[]> => {
+      const res = await fetch(`${API_BASE_URL}${endpoints.selections.getGameNumbers(gameId)}`);
+      if (!res.ok) throw new Error("Failed to fetch outside squares");
+      const data = await res.json();
+      return data;
+    },
+    enabled: !!gameId,
+  });
+}
