@@ -1,8 +1,6 @@
-import { GetGameScoreData } from "@/hooks/use-games";
 import { motion } from "framer-motion";
 import { Trophy, Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { start } from "repl";
 
 interface TeamData {
   name: string;
@@ -13,22 +11,18 @@ interface TeamData {
 interface ScoreboardProps {
   isVisible: boolean;
   gameName?: string;
-  squareGameId: string;
+  scoreData: any;
+  isLoading: boolean;
   gameStartTime: Date | undefined;
 }
 
 export function Scoreboard({
   isVisible,
   gameName,
-  squareGameId,
+  scoreData,
+  isLoading,
   gameStartTime,
 }: ScoreboardProps) {
-  const {
-    data: scoreData,
-    isLoading,
-    error,
-  } = GetGameScoreData(squareGameId, isVisible ? 2 * 60 * 1000 : false);
-  // console.log("GST: ", gameStartTime);
 
   const [hasGameStarted, setHasGameStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);

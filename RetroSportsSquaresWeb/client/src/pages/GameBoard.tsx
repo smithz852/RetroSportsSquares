@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
-import { getSquareGameById } from "@/hooks/use-games";
+import { GetGameScoreData, getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
 import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
@@ -37,6 +37,7 @@ export default function GameBoard() {
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
   const { mutate: mutateOutsideNumbers } = useSetOutsideSquareNumbers(id);
+  const { data: scoreData, isLoading } = GetGameScoreData(id, gameStarted ? 2 * 60 * 1000 : false);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -300,8 +301,9 @@ export default function GameBoard() {
       <Scoreboard
         isVisible={gameStarted}
         gameName={(game as any)?.name}
-        squareGameId={id}
         gameStartTime={game?.startTime}
+        scoreData={scoreData}
+        isLoading={isLoading}
       />
 
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
