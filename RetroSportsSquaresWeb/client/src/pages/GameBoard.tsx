@@ -12,6 +12,7 @@ import { GetGameScoreData, getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
 import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
+import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -46,6 +47,53 @@ export default function GameBoard() {
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
   const [tempMultiplier, setTempMultiplier] = useState(0);
+  const [quarterWinners, setQuarterWinners] = useState<Record<number, string | null>>({});
+  const [currentLeader, setCurrentLeader] = useState<string | null>(null);
+
+const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
+
+// Use currentQuarter to trigger winner calculations
+useEffect(() => {
+  if (currentQuarter > 0 && scoreData && gameStarted && !quarterWinners[currentQuarter]) {
+    const quarterScores = {
+      1: { home: scoreData.q1HomeScore, away: scoreData.q1AwayScore },
+      2: { home: scoreData.q2HomeScore, away: scoreData.q2AwayScore },
+      3: { home: scoreData.q3HomeScore, away: scoreData.q3AwayScore },
+      4: { home: scoreData.q4HomeScore, away: scoreData.q4AwayScore },
+    };
+    
+    const scores = quarterScores[currentQuarter as keyof typeof quarterScores];
+    if (!scores?.home || !scores?.away) return;
+    
+    const homeDigit = scores.home % 10;
+    const awayDigit = scores.away % 10;
+    
+    const winningSquare = savedSquares?.find(square => {
+      const [row, col] = square.squareName.split('-').map(Number);
+      return topNumbers[col] === homeDigit && leftNumbers[row] === awayDigit;
+    });
+    
+    if (winningSquare) {
+      setQuarterWinners(prev => ({ ...prev, [currentQuarter]: winningSquare.displayName }));
+      console.log(`Q${currentQuarter} Winner:`, winningSquare.displayName);
+    }
+  }
+}, [currentQuarter, scoreData, gameStarted, topNumbers, leftNumbers, savedSquares, quarterWinners]);
+
+// Track current leader based on live score
+useEffect(() => {
+  if (scoreData && gameStarted && scoreData.currentHomeScore != null && scoreData.currentAwayScore != null) {
+    const homeDigit = scoreData.currentHomeScore % 10;
+    const awayDigit = scoreData.currentAwayScore % 10;
+    
+    const leadingSquare = savedSquares?.find(square => {
+      const [row, col] = square.squareName.split('-').map(Number);
+      return topNumbers[col] === homeDigit && leftNumbers[row] === awayDigit;
+    });
+    
+    setCurrentLeader(leadingSquare?.displayName || null);
+  }
+}, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, topNumbers, leftNumbers, savedSquares]);
 
   // Update state when game data loads
   useEffect(() => {
@@ -304,6 +352,9 @@ export default function GameBoard() {
         gameStartTime={game?.startTime}
         scoreData={scoreData}
         isLoading={isLoading}
+        currentQuarter={currentQuarter}
+        currentLeader={currentLeader}
+        quarterWinners={quarterWinners}
       />
 
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">

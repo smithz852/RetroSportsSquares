@@ -14,7 +14,30 @@ interface ScoreboardProps {
   scoreData: any;
   isLoading: boolean;
   gameStartTime: Date | undefined;
+  currentQuarter: number;
+  currentLeader: string | null;
+  quarterWinners: Record<number, string | null>;
 }
+
+const PERIOD_MAP: Record<string, number> = {
+  Q1: 1,
+  Q2: 2,
+  HALF: 2,
+  Q3: 3,
+  Q4: 4,
+  FINAL: 4,
+  FT: 4,
+  OT: 5,
+};
+
+export const getCurrentGamePeriodIndex = (period?: string | null): number => {
+  if (!period) return 0;
+  const upper = period.toUpperCase();
+  for (const key in PERIOD_MAP) {
+    if (upper.includes(key)) return PERIOD_MAP[key];
+  }
+  return 0;
+};
 
 export function Scoreboard({
   isVisible,
@@ -22,6 +45,9 @@ export function Scoreboard({
   scoreData,
   isLoading,
   gameStartTime,
+  currentQuarter,
+  currentLeader,
+  quarterWinners,
 }: ScoreboardProps) {
 
   const [hasGameStarted, setHasGameStarted] = useState(false);
@@ -117,31 +143,6 @@ export function Scoreboard({
     [scoreData],
   );
 
-  const PERIOD_MAP: Record<string, number> = {
-    Q1: 1,
-    Q2: 2,
-    HALF: 2,
-    Q3: 3,
-    Q4: 4,
-    FINAL: 4,
-    FT: 4,
-    OT: 5,
-  };
-
-  const getCurrentGamePeriodIndex = (period?: string | null): number => {
-    if (!period) return 0;
-
-    const upper = period.toUpperCase();
-
-    for (const key in PERIOD_MAP) {
-      if (upper.includes(key)) return PERIOD_MAP[key];
-    }
-
-    return 0;
-  };
-
-  const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
-
   const sumThroughQuarter = (
     quarters: (number | null | undefined)[],
     throughQuarter: number,
@@ -220,7 +221,7 @@ export function Scoreboard({
             <div className="flex flex-col items-center gap-1">
               <span className="text-red-900 text-[8px] uppercase">Leader</span>
               <div className="flex items-center gap-2 text-red-500 text-xl">
-                <span>User2</span>
+                <span>{currentLeader}</span>
               </div>
             </div>
           ) : (
@@ -245,23 +246,32 @@ export function Scoreboard({
 
       {/* Quarters Grid */}
       <div className="grid grid-cols-4 bg-black">
-        {[1, 2, 3, 4].map((q, idx) => (
-          <div
-            key={q}
-            className={`p-4 flex flex-col items-center justify-center ${idx < 3 ? "border-r-4 border-red-900" : ""}`}
-          >
-            <span className="text-red-900 text-[10px] mb-2 uppercase">
-              Q{q}
-            </span>
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-red-500 text-xs">
-                {team1Totals[idx] ?? "-"} - {team2Totals[idx] ?? "-"}
+        {[1, 2, 3, 4].map((q, idx) => {
+          const winner = quarterWinners[q];
+          return (
+            <div
+              key={q}
+              className={`p-4 flex flex-col items-center justify-center ${idx < 3 ? "border-r-4 border-red-900" : ""}`}
+            >
+              <span className="text-red-900 text-[10px] mb-2 uppercase">
+                Q{q}
               </span>
-              {/* winners go here */}
-              <Trophy className="w-4 h-4 text-yellow-600 animate-pulse" />
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-red-500 text-xs">
+                  {team1Totals[idx] ?? "-"} - {team2Totals[idx] ?? "-"}
+                </span>
+                {winner ? (
+                  <div className="flex items-center gap-1">
+                    
+                    <span className="text-yellow-600 text-[10px]">{winner}</span>
+                  </div>
+                ) : (
+                  <Trophy className="w-4 h-4 text-yellow-600" />
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </motion.div>
   );
