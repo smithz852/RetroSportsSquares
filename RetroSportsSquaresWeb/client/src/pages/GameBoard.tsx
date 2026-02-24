@@ -54,31 +54,52 @@ const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
 
 // Use currentQuarter to trigger winner calculations
 useEffect(() => {
-  if (currentQuarter > 0 && scoreData && gameStarted && !quarterWinners[currentQuarter]) {
-    const quarterScores = {
-      1: { home: scoreData.q1HomeScore, away: scoreData.q1AwayScore },
-      2: { home: scoreData.q2HomeScore, away: scoreData.q2AwayScore },
-      3: { home: scoreData.q3HomeScore, away: scoreData.q3AwayScore },
-      4: { home: scoreData.q4HomeScore, away: scoreData.q4AwayScore },
-    };
-    
-    const scores = quarterScores[currentQuarter as keyof typeof quarterScores];
-    if (!scores?.home || !scores?.away) return;
-    
-    const homeDigit = scores.home % 10;
-    const awayDigit = scores.away % 10;
-    
-    const winningSquare = savedSquares?.find(square => {
-      const [row, col] = square.squareName.split('-').map(Number);
-      return topNumbers[col] === homeDigit && leftNumbers[row] === awayDigit;
-    });
-    
-    if (winningSquare) {
-      setQuarterWinners(prev => ({ ...prev, [currentQuarter]: winningSquare.displayName }));
-      console.log(`Q${currentQuarter} Winner:`, winningSquare.displayName);
-    }
+  if (!scoreData || !gameStarted) return;
+
+  const completedQuarter = currentQuarter - 1;
+
+  // Only run if a quarter has actually completed
+  if (completedQuarter <= 0) return;
+
+  // Don’t re-log winners
+  if (quarterWinners[completedQuarter]) return;
+
+  const quarterScores = {
+    1: { home: scoreData.q1HomeScore, away: scoreData.q1AwayScore },
+    2: { home: scoreData.q2HomeScore, away: scoreData.q2AwayScore },
+    3: { home: scoreData.q3HomeScore, away: scoreData.q3AwayScore },
+    4: { home: scoreData.q4HomeScore, away: scoreData.q4AwayScore },
+  };
+
+  const scores = quarterScores[completedQuarter as keyof typeof quarterScores];
+  if (scores?.home == null || scores?.away == null) return;
+
+  const homeDigit = scores.home % 10;
+  const awayDigit = scores.away % 10;
+
+  const winningSquare = savedSquares?.find(square => {
+    const [row, col] = square.squareName.split('-').map(Number);
+    return topNumbers[col] === homeDigit && leftNumbers[row] === awayDigit;
+  });
+
+  if (winningSquare) {
+    setQuarterWinners(prev => ({
+      ...prev,
+      [completedQuarter]: winningSquare.displayName
+    }));
+
+    console.log(`Q${completedQuarter} Winner:`, winningSquare.displayName);
   }
-}, [currentQuarter, scoreData, gameStarted, topNumbers, leftNumbers, savedSquares, quarterWinners]);
+
+}, [
+  currentQuarter,
+  scoreData,
+  gameStarted,
+  topNumbers,
+  leftNumbers,
+  savedSquares,
+  quarterWinners
+]);
 
 // Track current leader based on live score
 useEffect(() => {

@@ -25,8 +25,8 @@ const PERIOD_MAP: Record<string, number> = {
   HALF: 2,
   Q3: 3,
   Q4: 4,
-  FINAL: 4,
-  FT: 4,
+  FINAL: 5,
+  FT: 5,
   OT: 5,
 };
 
