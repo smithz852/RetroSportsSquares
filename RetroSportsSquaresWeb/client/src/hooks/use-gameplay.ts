@@ -128,10 +128,11 @@ export function useSetOutsideSquareNumbers(gameId: string) {
 export function useGetOutsideSquares(gameId: string) {
   return useQuery({
     queryKey: ["OutsideSquares", gameId], 
-    queryFn: async (): Promise<OutsideSquare[]> => {
+    queryFn: async (): Promise<OutsideSquare> => {
       const res = await fetch(`${API_BASE_URL}${endpoints.selections.getGameNumbers(gameId)}`);
       if (!res.ok) throw new Error("Failed to fetch outside squares");
       const data = await res.json();
+      console.log("OutsideSquareData:", data);
       return data;
     },
     enabled: !!gameId,

@@ -117,7 +117,12 @@ namespace RSS_Services
             return numbers;
         }
 
-
+        public async Task<SquareGames?> GetOutsideSquareNumbers(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+            return await _appDbContext.SquareGames
+                .FirstOrDefaultAsync(x => x.Id == gameGuid);
+        }
        
 
        }

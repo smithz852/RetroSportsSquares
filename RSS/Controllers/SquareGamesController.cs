@@ -101,9 +101,9 @@ namespace RSS.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public IActionResult GetSquareGameById(string id)
+        public async Task<IActionResult> GetSquareGameById(string id)
         {
-            var availableGame = _availableGamesServices.GetGameById(id);
+            var availableGame = await _availableGamesServices.GetGameById(id);
             if (availableGame == null)
             {
                 return NotFound();
@@ -165,6 +165,24 @@ namespace RSS.Controllers
             return Ok(new List<SelectedSquaresByGameDTO>());
         }
 
+        [HttpGet("GetOutsideSquareNumbers/{gameId}")]
+        public async Task<IActionResult> GetOutsideSquareNumbers(string gameId)
+        {
+            var game = await _availableGamesServices.GetGameById(gameId);
+            if (game == null)
+            {
+                return BadRequest("Game not found");
+            }
+            if (game.isOpen)
+            {
+                return Ok();
+            }
 
+            var outsideSquares = await _squareServices.GetOutsideSquareNumbers(gameId);
+            if (outsideSquares == null) return NotFound();
+            var outsideSquaresDto = _mapperHelpers.OutsideSquareMapper(outsideSquares);
+
+            return Ok(outsideSquaresDto);
+        }
     }
 }

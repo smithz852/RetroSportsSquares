@@ -136,25 +136,19 @@ useEffect(() => {
 
   // Load outside squares from DB
   useEffect(() => {
-    if (outsideSquares && outsideSquares.length > 0) {
-      const newTopNumbers = Array(10).fill(null);
-      const newLeftNumbers = Array(10).fill(null);
-      
-      outsideSquares.forEach(square => {
-        if (square.squareName.startsWith('top-')) {
-          const index = parseInt(square.squareName.split('-')[1]);
-          newTopNumbers[index] = square.squareValue;
-        } else if (square.squareName.startsWith('row-')) {
-          const index = parseInt(square.squareName.split('-')[1]);
-          newLeftNumbers[index] = square.squareValue;
-        }
-      });
-      
-      setTopNumbers(newTopNumbers);
-      setLeftNumbers(newLeftNumbers);
-      setGameStarted(true);
-    }
-  }, [outsideSquares]);
+  const validOutside =
+    outsideSquares &&
+    Array.isArray(outsideSquares.topNumbers) &&
+    outsideSquares.topNumbers.length === 10 &&
+    Array.isArray(outsideSquares.leftNumbers) &&
+    outsideSquares.leftNumbers.length === 10;
+
+  if (!validOutside) return;
+
+  setTopNumbers(outsideSquares.topNumbers);
+  setLeftNumbers(outsideSquares.leftNumbers);
+  setGameStarted(true);
+}, [outsideSquares]);
 
   // Redirect if not authenticated
   if (authLoading) {

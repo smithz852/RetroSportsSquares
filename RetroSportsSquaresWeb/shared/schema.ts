@@ -52,7 +52,7 @@ export interface CreateSquareGameRequest {
   name: string;
   gameType: string;
   playerCount: number;
-  Status: 'open' | 'closed';
+  isOpen: boolean;
   pricePerSquare: number | null;
   dailySportsGameId: string;
 }
@@ -64,12 +64,12 @@ export interface CreateSquareSelectionRequest {
 }
 
 export interface OutsideSquare {
-  id: string | null;
-  squareName: string;
-  squareValue: number;
+  gameId: string | null;
+  topNumbers: number[];
+  leftNumbers: number[];
 }
 
-export interface CreateOutsideSquareNumbersRequest {
+export interface CreateOutsideSquareNumbersRequest { //Will be deleted 
   outsideSquares: Array<{
     squareName: string;
     squareValue: number;

@@ -86,14 +86,15 @@ namespace RSS.Helpers
             };
         }
 
-        public OutsideSquareItem OutsideSquareMapper(GameSquares square)
+        public OutsideSquareNumbersDTO OutsideSquareMapper(SquareGames squareGames)
         {
-            var gameSquareIdString = square.Id.ToString();
+            var gameSquareIdString = squareGames.Id.ToString();
 
-            return new OutsideSquareItem()
+            return new OutsideSquareNumbersDTO()
             {
-                SquareValue = square.SquareValue,
-                Id = gameSquareIdString
+                GameId = gameSquareIdString,
+                TopNumbers = squareGames.TopNumbers,
+                LeftNumbers = squareGames.LeftNumbers,
             };
         }
     }
