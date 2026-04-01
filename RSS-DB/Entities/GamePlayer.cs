@@ -20,6 +20,6 @@ namespace RSS_DB.Entities
         public bool IsHost {  get; set; } = false;
         public int NumbersOfSquareSelected { get; set; } = 0;
         public decimal TotalWagerAmount { get; set; } = 0;
-        public ICollection<GamePlayerSquare> GamePlayerSquares { get; set; } = new List<GamePlayerSquare>();
+        public ICollection<GameSquares> GamePlayerSquares { get; set; } = new List<GameSquares>();
     }
 }

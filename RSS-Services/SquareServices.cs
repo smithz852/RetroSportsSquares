@@ -16,14 +16,15 @@ namespace RSS_Services
     public class SquareServices
     {
         private AppDbContext _appDbContext;
-        public SquareServices(AppDbContext appDbContext) 
-        { 
+        private readonly Random _random = new();
+        public SquareServices(AppDbContext appDbContext)
+        {
             _appDbContext = appDbContext;
         }
 
-        public List<GamePlayerSquare> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
+        public List<GameSquares> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
         {
-            var gamePlayerSquares = new List<GamePlayerSquare>();
+            var gameSquares = new List<GameSquares>();
             var gameIdGuid = Guid.Parse(gameId);
             var createdAt = DateTimeOffset.UtcNow;
 
@@ -31,16 +32,13 @@ namespace RSS_Services
 
             foreach (var square in squareSelections)
             {
-                var selectedSquare = _appDbContext.Squares.FirstOrDefault(s => s.Name == square);
-                GamePlayerSquare gamePlayerSquare = new GamePlayerSquare()
-                {
-                    SelectedAt = createdAt,
-                    GamePlayerId = gamePlayer.Id,
-                    SquaresId = selectedSquare.Id
-                };
-                gamePlayerSquares.Add(gamePlayerSquare);
+                var squareId = Guid.Parse(square);
+                var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
+                selectedSquare.GamePlayerId = gamePlayer.Id;
+
+                gameSquares.Add(selectedSquare);
             }
-            return gamePlayerSquares;
+            return gameSquares;
         }
 
         public List<string> CheckIfSquaresAreSelected(string gameId, List<string> squareSelections)
@@ -50,9 +48,10 @@ namespace RSS_Services
 
             foreach (var square in squareSelections)
             {
-                var isSquareTaken = _appDbContext.GamePlayerSquares
-            .Any(gps => gps.Squares.Name == square &&
-                        gps.GamePlayer.GameId == gameIdGuid);
+                var squareId = Guid.Parse(square);
+                var isSquareTaken = _appDbContext.GameSquares
+            .Any(gs => gs.Id == squareId &&
+                        gs.GamePlayer.GameId == gameIdGuid);
 
                 if (isSquareTaken)
                 {
@@ -62,48 +61,64 @@ namespace RSS_Services
             return unavailableSquares;
         }
 
-        public List<GamePlayerSquare> GetAllSelectedSquares(string gameId)
+        public List<GameSquares> GetAllSelectedSquares(string gameId)
         {
             var gameIdGuid = Guid.Parse(gameId);
-            return _appDbContext.GamePlayerSquares
-                 .Include(gps => gps.GamePlayer)
+            return _appDbContext.GameSquares
+                 .Include(gs => gs.GamePlayer)
                   .ThenInclude(gp => gp.User)
-                 .Include(gps => gps.Squares)
-                 .Where(gps => gps.GamePlayer.GameId == gameIdGuid)
+                 .Where(gs => gs.SquareGamesId == gameIdGuid && gs.GamePlayerId != null)
                  .ToList();
         }
 
-        public List<GameSquares> SetOutsideGameSquares(string gameId, OutsideSquareNumbersDTO outsideSquares)
+        public async Task GenerateBoardAsync(string gameId)
         {
-            var gameIdGuid = Guid.Parse(gameId);
-            var gameSquares = new List<GameSquares>();
+            var gameGuid = Guid.Parse(gameId);
+            var topNumbers = ShuffleDigits();
+            var leftNumbers = ShuffleDigits();
 
-            foreach (var item in outsideSquares.OutsideSquares)
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game is null) return;
+
+            game.TopNumbers = topNumbers;
+            game.LeftNumbers = leftNumbers;
+
+            //Generate squares with HomeDigit / AwayDigit
+            var squares = new List<GameSquares>();
+
+            foreach (var awayDigit in leftNumbers)
             {
-                var setSquare = _appDbContext.Squares.FirstOrDefault(s => s.Name == item.SquareName);
-                gameSquares.Add(new GameSquares()
+                foreach (var homeDigit in topNumbers)
                 {
-                    SquareGamesId = gameIdGuid,
-                    SquaresId = setSquare.Id,
-                    SquareValue = item.SquareValue
-                });
+                    squares.Add(new GameSquares
+                    {
+                        SquareGamesId = game.Id,
+                        HomeDigit = homeDigit,
+                        AwayDigit = awayDigit
+                    });
+                }
             }
 
-            return gameSquares;
+            await _appDbContext.GameSquares.AddRangeAsync(squares);
         }
 
-        public List<GameSquares> GetOutsideSquares(string gameId)
+        private List<int> ShuffleDigits()
         {
-            var gameIdGuid = Guid.Parse(gameId);
-            var outsideSquares = new List<GameSquares>();
+            var numbers = Enumerable.Range(0, 10).ToList();
 
-            var gameSquares = _appDbContext.GameSquares
-                .Include(gs => gs.Squares)
-                .Where(gs => gs.SquareGamesId == gameIdGuid)
-                .ToList();
+            for (int i = numbers.Count - 1; i > 0; i--)
+            {
+                int j = _random.Next(i + 1);
 
-            return gameSquares;
+                // swap
+                (numbers[i], numbers[j]) = (numbers[j], numbers[i]);
+            }
+
+            return numbers;
         }
+
+
+       
 
        }
     }

@@ -56,7 +56,7 @@ namespace RSS.Controllers
 
         [HttpPost("CreateGame")]
         [Authorize]
-        public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
+        public async Task<IActionResult> CreateGame([FromBody] CreateGameDTO gameData)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -64,27 +64,39 @@ namespace RSS.Controllers
                 return Unauthorized();
             }
 
-            using var transaction = _appDbContext.Database.BeginTransaction();
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
                 var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
-                _generalServices.SaveData(createdGame);
+                _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
+
+                await _appDbContext.SaveChangesAsync();
 
                 var createGamePlayerHost = _gamePlayerServices.CreatePlayerHostedGame(userId, createdGame.Id);
-                _generalServices.SaveData(createGamePlayerHost);
+                _appDbContext.Set<RSS_DB.Entities.GamePlayer>().Add(createGamePlayerHost);
 
                 _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
 
-                transaction.Commit();
+                await _squareServices.GenerateBoardAsync(createdGame.Id.ToString());
+
+                await _appDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
                 return Ok(gameDto);
             }
             catch
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
                 return BadRequest("Failed to save game data.");
             }
+        }
+
+        [HttpPost("start/{gameId}")]
+        public async Task<IActionResult> StartGame(string gameId)
+        {
+            await _squareServices.GenerateBoardAsync(gameId);
+            return Ok();
         }
 
         [HttpGet("{id}")]
@@ -117,6 +129,10 @@ namespace RSS.Controllers
         public IActionResult SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
             var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
             if (unavailableSquares.Any())
             {
@@ -136,27 +152,6 @@ namespace RSS.Controllers
             return Ok(squareDtos);
         }
 
-        [HttpPost("SetOutsideSquareNumbers/{gameId}")]
-        [Authorize]
-        public IActionResult SetOutsideSquareNumbers(string gameId, [FromBody] OutsideSquareNumbersDTO outsideSquares)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //set check for if game squares are already set
-            var setOutsideSquares = _squareServices.SetOutsideGameSquares(gameId, outsideSquares);
-            using var transaction = _appDbContext.Database.BeginTransaction();
-            foreach (var square in setOutsideSquares)
-            {
-                var dataSaved = _generalServices.SaveData(square);
-                if (!dataSaved)
-                {
-                    transaction.Rollback();
-                    return BadRequest("Failed to save outside square numbers data.");
-                }
-            }
-            transaction.Commit();
-            var outsideSquaresDtos = setOutsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
-            return Ok(outsideSquaresDtos);
-        }
 
         [HttpGet("GetAllSelectedSquares/{gameId}")]
         public IActionResult GetAllSelectedSquares(string gameId)
@@ -168,18 +163,6 @@ namespace RSS.Controllers
                 return Ok(squareDto);
             }
             return Ok(new List<SelectedSquaresByGameDTO>());
-        }
-
-        [HttpGet("GetOutsideSquareNumbers/{gameId}")]
-        public IActionResult GetSelectedSquares(string gameId)
-        {
-            var outsideSquares = _squareServices.GetOutsideSquares(gameId);
-            if (outsideSquares.Any())
-            {
-                var outsideSquaresDto = outsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
-                return Ok(outsideSquaresDto);
-            }
-            return Ok(new List<OutsideSquareNumbersDTO>());
         }
 
 
