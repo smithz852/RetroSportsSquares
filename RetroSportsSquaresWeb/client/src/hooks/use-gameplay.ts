@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import {
+  BoardSquare,
   CreateOutsideSquareNumbersRequest,
   OutsideSquare,
   OutsideSquareNumbersResponse,
   SquareSelectionResponse,
-  type CreateSquareSelectionRequest, type SelectedSquares
+  type CreateSquareSelectionRequest
 } from "@shared/schema";
 
 export function usePostSquareSelection(gameId: string) {
@@ -25,7 +26,7 @@ export function usePostSquareSelection(gameId: string) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          selections: data.selections.map((s) => s.squareName),
+          selections: data.selections.map((s) => s.squareId),
         }),
       });
       
@@ -58,13 +59,14 @@ export function usePostSquareSelection(gameId: string) {
   });
 }
 
-export function useGetSelectedSquares(gameId: string) {
-   return useQuery({
-    queryKey: ["gameSelections", gameId],
-    queryFn: async (): Promise<SelectedSquares[]> => {
-      const res = await fetch(`${API_BASE_URL}${endpoints.selections.get(gameId)}`);
-      if (!res.ok) throw new Error("Failed to fetch selections");
+export function useGetBoardSquares(gameId: string) {
+  return useQuery({
+    queryKey: ["boardSquares", gameId],
+    queryFn: async (): Promise<BoardSquare[]> => {
+      const res = await fetch(`${API_BASE_URL}${endpoints.selections.getBoard(gameId)}`);
+      if (!res.ok) throw new Error("Failed to fetch board squares");
       const data = await res.json();
+      console.log("BoardSquares:", data);
       return data;
     },
     enabled: !!gameId,

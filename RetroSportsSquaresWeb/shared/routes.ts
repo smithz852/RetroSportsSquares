@@ -14,7 +14,8 @@ export const endpoints = {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,
     setGameNumbers: (gameId: string) => `/SquareGames/SetOutsideSquareNumbers/${gameId}`,
     getGameNumbers: (gameId: string) => `/SquareGames/GetOutsideSquareNumbers/${gameId}`,
-    get: (gameId: string) => `/SquareGames/GetAllSelectedSquares/${gameId}`
+    get: (gameId: string) => `/SquareGames/GetAllSelectedSquares/${gameId}`,
+    getBoard: (gameId: string) => `/SquareGames/GetGameboard/${gameId}` // placeholder
   },
   auth: {
     login: '/Auth/login',

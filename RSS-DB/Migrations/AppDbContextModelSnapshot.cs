@@ -303,7 +303,7 @@ namespace RSS_DB.Migrations
                             AwayTeam = "Warriors",
                             CurrentAwayScore = 0,
                             CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 4, 1, 2, 18, 9, 830, DateTimeKind.Unspecified).AddTicks(7405), new TimeSpan(0, 0, 0, 0, 0)),
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 4, 3, 4, 19, 10, 541, DateTimeKind.Unspecified).AddTicks(1025), new TimeSpan(0, 0, 0, 0, 0)),
                             HomeTeam = "Lakers",
                             InUse = false,
                             League = "NBA",
@@ -366,6 +366,9 @@ namespace RSS_DB.Migrations
                     b.Property<int>("AwayDigit")
                         .HasColumnType("int");
 
+                    b.Property<int>("ColumnIndex")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -373,6 +376,9 @@ namespace RSS_DB.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<int>("HomeDigit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RowIndex")
                         .HasColumnType("int");
 
                     b.Property<Guid>("SquareGamesId")

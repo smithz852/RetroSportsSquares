@@ -16,6 +16,8 @@ namespace RSS_DB.Entities
         public GamePlayer? GamePlayer { get; set; }
         public int HomeDigit { get; set; }
         public int AwayDigit { get; set; }
+        public int RowIndex {  get; set; }
+        public int ColumnIndex { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
 
         public GameSquares()

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { GetGameScoreData, getSquareGameById } from "@/hooks/use-games";
 import { number } from "zod";
-import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
+import { usePostSquareSelection, useGetBoardSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
@@ -22,7 +22,7 @@ export default function GameBoard() {
   const queryClient = useQueryClient();
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
-  const { data: savedSquares } = useGetSelectedSquares(id);
+  const { data: boardSquares } = useGetBoardSquares(id);
   const { data: outsideSquares } = useGetOutsideSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
@@ -31,14 +31,19 @@ export default function GameBoard() {
   const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(
     Array(10).fill(null),
   );
-  const [selections, setSelections] = useState<Record<string, string>>({});
-  // console.log(selections);
+  const [selections, setSelections] = useState<Record<string, string>>({}); // { [squareGuid]: playerName }
+  console.log(selections);
   const [gameStarted, setGameStarted] = useState(false);
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
   const { mutate: mutateOutsideNumbers } = useSetOutsideSquareNumbers(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, gameStarted ? 2 * 60 * 1000 : false);
+
+  const squareByPosition = useMemo(() => {
+    if (!gameStarted || !boardSquares) return {};
+    return Object.fromEntries(boardSquares.map(sq => [`${sq.rowIndex}-${sq.colIndex}`, sq]));
+  }, [gameStarted, boardSquares]);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -77,10 +82,7 @@ useEffect(() => {
   const homeDigit = scores.home % 10;
   const awayDigit = scores.away % 10;
 
-  const winningSquare = savedSquares?.find(square => {
-    const [row, col] = square.squareName.split('-').map(Number);
-    return topNumbers[col] === homeDigit && leftNumbers[row] === awayDigit;
-  });
+  const winningSquare = squareByPosition[`${leftNumbers.indexOf(awayDigit)}-${topNumbers.indexOf(homeDigit)}`];
 
   if (winningSquare) {
     setQuarterWinners(prev => ({
@@ -91,15 +93,7 @@ useEffect(() => {
     console.log(`Q${completedQuarter} Winner:`, winningSquare.displayName);
   }
 
-}, [
-  currentQuarter,
-  scoreData,
-  gameStarted,
-  topNumbers,
-  leftNumbers,
-  savedSquares,
-  quarterWinners
-]);
+}, [currentQuarter, scoreData, gameStarted, squareByPosition, quarterWinners]);
 
 // Track current leader based on live score
 useEffect(() => {
@@ -107,14 +101,11 @@ useEffect(() => {
     const homeDigit = scoreData.currentHomeScore % 10;
     const awayDigit = scoreData.currentAwayScore % 10;
     
-    const leadingSquare = savedSquares?.find(square => {
-      const [row, col] = square.squareName.split('-').map(Number);
-      return topNumbers[col] === homeDigit && leftNumbers[row] === awayDigit;
-    });
+    const leadingSquare = squareByPosition[`${leftNumbers.indexOf(awayDigit)}-${topNumbers.indexOf(homeDigit)}`];
     
     setCurrentLeader(leadingSquare?.displayName || null);
   }
-}, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, topNumbers, leftNumbers, savedSquares]);
+}, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, squareByPosition]);
 
   // Update state when game data loads
   useEffect(() => {
@@ -258,9 +249,9 @@ useEffect(() => {
   };
 
   const handleSubmit = () => {
-    const selectionArray = Object.keys(selections).map((key) => {
-      return { squareName: key };
-    });
+    const selectionArray = Object.keys(selections).map((key) => ({
+      squareId: key
+    }));
 
     mutate(
       {
@@ -275,7 +266,7 @@ useEffect(() => {
             className:
               "bg-black border-2 border-primary text-primary font-['VT323']",
           });
-          queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
+          queryClient.invalidateQueries({ queryKey: ['boardSquares', id] });
         },
         onError: (error: any) => {
           const message = error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.";
@@ -288,7 +279,7 @@ useEffect(() => {
             className:
               "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
           });
-            queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
+            queryClient.invalidateQueries({ queryKey: ['boardSquares', id] });
         },
       },
     );
@@ -297,13 +288,11 @@ useEffect(() => {
 
   
 
-  const handleSquareClick = (row: number, col: number) => {
+  const handleSquareClick = (squareId: string) => {
     if (gameStarted) return;
-    const key = `${row}-${col}`;
-    
-    // Check if square is already saved in DB
-    const savedSquare = savedSquares?.find(s => s.squareName === key);
-    if (savedSquare) {
+
+    const savedSquare = boardSquares?.find(s => s.id === squareId);
+    if (savedSquare?.displayName) {
       toast({
         title: "SQUARE TAKEN",
         description: `This square belongs to ${savedSquare.displayName}`,
@@ -311,22 +300,20 @@ useEffect(() => {
       });
       return;
     }
-   
-    if (selections[key]) {
-      const newSelections = { ...selections };
-      delete newSelections[key];
-      setSelections(newSelections);
+
+    if (selections[squareId]) {
+      const { [squareId]: _, ...rest } = selections;
+      setSelections(rest);
     } else {
       if (!activePlayer) {
         toast({
           title: "PLAYER REQUIRED",
-          description:
-            "Please enter and submit a username above the board first!",
+          description: "Please enter and submit a username above the board first!",
           variant: "destructive",
         });
         return;
       }
-      setSelections({ ...selections, [key]: activePlayer });
+      setSelections({ ...selections, [squareId]: activePlayer });
     }
   };
 
@@ -350,14 +337,14 @@ useEffect(() => {
     );
   }
 
-  // Calculate odds data
-  const playerStats = Object.values(selections).reduce(
-    (acc, name) => {
-      acc[name] = (acc[name] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
+  // Calculate odds data — combine saved and local unsaved selections
+  const playerStats = [
+    ...(boardSquares?.map(s => s.displayName).filter(Boolean) as string[] ?? []),
+    ...Object.values(selections),
+  ].reduce((acc, name) => {
+    acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="flex flex-col items-center p-4 max-w-[1400px] mx-auto w-full">
@@ -471,17 +458,17 @@ useEffect(() => {
                     </div>
 
                     {Array.from({ length: 10 }).map((_, colIndex) => {
-                      const squareId = `${rowIndex}-${colIndex}`;
-                      const localSelection = selections[squareId];
-                      const savedSquare = savedSquares?.find(s => s.squareName === squareId);
+                      const boardSquare = boardSquares?.find(s => s.rowIndex === rowIndex && s.colIndex === colIndex);
+                      const squareId = boardSquare?.id;
+                      const localSelection = squareId ? selections[squareId] : undefined;
+                      const savedSquare = squareId ? boardSquares?.find(s => s.id === squareId) : undefined;
                       const displayName = savedSquare?.displayName || localSelection || "OPEN";
-                      const isSelected = savedSquare || localSelection;
-                      
+                      const isSelected = !!savedSquare?.displayName || !!localSelection;
+
                       return (
                         <div
-                          key={squareId}
-                          data-square-id={squareId}
-                          onClick={() => handleSquareClick(rowIndex, colIndex)}
+                          key={`${rowIndex}-${colIndex}`}
+                          onClick={() => squareId && handleSquareClick(squareId)}
                           className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
                             isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
                           }`}

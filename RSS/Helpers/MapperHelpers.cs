@@ -1,6 +1,7 @@
 ﻿using RSS.DTOs;
 using RSS_DB.Entities;
 using RSS_Services.DTOs;
+using System.Linq;
 
 namespace RSS.Helpers
 {
@@ -96,6 +97,16 @@ namespace RSS.Helpers
                 TopNumbers = squareGames.TopNumbers,
                 LeftNumbers = squareGames.LeftNumbers,
             };
+        }
+
+        public List<PreGameboardDTO> PreGameboardMapper(List<GameSquares> gameSquares)
+        {
+            return gameSquares.Select(square => new PreGameboardDTO
+            {
+                Id = square.Id,
+                RowIndex = square.RowIndex,
+                ColIndex = square.ColumnIndex
+            }).ToList();
         }
     }
 }

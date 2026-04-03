@@ -83,18 +83,23 @@ namespace RSS_Services
             game.TopNumbers = topNumbers;
             game.LeftNumbers = leftNumbers;
 
-            //Generate squares with HomeDigit / AwayDigit
             var squares = new List<GameSquares>();
 
-            foreach (var awayDigit in leftNumbers)
+            for (int rowIndex = 0; rowIndex < leftNumbers.Count; rowIndex++)
             {
-                foreach (var homeDigit in topNumbers)
+                for (int colIndex = 0; colIndex < topNumbers.Count; colIndex++)
                 {
                     squares.Add(new GameSquares
                     {
                         SquareGamesId = game.Id,
-                        HomeDigit = homeDigit,
-                        AwayDigit = awayDigit
+
+                        // ✅ Position (for frontend rendering)
+                        RowIndex = rowIndex,
+                        ColumnIndex = colIndex,
+
+                        // ✅ Digits (for winner logic)
+                        AwayDigit = leftNumbers[rowIndex],
+                        HomeDigit = topNumbers[colIndex]
                     });
                 }
             }
@@ -115,6 +120,15 @@ namespace RSS_Services
             }
 
             return numbers;
+        }
+
+        public async Task<List<GameSquares>> GetGameboardSquaresByGameId(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+
+            return await _appDbContext.GameSquares
+                .Where(sq => sq.SquareGamesId == gameGuid)
+                .ToListAsync();
         }
 
         public async Task<SquareGames?> GetOutsideSquareNumbers(string gameId)

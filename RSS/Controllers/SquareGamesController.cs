@@ -153,16 +153,16 @@ namespace RSS.Controllers
         }
 
 
-        [HttpGet("GetAllSelectedSquares/{gameId}")]
-        public IActionResult GetAllSelectedSquares(string gameId)
+        [HttpGet("GetGameboard/{gameId}")]
+        public async Task<IActionResult> GetAllSelectedSquares(string gameId)
         {
-            var allSquares = _squareServices.GetAllSelectedSquares(gameId);
-            if (allSquares.Any())
+            var gameboard = await _squareServices.GetGameboardSquaresByGameId(gameId);
+            if (gameboard == null)
             {
-                var squareDto = allSquares.Select(s => _mapperHelpers.SelectedSquaresByGameMapper(s)).ToList();
-                return Ok(squareDto);
+                return BadRequest("Gameboard not found");
             }
-            return Ok(new List<SelectedSquaresByGameDTO>());
+            var gameboardDto = _mapperHelpers.PreGameboardMapper(gameboard);
+            return Ok(gameboardDto);
         }
 
         [HttpGet("GetOutsideSquareNumbers/{gameId}")]

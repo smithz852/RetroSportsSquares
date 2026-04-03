@@ -57,9 +57,16 @@ export interface CreateSquareGameRequest {
   dailySportsGameId: string;
 }
 
+export interface BoardSquare {
+  id: string;
+  rowIndex: number;
+  colIndex: number;
+  displayName: string | null;
+}
+
 export interface CreateSquareSelectionRequest {
   selections: Array<{
-    squareName: string;
+    squareId: string;
   }>;
 }
 
@@ -82,11 +89,6 @@ export interface OutsideSquareNumbersResponse {
 
 export interface SquareSelectionResponse {
   selections:  SquareSelection[];
-}
-
-export interface SelectedSquares {
-  squareName: string;
-  displayName: string | null;
 }
 
 export interface AvailableGameOptions {
