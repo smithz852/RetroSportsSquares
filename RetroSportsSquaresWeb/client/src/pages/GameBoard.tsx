@@ -37,7 +37,6 @@ export default function GameBoard() {
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
-  const { mutate: mutateOutsideNumbers } = useSetOutsideSquareNumbers(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, gameStarted ? 2 * 60 * 1000 : false);
 
   const squareByPosition = useMemo(() => {
@@ -218,25 +217,7 @@ useEffect(() => {
       squareValue: outsideNumbers[key]
     }));
     
-    // Save to backend
-    mutateOutsideNumbers(
-      { outsideSquares: outsideNumbersArray },
-      {
-        onSuccess: () => {
-          toast({
-            title: "NUMBERS GENERATED",
-            description: "Random numbers assigned to red squares.",
-          });
-        },
-        onError: () => {
-          toast({
-            title: "ERROR",
-            description: "Failed to save numbers.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
+    
   };
 
   const clearNumbers = () => {

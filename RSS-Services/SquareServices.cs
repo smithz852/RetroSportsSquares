@@ -22,7 +22,7 @@ namespace RSS_Services
             _appDbContext = appDbContext;
         }
 
-        public List<GameSquares> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
+        public async Task<List<GameSquares>> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
         {
             var gameSquares = new List<GameSquares>();
             var gameIdGuid = Guid.Parse(gameId);
@@ -37,6 +37,11 @@ namespace RSS_Services
                 selectedSquare.GamePlayerId = gamePlayer.Id;
 
                 gameSquares.Add(selectedSquare);
+            }
+            var savedSquares = await _appDbContext.SaveChangesAsync();
+            if (savedSquares <= 0)
+            {
+                return null;
             }
             return gameSquares;
         }
@@ -79,6 +84,9 @@ namespace RSS_Services
 
             var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
             if (game is null) return;
+
+            var alreadyGenerated = await _appDbContext.GameSquares.AnyAsync(s => s.SquareGamesId == gameGuid);
+            if (alreadyGenerated) return;
 
             game.TopNumbers = topNumbers;
             game.LeftNumbers = leftNumbers;
@@ -127,6 +135,8 @@ namespace RSS_Services
             var gameGuid = Guid.Parse(gameId);
 
             return await _appDbContext.GameSquares
+                .Include(sq => sq.GamePlayer)
+                 .ThenInclude(gp => gp.User)
                 .Where(sq => sq.SquareGamesId == gameGuid)
                 .ToListAsync();
         }

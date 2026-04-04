@@ -105,7 +105,8 @@ namespace RSS.Helpers
             {
                 Id = square.Id,
                 RowIndex = square.RowIndex,
-                ColIndex = square.ColumnIndex
+                ColIndex = square.ColumnIndex,
+                DisplayName = square.GamePlayer?.User?.DisplayName,
             }).ToList();
         }
     }

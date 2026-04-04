@@ -11,5 +11,6 @@ namespace RSS_Services.DTOs
         public Guid Id { get; set; }
         public int RowIndex { get; set; }
         public int ColIndex { get; set; }
+        public string? DisplayName { get; set; }
     }
 }

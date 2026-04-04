@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RSS.DTOs;
 using RSS.Helpers;
@@ -126,7 +126,7 @@ namespace RSS.Controllers
 
         [HttpPost("SquareSelections/{gameId}")]
         [Authorize]
-        public IActionResult SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
+        public async Task<IActionResult> SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -138,15 +138,9 @@ namespace RSS.Controllers
             {
                 return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
             }
-            var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
-            foreach (var square in selectedSquares)
-            {
-                var dataSaved = _generalServices.SaveData(square);
-                if (!dataSaved)
-                {
-                    return BadRequest("Failed to save square selection data.");
-                }
-            }
+            var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+            if (selectedSquares == null || !selectedSquares.Any())
+                return BadRequest("Failed to save square selection data.");
 
             var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
             return Ok(squareDtos);
