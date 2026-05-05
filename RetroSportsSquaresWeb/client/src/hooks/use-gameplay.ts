@@ -140,3 +140,17 @@ export function useGetOutsideSquares(gameId: string) {
     enabled: !!gameId,
   });
 }
+
+// export function useGetQuarterWinners(gameId: string) {
+//   return useQuery({
+//     queryKey: ["quarterWinners", gameId],
+//     queryFn: async (): Promise<Record<number, string | null>> => {
+//       const res = await fetch(`${API_BASE_URL}${endpoints.games.scoreData(gameId)}`);
+//       if (!res.ok) throw new Error("Failed to fetch quarter winners");
+//       const data = await res.json();
+//       console.log("QuarterWinners:", data);
+//       return data || {};
+//     },
+//     enabled: !!gameId,
+//   });
+// }

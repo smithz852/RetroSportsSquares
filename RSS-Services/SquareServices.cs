@@ -148,7 +148,92 @@ namespace RSS_Services
                 .FirstOrDefaultAsync(x => x.Id == gameGuid);
         }
        
+        public async Task<QuarterlyWinnerDTO> DetermineQuarterlyWinner(SportScoreUpdateDTO newScore, Guid gameId)
+        {
+            var currentQuarter = GetCurrentGamePeriodIndex(newScore.Status);
+            var completedQuarter = currentQuarter - 1;
+            if (completedQuarter < 1)
+            {
+                return null;
+            }
+            var winningHomeDigit = newScore.CurrentHomeScore % 10;
+            var winningAwayDigit = newScore.CurrentAwayScore % 10;
 
-       }
+            var winningSquare = await _appDbContext.GameSquares
+                .Include(gs => gs.GamePlayer)
+                .ThenInclude(gp => gp.User)
+                .FirstOrDefaultAsync(sq =>
+                    sq.SquareGamesId == gameId &&
+                    sq.HomeDigit == winningHomeDigit &&
+                    sq.AwayDigit == winningAwayDigit &&
+                    sq.GamePlayerId != null);
+
+            var quarterlyWinner = new QuarterlyWinnerDTO
+            {
+                Period = completedQuarter,
+                UserId = winningSquare.GamePlayerId
+            };
+            return quarterlyWinner;
+        }
+
+        public async Task SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
+        {
+            var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
+            var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
+            if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
+            if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
+
+            var periodSetters = new Dictionary<int, Action<SquareGames, string>>
+            {
+                { 1, (g, id) => g.WinnerQ1Id = id },
+                { 2, (g, id) => g.WinnerQ2Id = id },
+                { 3, (g, id) => g.WinnerQ3Id = id },
+                { 4, (g, id) => g.WinnerQ4Id = id },
+            };
+
+            if (periodSetters.TryGetValue(winner.Period, out var setter))
+                setter(game, player.ApplicationUserId);
+
+           var saved = await _appDbContext.SaveChangesAsync();
+            if (saved <= 0) throw new InvalidOperationException("Could not save winner");
+        }
+
+        private static readonly Dictionary<string, int> PeriodMap = new()
+        {
+            { "Q1", 1 }, { "Q2", 2 }, { "HALF", 3 },
+            { "Q3", 3 }, { "Q4", 4 },
+            { "FINAL", 5 }, { "FT", 5 }, { "OT", 5 }
+        };
+
+        public static int GetCurrentGamePeriodIndex(string? period)
+        {
+            if (string.IsNullOrEmpty(period)) return 0;
+            var upper = period.ToUpper();
+            foreach (var key in PeriodMap.Keys)
+                if (upper.Contains(key)) return PeriodMap[key];
+            return 0;
+        }
+
+        //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)
+        //{
+        //    var game = await _appDbContext.SquareGames
+        //        .Include(g => g.WinnerQ1)
+        //        .Include(g => g.WinnerQ2)
+        //        .Include(g => g.WinnerQ3)
+        //        .Include(g => g.WinnerQ4)
+        //        .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        //    if (game is null) throw new InvalidOperationException($"Game {gameId} not found");
+
+        //    return new Dictionary<int, string?>
+        //    {
+        //        { 1, game.WinnerQ1?.UserName },
+        //        { 2, game.WinnerQ2?.UserName },
+        //        { 3, game.WinnerQ3?.UserName },
+        //        { 4, game.WinnerQ4?.UserName },
+        //    };
+        //}
+
+    }
     }
 

@@ -52,6 +52,7 @@ export function Scoreboard({
 
   const [hasGameStarted, setHasGameStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  
 
   const timeUntilGame = () => {
   if (!gameStartTime) return <span>TBD</span>;

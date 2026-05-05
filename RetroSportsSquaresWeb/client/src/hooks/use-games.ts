@@ -61,7 +61,7 @@ export function GetGameScoreData(id: string, refetchInterval?: number | false) {
       const res = await fetch(`${API_BASE_URL}${endpoints.games.scoreData(id)}`);
       if (!res.ok) throw new Error("Failed to fetch game score data");
        const data = await res.json();
-    //  console.log(data);
+     console.log(data);
      return data;
     },
     enabled: !!id,

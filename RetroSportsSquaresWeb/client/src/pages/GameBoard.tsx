@@ -24,6 +24,7 @@ export default function GameBoard() {
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
   const { data: boardSquares } = useGetBoardSquares(id);
   const { data: outsideSquares } = useGetOutsideSquares(id);
+  // const {data: quarterlyWinners} = useGetQuarterWinners(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
     Array(10).fill(null),
@@ -56,43 +57,17 @@ export default function GameBoard() {
 
 const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
 
-// Use currentQuarter to trigger winner calculations
+// // Use currentQuarter to trigger winner calculations
 useEffect(() => {
-  if (!scoreData || !gameStarted) return;
-
-  const completedQuarter = currentQuarter - 1;
-
-  // Only run if a quarter has actually completed
-  if (completedQuarter <= 0) return;
-
-  // Don’t re-log winners
-  if (quarterWinners[completedQuarter]) return;
-
-  const quarterScores = {
-    1: { home: scoreData.q1HomeScore, away: scoreData.q1AwayScore },
-    2: { home: scoreData.q2HomeScore, away: scoreData.q2AwayScore },
-    3: { home: scoreData.q3HomeScore, away: scoreData.q3AwayScore },
-    4: { home: scoreData.q4HomeScore, away: scoreData.q4AwayScore },
-  };
-
-  const scores = quarterScores[completedQuarter as keyof typeof quarterScores];
-  if (scores?.home == null || scores?.away == null) return;
-
-  const homeDigit = scores.home % 10;
-  const awayDigit = scores.away % 10;
-
-  const winningSquare = squareByPosition[`${leftNumbers.indexOf(awayDigit)}-${topNumbers.indexOf(homeDigit)}`];
-
-  if (winningSquare) {
-    setQuarterWinners(prev => ({
-      ...prev,
-      [completedQuarter]: winningSquare.displayName
-    }));
-
-    console.log(`Q${completedQuarter} Winner:`, winningSquare.displayName);
+  if (scoreData) {
+    setQuarterWinners({
+      1: scoreData.winnerQ1 ?? null,
+      2: scoreData.winnerQ2 ?? null,
+      3: scoreData.winnerQ3 ?? null,
+      4: scoreData.winnerQ4 ?? null,
+    });
   }
-
-}, [currentQuarter, scoreData, gameStarted, squareByPosition, quarterWinners]);
+}, [scoreData]);
 
 // Track current leader based on live score
 useEffect(() => {
@@ -100,8 +75,8 @@ useEffect(() => {
     const homeDigit = scoreData.currentHomeScore % 10;
     const awayDigit = scoreData.currentAwayScore % 10;
     
+    // Find the leading square based on current score digits ******
     const leadingSquare = squareByPosition[`${leftNumbers.indexOf(awayDigit)}-${topNumbers.indexOf(homeDigit)}`];
-    
     setCurrentLeader(leadingSquare?.displayName || null);
   }
 }, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, squareByPosition]);

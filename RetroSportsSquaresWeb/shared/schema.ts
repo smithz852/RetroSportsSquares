@@ -30,13 +30,13 @@ export interface SquareGameScoreData {
   q4AwayScore: number;
   oTAwayScore: number;
   status: string;
-  winnerQ1Name?: string;      // Display name
+  winnerQ1?: string;      // Display name
   winnerQ1UserId?: string;    // For tracking wins, future dev
-  winnerQ2Name?: string;
+  winnerQ2?: string;
   winnerQ2UserId?: string;
-  winnerQ3Name?: string;
+  winnerQ3?: string;
   winnerQ3UserId?: string;
-  winnerQ4Name?: string;
+  winnerQ4?: string;
   winnerQ4UserId?: string;
 }
 
@@ -89,6 +89,10 @@ export interface OutsideSquareNumbersResponse {
 
 export interface SquareSelectionResponse {
   selections:  SquareSelection[];
+}
+
+export interface QuarterWinners {
+  quarterlyWinners: Record<number, string | null>; // quarter number to winner name
 }
 
 export interface AvailableGameOptions {

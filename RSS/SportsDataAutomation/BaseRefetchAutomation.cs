@@ -21,6 +21,7 @@ namespace RSS.SportsDataAutomation
             {
                 using var scope = _serviceProvider.CreateScope();
                 var sportsServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
+                var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
 
                 var gamesInUse = GetGamesInUse();
 
@@ -33,6 +34,11 @@ namespace RSS.SportsDataAutomation
                         {
                             var newSportsData = await FetchSportGameData(game.Id);
                             sportsServices.UpdateSportsData(newSportsData, game.Id);
+                            var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, game.Id);
+                            if (determineQuarterlyWinner != null) 
+                            {
+                                squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, game.Id);
+                            }
                         }
                     }
                 }
