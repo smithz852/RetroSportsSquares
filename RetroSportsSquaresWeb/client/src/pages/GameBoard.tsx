@@ -8,9 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
-import { GetGameScoreData, getSquareGameById } from "@/hooks/use-games";
-import { number } from "zod";
-import { usePostSquareSelection, useGetBoardSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
+import { GetGameScoreData, getSquareGameById, useStartGame } from "@/hooks/use-games";
+import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
@@ -24,7 +23,6 @@ export default function GameBoard() {
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
   const { data: boardSquares } = useGetBoardSquares(id);
   const { data: outsideSquares } = useGetOutsideSquares(id);
-  // const {data: quarterlyWinners} = useGetQuarterWinners(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
     Array(10).fill(null),
@@ -38,6 +36,7 @@ export default function GameBoard() {
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
+  const { mutate: startGame } = useStartGame(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, gameStarted ? 2 * 60 * 1000 : false);
 
   const squareByPosition = useMemo(() => {
@@ -162,47 +161,10 @@ useEffect(() => {
     }
   };
 
-  const generateNumbers = () => {
-    const nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const newTopNumbers = [...nums].sort(() => Math.random() - 0.5);
-    const newLeftNumbers = [...nums].sort(() => Math.random() - 0.5);
-    
-    setTopNumbers(newTopNumbers);
-    setLeftNumbers(newLeftNumbers);
-    
-    return { topNumbers: newTopNumbers, leftNumbers: newLeftNumbers };
-  };
+  
 
-  const handleStartGame = async () => {
-    const numbers = generateNumbers();
-    setGameStarted(true);
-    
-    // Create outside numbers object: { "top-0": 5, "top-1": 3, "left-0": 7, ... }
-    const outsideNumbers: Record<string, number> = {};
-    numbers.topNumbers.forEach((num, i) => {
-      outsideNumbers[`top-${i}`] = num;
-    });
-    numbers.leftNumbers.forEach((num, i) => {
-      outsideNumbers[`row-${i}`] = num;
-    });
-    
-    // Convert to array format for API
-    const outsideNumbersArray = Object.keys(outsideNumbers).map((key) => ({
-      squareName: key,
-      squareValue: outsideNumbers[key]
-    }));
-    
-    
-  };
+  const handleStartGame = () => startGame();
 
-  const clearNumbers = () => {
-    setTopNumbers(Array(10).fill(null));
-    setLeftNumbers(Array(10).fill(null));
-  };
-
-  const clearSelections = () => {
-    setSelections({});
-  };
 
   const handleSubmit = () => {
     const selectionArray = Object.keys(selections).map((key) => ({
@@ -318,23 +280,6 @@ useEffect(() => {
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">
           <div className="flex items-center gap-4 w-full max-w-xl">
-            {/* {!gameStarted && (
-                <div className="flex gap-2 w-full">
-              <Input 
-                value={tempPlayerName}
-                onChange={(e) => setTempPlayerName(e.target.value)}
-                placeholder="Enter Username"
-                className="bg-black border-2 border-red-600 text-red-500 font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-red-400 placeholder:text-red-900/50"
-              />
-              <Button 
-                onClick={handleSetPlayer}
-                className="bg-red-600 text-black font-pixel h-12 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase px-6"
-              >
-                submit
-              </Button>
-            </div>
-            )} */}
-
             {!gameStarted ? (
               <>
                 
@@ -385,8 +330,6 @@ useEffect(() => {
                   onClick={() => {
                     if (confirm("RESET GAME?")) {
                       setGameStarted(false);
-                      clearNumbers();
-                      clearSelections();
                     }
                   }}
                   className="w-10 h-10 md:w-14 md:h-14 bg-red-600 border-2 border-red-900 flex items-center justify-center cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500 transition-colors"

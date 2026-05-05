@@ -95,7 +95,12 @@ namespace RSS.Controllers
         [HttpPost("start/{gameId}")]
         public async Task<IActionResult> StartGame(string gameId)
         {
-            await _squareServices.GenerateBoardAsync(gameId);
+            var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
+            if (!setGameToClosed)
+            {
+                return BadRequest("Failed to close game.");
+            }
+
             return Ok();
         }
 

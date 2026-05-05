@@ -8,7 +8,8 @@ export const endpoints = {
     create: '/SquareGames/CreateGame',
     options: (gameType: string, leagueId: string) =>  `/AvailableSportsGames/GetAvailable${gameType}League${leagueId}GameOptions`,
     scoreData: (gameId: string) => `/SquareGames/GetSquareGameScoreData/${gameId}`,
-    squareGameById: (gameId: string) => `/SquareGames/${gameId}`
+    squareGameById: (gameId: string) => `/SquareGames/${gameId}`,
+    start: (gameId: string) => `/SquareGames/Start/${gameId}`
   },
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,

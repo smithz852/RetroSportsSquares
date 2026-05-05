@@ -69,6 +69,23 @@ export function GetGameScoreData(id: string, refetchInterval?: number | false) {
   });
 }
 
+export function useStartGame(gameId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (): Promise<void> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Please login to start a game');
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.start(gameId)}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to start game');
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['OutsideSquares', gameId] }),
+  });
+}
+
 export function getSquareGameById(id: string) {
   return useQuery({
     queryKey: ['game', id],

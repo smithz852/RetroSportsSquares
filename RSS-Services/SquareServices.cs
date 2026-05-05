@@ -214,6 +214,20 @@ namespace RSS_Services
             return 0;
         }
 
+        public async Task<bool> SetGameToClosedById(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null) return false;
+            game.isOpen = false;
+           var savedStatusChange = await _appDbContext.SaveChangesAsync();
+            if (savedStatusChange <= 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
         //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)
         //{
         //    var game = await _appDbContext.SquareGames
