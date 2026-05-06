@@ -19,11 +19,8 @@ namespace RSS_Services
 
         public async Task<int> SaveData<T>(T entity) where T : class
         {
-            if (!typeof(T).Namespace.StartsWith("RSS_DB.Entities"))
-            {
-                return 0;
-            }
-            var result =await _appDbContext.SaveChangesAsync();
+            await _appDbContext.Set<T>().AddAsync(entity);
+            var result =  await _appDbContext.SaveChangesAsync();
             return result;
         }
     }

@@ -81,8 +81,9 @@ namespace RSS_Services
             }
         }
 
-        public void SaveSportsData(List<SportsGamesAvailableDTO> availableGames)
+        public async Task SaveSportsData(List<SportsGamesAvailableDTO> availableGames)
         {
+            
             foreach (var game in availableGames)
             {
 
@@ -99,7 +100,7 @@ namespace RSS_Services
                     Status = game.Status,
                 };
 
-                _generalServices.SaveData(dailySportsGames);
+                await _generalServices.SaveData(dailySportsGames);
             }
         }
 
