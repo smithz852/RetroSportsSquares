@@ -160,8 +160,8 @@ namespace RSS_Services
             var winningAwayDigit = newScore.CurrentAwayScore % 10;
 
             var winningSquare = await _appDbContext.GameSquares
-                .Include(gs => gs.GamePlayer)
-                .ThenInclude(gp => gp.User)
+                //.Include(gs => gs.GamePlayer)
+                //.ThenInclude(gp => gp.User)
                 .FirstOrDefaultAsync(sq =>
                     sq.SquareGamesId == gameId &&
                     sq.HomeDigit == winningHomeDigit &&
@@ -171,7 +171,7 @@ namespace RSS_Services
             var quarterlyWinner = new QuarterlyWinnerDTO
             {
                 Period = completedQuarter,
-                UserId = winningSquare.GamePlayerId
+                UserId = winningSquare?.GamePlayerId
             };
             return quarterlyWinner;
         }
@@ -226,6 +226,12 @@ namespace RSS_Services
                 return false;
             }
             return true;
+        }
+
+        public async Task<SquareGames> GetSquareGameBySportsGameId(Guid sportsGameId)
+        {
+            return await _appDbContext.SquareGames
+                .FirstOrDefaultAsync(g => g.DailySportGameId == sportsGameId);
         }
 
         //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)

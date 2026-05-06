@@ -34,10 +34,11 @@ namespace RSS.SportsDataAutomation
                         {
                             var newSportsData = await FetchSportGameData(game.Id);
                             sportsServices.UpdateSportsData(newSportsData, game.Id);
-                            var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, game.Id);
+                            var squareGame = await squareServices.GetSquareGameBySportsGameId(game.Id);
+                            var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
                             if (determineQuarterlyWinner != null) 
                             {
-                                squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, game.Id);
+                               await squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, squareGame.Id);
                             }
                         }
                     }
@@ -45,7 +46,7 @@ namespace RSS.SportsDataAutomation
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(7), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
