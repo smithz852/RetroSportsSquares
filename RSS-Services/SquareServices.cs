@@ -156,8 +156,20 @@ namespace RSS_Services
             {
                 return null;
             }
-            var winningHomeDigit = newScore.CurrentHomeScore % 10;
-            var winningAwayDigit = newScore.CurrentAwayScore % 10;
+
+            var quarterScores = new[]
+            {
+                (Home: newScore.Q1HomeScore, Away: newScore.Q1AwayScore),
+                (Home: newScore.Q2HomeScore, Away: newScore.Q2AwayScore),
+                (Home: newScore.Q3HomeScore, Away: newScore.Q3AwayScore),
+                (Home: newScore.Q4HomeScore, Away: newScore.Q4AwayScore),
+            };
+
+            var homeTotal = quarterScores.Take(completedQuarter).Sum(q => q.Home);
+            var awayTotal = quarterScores.Take(completedQuarter).Sum(q => q.Away);
+
+            var winningHomeDigit = homeTotal % 10;
+            var winningAwayDigit = awayTotal % 10;
 
             var winningSquare = await _appDbContext.GameSquares
                 //.Include(gs => gs.GamePlayer)
