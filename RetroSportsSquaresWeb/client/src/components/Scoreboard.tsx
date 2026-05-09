@@ -76,16 +76,17 @@ export function Scoreboard({
 
   setHasGameStarted(false);
 
+  let interval: ReturnType<typeof setInterval>;
+
   const calculateTimeLeft = () => {
     const startTime = new Date(gameStartTime);
-    // console.log("ST", startTime)
     const now = new Date();
-
     const diff = startTime.getTime() - now.getTime();
-// console.log(diff)
+
     if (diff <= 0) {
       setHasGameStarted(true);
       setTimeLeft(0);
+      clearInterval(interval);
       return;
     }
 
@@ -93,7 +94,7 @@ export function Scoreboard({
   };
 
   calculateTimeLeft();
-  const interval = setInterval(calculateTimeLeft, 1000);
+  interval = setInterval(calculateTimeLeft, 1000);
 
   return () => clearInterval(interval);
 

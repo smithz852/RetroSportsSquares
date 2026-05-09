@@ -37,7 +37,7 @@ export default function GameBoard() {
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
   const { mutate: startGame } = useStartGame(id);
-  const { data: scoreData, isLoading } = GetGameScoreData(id, gameStarted ? 2 * 60 * 1000 : false);
+  const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
 
   const squareByPosition = useMemo(() => {
     if (!gameStarted || !boardSquares) return {};
