@@ -241,10 +241,11 @@ namespace RSS_Services
             return true;
         }
 
-        public async Task<SquareGames> GetSquareGameBySportsGameId(Guid sportsGameId)
+        public async Task<List<SquareGames>> GetSquareGamesBySportsGameId(Guid sportsGameId)
         {
             return await _appDbContext.SquareGames
-                .FirstOrDefaultAsync(g => g.DailySportGameId == sportsGameId);
+                .Where(g => g.DailySportGameId == sportsGameId)
+                .ToListAsync();
         }
 
         //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)

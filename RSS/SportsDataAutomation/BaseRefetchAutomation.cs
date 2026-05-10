@@ -34,11 +34,17 @@ namespace RSS.SportsDataAutomation
                         {
                             var newSportsData = await FetchSportGameData(game.Id);
                             await sportsServices.UpdateSportsDataAsync(newSportsData, game.Id);
-                            var squareGame = await squareServices.GetSquareGameBySportsGameId(game.Id);
-                            var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
-                            if (determineQuarterlyWinner != null && determineQuarterlyWinner.UserId != null) 
+                            var squareGames = await squareServices.GetSquareGamesBySportsGameId(game.Id);
+                            if (squareGames.Count > 0)
                             {
-                               await squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, squareGame.Id);
+                                foreach (var squareGame in squareGames)
+                                {
+                                    var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
+                                    if (determineQuarterlyWinner != null && determineQuarterlyWinner.UserId != null)
+                                    {
+                                        await squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, squareGame.Id);
+                                    }
+                                }
                             }
                         }
                     }
