@@ -191,9 +191,10 @@ namespace RSS_Services
         public async Task SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
         {
             var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
+            if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
+
             var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
             if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
-            if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
 
             var periodSetters = new Dictionary<int, Action<SquareGames, string>>
             {
@@ -206,7 +207,7 @@ namespace RSS_Services
             if (periodSetters.TryGetValue(winner.Period, out var setter))
                 setter(game, player.ApplicationUserId);
 
-           var saved = await _appDbContext.SaveChangesAsync();
+            var saved = await _appDbContext.SaveChangesAsync();
             if (saved <= 0) throw new InvalidOperationException("Could not save winner");
         }
 

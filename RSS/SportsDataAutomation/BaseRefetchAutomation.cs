@@ -33,10 +33,10 @@ namespace RSS.SportsDataAutomation
                         if (hasGameStarted)
                         {
                             var newSportsData = await FetchSportGameData(game.Id);
-                            sportsServices.UpdateSportsData(newSportsData, game.Id);
+                            await sportsServices.UpdateSportsDataAsync(newSportsData, game.Id);
                             var squareGame = await squareServices.GetSquareGameBySportsGameId(game.Id);
                             var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
-                            if (determineQuarterlyWinner != null) 
+                            if (determineQuarterlyWinner != null && determineQuarterlyWinner.UserId != null) 
                             {
                                await squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, squareGame.Id);
                             }
