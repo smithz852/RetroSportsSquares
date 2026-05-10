@@ -204,6 +204,41 @@ namespace RSS_Services
                 { 4, (g, id) => g.WinnerQ4Id = id },
             };
 
+            // Backfill skipped quarters
+            for (int q = 1; q < winner.Period; q++)
+            {
+                var isNull = q switch
+                {
+                    1 => game.WinnerQ1Id == null && !game.Q1Skipped,
+                    2 => game.WinnerQ2Id == null && !game.Q2Skipped,
+                    3 => game.WinnerQ3Id == null && !game.Q3Skipped,
+                    _ => false
+                };
+
+                if (isNull)
+                {
+                    var backfillSetters = new Dictionary<int, Action<SquareGames>>
+                    {
+                        { 1, g => g.Q1Skipped = true },
+                        { 2, g => g.Q2Skipped = true },
+                        { 3, g => g.Q3Skipped = true },
+                    };
+                    if (backfillSetters.TryGetValue(q, out var backfill))
+                        backfill(game);
+                }
+            }
+
+            var alreadySet = winner.Period switch
+            {
+                1 => game.WinnerQ1Id != null || game.Q1Skipped,
+                2 => game.WinnerQ2Id != null || game.Q2Skipped,
+                3 => game.WinnerQ3Id != null || game.Q3Skipped,
+                4 => game.WinnerQ4Id != null,
+                _ => true
+            };
+
+            if (alreadySet) return;
+
             if (periodSetters.TryGetValue(winner.Period, out var setter))
                 setter(game, player.ApplicationUserId);
 
@@ -213,9 +248,9 @@ namespace RSS_Services
 
         private static readonly Dictionary<string, int> PeriodMap = new()
         {
-            { "Q1", 1 }, { "Q2", 2 }, { "HALF", 3 },
+            { "Q1", 1 }, { "Q2", 2 }, { "HALF", 3 }, { "HT", 3 },
             { "Q3", 3 }, { "Q4", 4 },
-            { "FINAL", 5 }, { "FT", 5 }, { "OT", 5 }
+            { "FINAL", 5 }, { "FT", 5 }, { "OT", 5 }, { "AOT", 5 }
         };
 
         public static int GetCurrentGamePeriodIndex(string? period)

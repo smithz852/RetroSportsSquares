@@ -303,7 +303,7 @@ namespace RSS_DB.Migrations
                             AwayTeam = "Warriors",
                             CurrentAwayScore = 0,
                             CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 4, 3, 4, 19, 10, 541, DateTimeKind.Unspecified).AddTicks(1025), new TimeSpan(0, 0, 0, 0, 0)),
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 5, 10, 2, 42, 0, 569, DateTimeKind.Unspecified).AddTicks(7844), new TimeSpan(0, 0, 0, 0, 0)),
                             HomeTeam = "Lakers",
                             InUse = false,
                             League = "NBA",
@@ -425,6 +425,15 @@ namespace RSS_DB.Migrations
 
                     b.Property<int>("PricePerSquare")
                         .HasColumnType("int");
+
+                    b.Property<bool>("Q1Skipped")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("Q2Skipped")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("Q3Skipped")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("TopNumbers")
                         .IsRequired()
