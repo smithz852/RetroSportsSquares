@@ -53,6 +53,8 @@ export default function GameBoard() {
   const [tempMultiplier, setTempMultiplier] = useState(0);
   const [quarterWinners, setQuarterWinners] = useState<Record<number, string | null>>({});
   const [currentLeader, setCurrentLeader] = useState<string | null>(null);
+  const [winningRow, setWinningRow] = useState<number | null>(null);
+  const [winningCol, setWinningCol] = useState<number | null>(null);
 
 const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
 
@@ -77,8 +79,18 @@ useEffect(() => {
     // Find the leading square based on current score digits ******
     const leadingSquare = squareByPosition[`${leftNumbers.indexOf(awayDigit)}-${topNumbers.indexOf(homeDigit)}`];
     setCurrentLeader(leadingSquare?.displayName || null);
+
+    const rowIndex = leftNumbers.indexOf(awayDigit);
+    const colIndex = topNumbers.indexOf(homeDigit);
+    
+    setWinningRow(rowIndex !== -1 ? rowIndex : null);
+    setWinningCol(colIndex !== -1 ? colIndex : null);
+  } else {
+    setCurrentLeader(null);
+    setWinningRow(null);
+    setWinningCol(null);
   }
-}, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, squareByPosition]);
+}, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, squareByPosition, leftNumbers, topNumbers]);
 
   // Update state when game data loads
   useEffect(() => {
@@ -349,7 +361,7 @@ useEffect(() => {
                 ))}
 
                 {Array.from({ length: 10 }).map((_, rowIndex) => (
-                  <div key={`row-${rowIndex}`} className="contents">
+                  <div key={`row-${rowIndex}`} className={`contents ${rowIndex === winningRow ? 'winning-row' : ''}`}>
                     <div className="w-10 h-10 md:w-14 md:h-14 bg-red-600 border-2 border-red-900 flex items-center justify-center font-pixel text-black text-xl">
                       {leftNumbers[rowIndex] !== null
                         ? leftNumbers[rowIndex]
@@ -363,6 +375,7 @@ useEffect(() => {
                       const savedSquare = squareId ? boardSquares?.find(s => s.id === squareId) : undefined;
                       const displayName = savedSquare?.displayName || localSelection || "OPEN";
                       const isSelected = !!savedSquare?.displayName || !!localSelection;
+                      const isWinningSquare = rowIndex === winningRow && colIndex === winningCol;
 
                       return (
                         <div
@@ -370,7 +383,7 @@ useEffect(() => {
                           onClick={() => squareId && handleSquareClick(squareId)}
                           className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
                             isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
-                          }`}
+                          } ${colIndex === winningCol ? 'winning-column' : ''} ${rowIndex === winningRow ? 'winning-row' : ''} ${isWinningSquare ? 'winning-square' : ''}`}
                         >
                           <span
                             className={`font-pixel text-[6px] md:text-[8px] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
