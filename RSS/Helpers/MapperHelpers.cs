@@ -1,6 +1,7 @@
 ﻿using RSS.DTOs;
 using RSS_DB.Entities;
 using RSS_Services.DTOs;
+using System.Linq;
 
 namespace RSS.Helpers
 {
@@ -62,41 +63,51 @@ namespace RSS.Helpers
             };
         }
 
-        public SelectedGamePlayerSquaresDTO SelectedGamePlayerSquaresMapper(GamePlayerSquare square)
+        public SelectedGamePlayerSquaresDTO SelectedGamePlayerSquaresMapper(GameSquares square)
         {
             var stringId = square.Id.ToString();
             var stringUserId = square.GamePlayerId.ToString();
-            var stringSquareId = square.SquaresId.ToString();
 
             return new SelectedGamePlayerSquaresDTO()
             {
                 Id = stringId,
                 UserId = stringUserId,
-                SquareId = stringSquareId,
-                SelectedAt = square.SelectedAt,
+                SelectedAt = square.CreatedAt,
             };
 
         }
 
-        public SelectedSquaresByGameDTO SelectedSquaresByGameMapper(GamePlayerSquare squares)
+        public SelectedSquaresByGameDTO SelectedSquaresByGameMapper(GameSquares squares)
         {
+            var playerSquare = squares.GamePlayer.User.DisplayName;
+            if (playerSquare == null) return null;
             return new SelectedSquaresByGameDTO()
             {
-                SquareName = squares.Squares.Name,
                 displayName = squares.GamePlayer.User.DisplayName,
             };
         }
 
-        public OutsideSquareItem OutsideSquareMapper(GameSquares square)
+        public OutsideSquareNumbersDTO OutsideSquareMapper(SquareGames squareGames)
         {
-            var gameSquareIdString = square.Id.ToString();
+            var gameSquareIdString = squareGames.Id.ToString();
 
-            return new OutsideSquareItem()
+            return new OutsideSquareNumbersDTO()
             {
-                SquareName = square.Squares.Name,
-                SquareValue = square.SquareValue,
-                Id = gameSquareIdString
+                GameId = gameSquareIdString,
+                TopNumbers = squareGames.TopNumbers,
+                LeftNumbers = squareGames.LeftNumbers,
             };
+        }
+
+        public List<PreGameboardDTO> PreGameboardMapper(List<GameSquares> gameSquares)
+        {
+            return gameSquares.Select(square => new PreGameboardDTO
+            {
+                Id = square.Id,
+                RowIndex = square.RowIndex,
+                ColIndex = square.ColumnIndex,
+                DisplayName = square.GamePlayer?.User?.DisplayName,
+            }).ToList();
         }
     }
 }

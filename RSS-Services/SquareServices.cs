@@ -16,14 +16,15 @@ namespace RSS_Services
     public class SquareServices
     {
         private AppDbContext _appDbContext;
-        public SquareServices(AppDbContext appDbContext) 
-        { 
+        private readonly Random _random = new();
+        public SquareServices(AppDbContext appDbContext)
+        {
             _appDbContext = appDbContext;
         }
 
-        public List<GamePlayerSquare> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
+        public async Task<List<GameSquares>> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
         {
-            var gamePlayerSquares = new List<GamePlayerSquare>();
+            var gameSquares = new List<GameSquares>();
             var gameIdGuid = Guid.Parse(gameId);
             var createdAt = DateTimeOffset.UtcNow;
 
@@ -31,16 +32,18 @@ namespace RSS_Services
 
             foreach (var square in squareSelections)
             {
-                var selectedSquare = _appDbContext.Squares.FirstOrDefault(s => s.Name == square);
-                GamePlayerSquare gamePlayerSquare = new GamePlayerSquare()
-                {
-                    SelectedAt = createdAt,
-                    GamePlayerId = gamePlayer.Id,
-                    SquaresId = selectedSquare.Id
-                };
-                gamePlayerSquares.Add(gamePlayerSquare);
+                var squareId = Guid.Parse(square);
+                var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
+                selectedSquare.GamePlayerId = gamePlayer.Id;
+
+                gameSquares.Add(selectedSquare);
             }
-            return gamePlayerSquares;
+            var savedSquares = await _appDbContext.SaveChangesAsync();
+            if (savedSquares <= 0)
+            {
+                return null;
+            }
+            return gameSquares;
         }
 
         public List<string> CheckIfSquaresAreSelected(string gameId, List<string> squareSelections)
@@ -50,9 +53,10 @@ namespace RSS_Services
 
             foreach (var square in squareSelections)
             {
-                var isSquareTaken = _appDbContext.GamePlayerSquares
-            .Any(gps => gps.Squares.Name == square &&
-                        gps.GamePlayer.GameId == gameIdGuid);
+                var squareId = Guid.Parse(square);
+                var isSquareTaken = _appDbContext.GameSquares
+            .Any(gs => gs.Id == squareId &&
+                        gs.GamePlayer.GameId == gameIdGuid);
 
                 if (isSquareTaken)
                 {
@@ -62,49 +66,243 @@ namespace RSS_Services
             return unavailableSquares;
         }
 
-        public List<GamePlayerSquare> GetAllSelectedSquares(string gameId)
+        public List<GameSquares> GetAllSelectedSquares(string gameId)
         {
             var gameIdGuid = Guid.Parse(gameId);
-            return _appDbContext.GamePlayerSquares
-                 .Include(gps => gps.GamePlayer)
+            return _appDbContext.GameSquares
+                 .Include(gs => gs.GamePlayer)
                   .ThenInclude(gp => gp.User)
-                 .Include(gps => gps.Squares)
-                 .Where(gps => gps.GamePlayer.GameId == gameIdGuid)
+                 .Where(gs => gs.SquareGamesId == gameIdGuid && gs.GamePlayerId != null)
                  .ToList();
         }
 
-        public List<GameSquares> SetOutsideGameSquares(string gameId, OutsideSquareNumbersDTO outsideSquares)
+        public async Task GenerateBoardAsync(string gameId)
         {
-            var gameIdGuid = Guid.Parse(gameId);
-            var gameSquares = new List<GameSquares>();
+            var gameGuid = Guid.Parse(gameId);
+            var topNumbers = ShuffleDigits();
+            var leftNumbers = ShuffleDigits();
 
-            foreach (var item in outsideSquares.OutsideSquares)
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game is null) return;
+
+            var alreadyGenerated = await _appDbContext.GameSquares.AnyAsync(s => s.SquareGamesId == gameGuid);
+            if (alreadyGenerated) return;
+
+            game.TopNumbers = topNumbers;
+            game.LeftNumbers = leftNumbers;
+
+            var squares = new List<GameSquares>();
+
+            for (int rowIndex = 0; rowIndex < leftNumbers.Count; rowIndex++)
             {
-                var setSquare = _appDbContext.Squares.FirstOrDefault(s => s.Name == item.SquareName);
-                gameSquares.Add(new GameSquares()
+                for (int colIndex = 0; colIndex < topNumbers.Count; colIndex++)
                 {
-                    SquareGamesId = gameIdGuid,
-                    SquaresId = setSquare.Id,
-                    SquareValue = item.SquareValue
-                });
+                    squares.Add(new GameSquares
+                    {
+                        SquareGamesId = game.Id,
+
+                        // ✅ Position (for frontend rendering)
+                        RowIndex = rowIndex,
+                        ColumnIndex = colIndex,
+
+                        // ✅ Digits (for winner logic)
+                        AwayDigit = leftNumbers[rowIndex],
+                        HomeDigit = topNumbers[colIndex]
+                    });
+                }
             }
 
-            return gameSquares;
+            await _appDbContext.GameSquares.AddRangeAsync(squares);
         }
 
-        public List<GameSquares> GetOutsideSquares(string gameId)
+        private List<int> ShuffleDigits()
         {
-            var gameIdGuid = Guid.Parse(gameId);
-            var outsideSquares = new List<GameSquares>();
+            var numbers = Enumerable.Range(0, 10).ToList();
 
-            var gameSquares = _appDbContext.GameSquares
-                .Include(gs => gs.Squares)
-                .Where(gs => gs.SquareGamesId == gameIdGuid)
-                .ToList();
+            for (int i = numbers.Count - 1; i > 0; i--)
+            {
+                int j = _random.Next(i + 1);
 
-            return gameSquares;
+                // swap
+                (numbers[i], numbers[j]) = (numbers[j], numbers[i]);
+            }
+
+            return numbers;
         }
 
-       }
+        public async Task<List<GameSquares>> GetGameboardSquaresByGameId(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+
+            return await _appDbContext.GameSquares
+                .Include(sq => sq.GamePlayer)
+                 .ThenInclude(gp => gp.User)
+                .Where(sq => sq.SquareGamesId == gameGuid)
+                .ToListAsync();
+        }
+
+        public async Task<SquareGames?> GetOutsideSquareNumbers(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+            return await _appDbContext.SquareGames
+                .FirstOrDefaultAsync(x => x.Id == gameGuid);
+        }
+       
+        public async Task<QuarterlyWinnerDTO> DetermineQuarterlyWinner(SportScoreUpdateDTO newScore, Guid gameId)
+        {
+            var currentQuarter = GetCurrentGamePeriodIndex(newScore.Status);
+            var completedQuarter = currentQuarter - 1;
+            if (completedQuarter < 1)
+            {
+                return null;
+            }
+
+            var quarterScores = new[]
+            {
+                (Home: newScore.Q1HomeScore, Away: newScore.Q1AwayScore),
+                (Home: newScore.Q2HomeScore, Away: newScore.Q2AwayScore),
+                (Home: newScore.Q3HomeScore, Away: newScore.Q3AwayScore),
+                (Home: newScore.Q4HomeScore, Away: newScore.Q4AwayScore),
+            };
+
+            var homeTotal = quarterScores.Take(completedQuarter).Sum(q => q.Home);
+            var awayTotal = quarterScores.Take(completedQuarter).Sum(q => q.Away);
+
+            var winningHomeDigit = homeTotal % 10;
+            var winningAwayDigit = awayTotal % 10;
+
+            var winningSquare = await _appDbContext.GameSquares
+                //.Include(gs => gs.GamePlayer)
+                //.ThenInclude(gp => gp.User)
+                .FirstOrDefaultAsync(sq =>
+                    sq.SquareGamesId == gameId &&
+                    sq.HomeDigit == winningHomeDigit &&
+                    sq.AwayDigit == winningAwayDigit &&
+                    sq.GamePlayerId != null);
+
+            var quarterlyWinner = new QuarterlyWinnerDTO
+            {
+                Period = completedQuarter,
+                UserId = winningSquare?.GamePlayerId
+            };
+            return quarterlyWinner;
+        }
+
+        public async Task SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
+        {
+            var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
+            if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
+
+            var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
+            if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
+
+            var periodSetters = new Dictionary<int, Action<SquareGames, string>>
+            {
+                { 1, (g, id) => g.WinnerQ1Id = id },
+                { 2, (g, id) => g.WinnerQ2Id = id },
+                { 3, (g, id) => g.WinnerQ3Id = id },
+                { 4, (g, id) => g.WinnerQ4Id = id },
+            };
+
+            // Backfill skipped quarters
+            for (int q = 1; q < winner.Period; q++)
+            {
+                var isNull = q switch
+                {
+                    1 => game.WinnerQ1Id == null && !game.Q1Skipped,
+                    2 => game.WinnerQ2Id == null && !game.Q2Skipped,
+                    3 => game.WinnerQ3Id == null && !game.Q3Skipped,
+                    _ => false
+                };
+
+                if (isNull)
+                {
+                    var backfillSetters = new Dictionary<int, Action<SquareGames>>
+                    {
+                        { 1, g => g.Q1Skipped = true },
+                        { 2, g => g.Q2Skipped = true },
+                        { 3, g => g.Q3Skipped = true },
+                    };
+                    if (backfillSetters.TryGetValue(q, out var backfill))
+                        backfill(game);
+                }
+            }
+
+            var alreadySet = winner.Period switch
+            {
+                1 => game.WinnerQ1Id != null || game.Q1Skipped,
+                2 => game.WinnerQ2Id != null || game.Q2Skipped,
+                3 => game.WinnerQ3Id != null || game.Q3Skipped,
+                4 => game.WinnerQ4Id != null,
+                _ => true
+            };
+
+            if (alreadySet) return;
+
+            if (periodSetters.TryGetValue(winner.Period, out var setter))
+                setter(game, player.ApplicationUserId);
+
+            var saved = await _appDbContext.SaveChangesAsync();
+            if (saved <= 0) throw new InvalidOperationException("Could not save winner");
+        }
+
+        private static readonly Dictionary<string, int> PeriodMap = new()
+        {
+            { "Q1", 1 }, { "Q2", 2 }, { "HALF", 3 }, { "HT", 3 },
+            { "Q3", 3 }, { "Q4", 4 },
+            { "FINAL", 5 }, { "FT", 5 }, { "OT", 5 }, { "AOT", 5 }
+        };
+
+        public static int GetCurrentGamePeriodIndex(string? period)
+        {
+            if (string.IsNullOrEmpty(period)) return 0;
+            var upper = period.ToUpper();
+            foreach (var key in PeriodMap.Keys)
+                if (upper.Contains(key)) return PeriodMap[key];
+            return 0;
+        }
+
+        public async Task<bool> SetGameToClosedById(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null) return false;
+            game.isOpen = false;
+           var savedStatusChange = await _appDbContext.SaveChangesAsync();
+            if (savedStatusChange <= 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<List<SquareGames>> GetSquareGamesBySportsGameId(Guid sportsGameId)
+        {
+            return await _appDbContext.SquareGames
+                .Where(g => g.DailySportGameId == sportsGameId)
+                .ToListAsync();
+        }
+
+        //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)
+        //{
+        //    var game = await _appDbContext.SquareGames
+        //        .Include(g => g.WinnerQ1)
+        //        .Include(g => g.WinnerQ2)
+        //        .Include(g => g.WinnerQ3)
+        //        .Include(g => g.WinnerQ4)
+        //        .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        //    if (game is null) throw new InvalidOperationException($"Game {gameId} not found");
+
+        //    return new Dictionary<int, string?>
+        //    {
+        //        { 1, game.WinnerQ1?.UserName },
+        //        { 2, game.WinnerQ2?.UserName },
+        //        { 3, game.WinnerQ3?.UserName },
+        //        { 4, game.WinnerQ4?.UserName },
+        //    };
+        //}
+
+    }
     }
 

@@ -81,8 +81,9 @@ namespace RSS_Services
             }
         }
 
-        public void SaveSportsData(List<SportsGamesAvailableDTO> availableGames)
+        public async Task SaveSportsData(List<SportsGamesAvailableDTO> availableGames)
         {
+            
             foreach (var game in availableGames)
             {
 
@@ -99,7 +100,7 @@ namespace RSS_Services
                     Status = game.Status,
                 };
 
-                _generalServices.SaveData(dailySportsGames);
+                await _generalServices.SaveData(dailySportsGames);
             }
         }
 
@@ -130,41 +131,38 @@ namespace RSS_Services
             _appDbContext.SaveChanges();
         }
 
-        public void UpdateSportsData(SportScoreUpdateDTO newSportsData, Guid Id)
+        public async Task UpdateSportsDataAsync(SportScoreUpdateDTO newSportsData, Guid id)
         {
-            var sportsGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == Id);
+            var sportsGame = await _appDbContext.DailySportsGames
+                .FirstOrDefaultAsync(g => g.Id == id);
 
-            if (sportsGame != null)
-            {
-                var inUse = sportsGame.InUse;
-                var status = newSportsData.Status;
+            if (sportsGame == null)
+                return;
 
-                if (status == "FT" || status == "AOT" || status == null || status == "Final/OT" || status == "Postponed")
-                {
-                    inUse = false;
+            var status = newSportsData.Status;
 
-                }
+            // Mark the game as no longer in use if it has ended or is unavailable
+            sportsGame.InUse = !(status == "FT" ||
+                                 status == "AOT" ||
+                                 status == null ||
+                                 status == "Final/OT" ||
+                                 status == "Postponed");
 
-                if (sportsGame != null)
-                {
-                    sportsGame.InUse = inUse;
-                    sportsGame.Status = status;
-                    sportsGame.CurrentHomeScore = newSportsData.CurrentHomeScore;
-                    sportsGame.CurrentAwayScore = newSportsData.CurrentAwayScore;
-                    sportsGame.Q1HomeScore = newSportsData.Q1HomeScore;
-                    sportsGame.Q1AwayScore = newSportsData.Q1AwayScore;
-                    sportsGame.Q2HomeScore = newSportsData.Q2HomeScore;
-                    sportsGame.Q2AwayScore = newSportsData.Q2AwayScore;
-                    sportsGame.Q3HomeScore = newSportsData.Q3HomeScore;
-                    sportsGame.Q3AwayScore = newSportsData.Q3AwayScore;
-                    sportsGame.Q4HomeScore = newSportsData.Q4HomeScore;
-                    sportsGame.Q4AwayScore = newSportsData.Q4AwayScore;
-                    sportsGame.OTHomeScore = newSportsData.OTHomeScore;
-                    sportsGame.OTAwayScore = newSportsData.OTAwayScore;
-                }
-            }
+            sportsGame.Status = status;
+            sportsGame.CurrentHomeScore = newSportsData.CurrentHomeScore;
+            sportsGame.CurrentAwayScore = newSportsData.CurrentAwayScore;
+            sportsGame.Q1HomeScore = newSportsData.Q1HomeScore;
+            sportsGame.Q1AwayScore = newSportsData.Q1AwayScore;
+            sportsGame.Q2HomeScore = newSportsData.Q2HomeScore;
+            sportsGame.Q2AwayScore = newSportsData.Q2AwayScore;
+            sportsGame.Q3HomeScore = newSportsData.Q3HomeScore;
+            sportsGame.Q3AwayScore = newSportsData.Q3AwayScore;
+            sportsGame.Q4HomeScore = newSportsData.Q4HomeScore;
+            sportsGame.Q4AwayScore = newSportsData.Q4AwayScore;
+            sportsGame.OTHomeScore = newSportsData.OTHomeScore;
+            sportsGame.OTAwayScore = newSportsData.OTAwayScore;
 
-           _appDbContext.SaveChanges();
+            await _appDbContext.SaveChangesAsync();
         }
 
         public async Task<SportScoreUpdateDTO> GetSportsGameDataByGameId(string gameUrl, string sportType)

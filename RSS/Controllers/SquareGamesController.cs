@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RSS.DTOs;
 using RSS.Helpers;
@@ -56,7 +56,7 @@ namespace RSS.Controllers
 
         [HttpPost("CreateGame")]
         [Authorize]
-        public IActionResult CreateGame([FromBody] CreateGameDTO gameData)
+        public async Task<IActionResult> CreateGame([FromBody] CreateGameDTO gameData)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -64,34 +64,51 @@ namespace RSS.Controllers
                 return Unauthorized();
             }
 
-            using var transaction = _appDbContext.Database.BeginTransaction();
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
                 var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
-                _generalServices.SaveData(createdGame);
+                _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
+
+                await _appDbContext.SaveChangesAsync();
 
                 var createGamePlayerHost = _gamePlayerServices.CreatePlayerHostedGame(userId, createdGame.Id);
-                _generalServices.SaveData(createGamePlayerHost);
+                _appDbContext.Set<RSS_DB.Entities.GamePlayer>().Add(createGamePlayerHost);
 
                 _sportsGameServices.SetGameInUse(gameData.DailySportsGameId);
 
-                transaction.Commit();
+                await _squareServices.GenerateBoardAsync(createdGame.Id.ToString());
+
+                await _appDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
                 return Ok(gameDto);
             }
             catch
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
                 return BadRequest("Failed to save game data.");
             }
         }
 
+        [HttpPost("start/{gameId}")]
+        public async Task<IActionResult> StartGame(string gameId)
+        {
+            var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
+            if (!setGameToClosed)
+            {
+                return BadRequest("Failed to close game.");
+            }
+
+            return Ok();
+        }
+
         [HttpGet("{id}")]
         [Authorize]
-        public IActionResult GetSquareGameById(string id)
+        public async Task<IActionResult> GetSquareGameById(string id)
         {
-            var availableGame = _availableGamesServices.GetGameById(id);
+            var availableGame = await _availableGamesServices.GetGameById(id);
             if (availableGame == null)
             {
                 return NotFound();
@@ -114,74 +131,60 @@ namespace RSS.Controllers
 
         [HttpPost("SquareSelections/{gameId}")]
         [Authorize]
-        public IActionResult SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
+        public async Task<IActionResult> SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
             var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
             if (unavailableSquares.Any())
             {
                 return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
             }
-            var selectedSquares = _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
-            foreach (var square in selectedSquares)
-            {
-                var dataSaved = _generalServices.SaveData(square);
-                if (!dataSaved)
-                {
-                    return BadRequest("Failed to save square selection data.");
-                }
-            }
+            var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+            if (selectedSquares == null || !selectedSquares.Any())
+                return BadRequest("Failed to save square selection data.");
 
             var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
             return Ok(squareDtos);
         }
 
-        [HttpPost("SetOutsideSquareNumbers/{gameId}")]
-        [Authorize]
-        public IActionResult SetOutsideSquareNumbers(string gameId, [FromBody] OutsideSquareNumbersDTO outsideSquares)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //set check for if game squares are already set
-            var setOutsideSquares = _squareServices.SetOutsideGameSquares(gameId, outsideSquares);
-            using var transaction = _appDbContext.Database.BeginTransaction();
-            foreach (var square in setOutsideSquares)
-            {
-                var dataSaved = _generalServices.SaveData(square);
-                if (!dataSaved)
-                {
-                    transaction.Rollback();
-                    return BadRequest("Failed to save outside square numbers data.");
-                }
-            }
-            transaction.Commit();
-            var outsideSquaresDtos = setOutsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
-            return Ok(outsideSquaresDtos);
-        }
 
-        [HttpGet("GetAllSelectedSquares/{gameId}")]
-        public IActionResult GetAllSelectedSquares(string gameId)
+        [HttpGet("GetGameboard/{gameId}")]
+        public async Task<IActionResult> GetAllSelectedSquares(string gameId)
         {
-            var allSquares = _squareServices.GetAllSelectedSquares(gameId);
-            if (allSquares.Any())
+            var gameboard = await _squareServices.GetGameboardSquaresByGameId(gameId);
+            if (gameboard == null)
             {
-                var squareDto = allSquares.Select(s => _mapperHelpers.SelectedSquaresByGameMapper(s)).ToList();
-                return Ok(squareDto);
+                return BadRequest("Gameboard not found");
             }
-            return Ok(new List<SelectedSquaresByGameDTO>());
+            var gameboardDto = _mapperHelpers.PreGameboardMapper(gameboard);
+            return Ok(gameboardDto);
         }
 
         [HttpGet("GetOutsideSquareNumbers/{gameId}")]
-        public IActionResult GetSelectedSquares(string gameId)
+        public async Task<IActionResult> GetOutsideSquareNumbers(string gameId)
         {
-            var outsideSquares = _squareServices.GetOutsideSquares(gameId);
-            if (outsideSquares.Any())
+            var game = await _availableGamesServices.GetGameById(gameId);
+            if (game == null)
             {
-                var outsideSquaresDto = outsideSquares.Select(s => _mapperHelpers.OutsideSquareMapper(s)).ToList();
-                return Ok(outsideSquaresDto);
+                return BadRequest("Game not found");
             }
-            return Ok(new List<OutsideSquareNumbersDTO>());
+            if (game.isOpen)
+            {
+                return Ok();
+            }
+
+            var outsideSquares = await _squareServices.GetOutsideSquareNumbers(gameId);
+            if (outsideSquares == null) return NotFound();
+            var outsideSquaresDto = _mapperHelpers.OutsideSquareMapper(outsideSquares);
+
+            return Ok(outsideSquaresDto);
         }
 
+      
 
     }
 }

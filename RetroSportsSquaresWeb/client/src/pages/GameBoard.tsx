@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
-import { getSquareGameById } from "@/hooks/use-games";
-import { number } from "zod";
-import { usePostSquareSelection, useGetSelectedSquares, useSetOutsideSquareNumbers, useGetOutsideSquares } from "@/hooks/use-gameplay";
+import { GetGameScoreData, getSquareGameById, useStartGame } from "@/hooks/use-games";
+import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
+import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -21,7 +21,7 @@ export default function GameBoard() {
   const queryClient = useQueryClient();
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
-  const { data: savedSquares } = useGetSelectedSquares(id);
+  const { data: boardSquares } = useGetBoardSquares(id);
   const { data: outsideSquares } = useGetOutsideSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
@@ -30,13 +30,19 @@ export default function GameBoard() {
   const [leftNumbers, setLeftNumbers] = useState<(number | null)[]>(
     Array(10).fill(null),
   );
-  const [selections, setSelections] = useState<Record<string, string>>({});
-  // console.log(selections);
+  const [selections, setSelections] = useState<Record<string, string>>({}); // { [squareGuid]: playerName }
+  console.log(selections);
   const [gameStarted, setGameStarted] = useState(false);
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
-  const { mutate: mutateOutsideNumbers } = useSetOutsideSquareNumbers(id);
+  const { mutate: startGame } = useStartGame(id);
+  const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
+
+  const squareByPosition = useMemo(() => {
+    if (!gameStarted || !boardSquares) return {};
+    return Object.fromEntries(boardSquares.map(sq => [`${sq.rowIndex}-${sq.colIndex}`, sq]));
+  }, [gameStarted, boardSquares]);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -45,6 +51,34 @@ export default function GameBoard() {
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
   const [tempMultiplier, setTempMultiplier] = useState(0);
+  const [quarterWinners, setQuarterWinners] = useState<Record<number, string | null>>({});
+  const [currentLeader, setCurrentLeader] = useState<string | null>(null);
+
+const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
+
+// // Use currentQuarter to trigger winner calculations
+useEffect(() => {
+  if (scoreData) {
+    setQuarterWinners({
+      1: scoreData.winnerQ1 ?? null,
+      2: scoreData.winnerQ2 ?? null,
+      3: scoreData.winnerQ3 ?? null,
+      4: scoreData.winnerQ4 ?? null,
+    });
+  }
+}, [scoreData]);
+
+// Track current leader based on live score
+useEffect(() => {
+  if (scoreData && gameStarted && scoreData.currentHomeScore != null && scoreData.currentAwayScore != null) {
+    const homeDigit = scoreData.currentHomeScore % 10;
+    const awayDigit = scoreData.currentAwayScore % 10;
+    
+    // Find the leading square based on current score digits ******
+    const leadingSquare = squareByPosition[`${leftNumbers.indexOf(awayDigit)}-${topNumbers.indexOf(homeDigit)}`];
+    setCurrentLeader(leadingSquare?.displayName || null);
+  }
+}, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, squareByPosition]);
 
   // Update state when game data loads
   useEffect(() => {
@@ -66,25 +100,19 @@ export default function GameBoard() {
 
   // Load outside squares from DB
   useEffect(() => {
-    if (outsideSquares && outsideSquares.length > 0) {
-      const newTopNumbers = Array(10).fill(null);
-      const newLeftNumbers = Array(10).fill(null);
-      
-      outsideSquares.forEach(square => {
-        if (square.squareName.startsWith('top-')) {
-          const index = parseInt(square.squareName.split('-')[1]);
-          newTopNumbers[index] = square.squareValue;
-        } else if (square.squareName.startsWith('row-')) {
-          const index = parseInt(square.squareName.split('-')[1]);
-          newLeftNumbers[index] = square.squareValue;
-        }
-      });
-      
-      setTopNumbers(newTopNumbers);
-      setLeftNumbers(newLeftNumbers);
-      setGameStarted(true);
-    }
-  }, [outsideSquares]);
+  const validOutside =
+    outsideSquares &&
+    Array.isArray(outsideSquares.topNumbers) &&
+    outsideSquares.topNumbers.length === 10 &&
+    Array.isArray(outsideSquares.leftNumbers) &&
+    outsideSquares.leftNumbers.length === 10;
+
+  if (!validOutside) return;
+
+  setTopNumbers(outsideSquares.topNumbers);
+  setLeftNumbers(outsideSquares.leftNumbers);
+  setGameStarted(true);
+}, [outsideSquares]);
 
   // Redirect if not authenticated
   if (authLoading) {
@@ -133,70 +161,15 @@ export default function GameBoard() {
     }
   };
 
-  const generateNumbers = () => {
-    const nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const newTopNumbers = [...nums].sort(() => Math.random() - 0.5);
-    const newLeftNumbers = [...nums].sort(() => Math.random() - 0.5);
-    
-    setTopNumbers(newTopNumbers);
-    setLeftNumbers(newLeftNumbers);
-    
-    return { topNumbers: newTopNumbers, leftNumbers: newLeftNumbers };
-  };
+  
 
-  const handleStartGame = async () => {
-    const numbers = generateNumbers();
-    setGameStarted(true);
-    
-    // Create outside numbers object: { "top-0": 5, "top-1": 3, "left-0": 7, ... }
-    const outsideNumbers: Record<string, number> = {};
-    numbers.topNumbers.forEach((num, i) => {
-      outsideNumbers[`top-${i}`] = num;
-    });
-    numbers.leftNumbers.forEach((num, i) => {
-      outsideNumbers[`row-${i}`] = num;
-    });
-    
-    // Convert to array format for API
-    const outsideNumbersArray = Object.keys(outsideNumbers).map((key) => ({
-      squareName: key,
-      squareValue: outsideNumbers[key]
-    }));
-    
-    // Save to backend
-    mutateOutsideNumbers(
-      { outsideSquares: outsideNumbersArray },
-      {
-        onSuccess: () => {
-          toast({
-            title: "NUMBERS GENERATED",
-            description: "Random numbers assigned to red squares.",
-          });
-        },
-        onError: () => {
-          toast({
-            title: "ERROR",
-            description: "Failed to save numbers.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
-  };
+  const handleStartGame = () => startGame();
 
-  const clearNumbers = () => {
-    setTopNumbers(Array(10).fill(null));
-    setLeftNumbers(Array(10).fill(null));
-  };
-
-  const clearSelections = () => {
-    setSelections({});
-  };
 
   const handleSubmit = () => {
-    const selectionArray = Object.keys(selections).map((key) => {
-      return { squareName: key };
-    });
+    const selectionArray = Object.keys(selections).map((key) => ({
+      squareId: key
+    }));
 
     mutate(
       {
@@ -211,7 +184,7 @@ export default function GameBoard() {
             className:
               "bg-black border-2 border-primary text-primary font-['VT323']",
           });
-          queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
+          queryClient.invalidateQueries({ queryKey: ['boardSquares', id] });
         },
         onError: (error: any) => {
           const message = error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.";
@@ -224,7 +197,7 @@ export default function GameBoard() {
             className:
               "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
           });
-            queryClient.invalidateQueries({ queryKey: ['gameSelections', id] });
+            queryClient.invalidateQueries({ queryKey: ['boardSquares', id] });
         },
       },
     );
@@ -233,13 +206,11 @@ export default function GameBoard() {
 
   
 
-  const handleSquareClick = (row: number, col: number) => {
+  const handleSquareClick = (squareId: string) => {
     if (gameStarted) return;
-    const key = `${row}-${col}`;
-    
-    // Check if square is already saved in DB
-    const savedSquare = savedSquares?.find(s => s.squareName === key);
-    if (savedSquare) {
+
+    const savedSquare = boardSquares?.find(s => s.id === squareId);
+    if (savedSquare?.displayName) {
       toast({
         title: "SQUARE TAKEN",
         description: `This square belongs to ${savedSquare.displayName}`,
@@ -247,22 +218,20 @@ export default function GameBoard() {
       });
       return;
     }
-   
-    if (selections[key]) {
-      const newSelections = { ...selections };
-      delete newSelections[key];
-      setSelections(newSelections);
+
+    if (selections[squareId]) {
+      const { [squareId]: _, ...rest } = selections;
+      setSelections(rest);
     } else {
       if (!activePlayer) {
         toast({
           title: "PLAYER REQUIRED",
-          description:
-            "Please enter and submit a username above the board first!",
+          description: "Please enter and submit a username above the board first!",
           variant: "destructive",
         });
         return;
       }
-      setSelections({ ...selections, [key]: activePlayer });
+      setSelections({ ...selections, [squareId]: activePlayer });
     }
   };
 
@@ -286,44 +255,31 @@ export default function GameBoard() {
     );
   }
 
-  // Calculate odds data
-  const playerStats = Object.values(selections).reduce(
-    (acc, name) => {
-      acc[name] = (acc[name] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
+  // Calculate odds data — combine saved and local unsaved selections
+  const playerStats = [
+    ...(boardSquares?.map(s => s.displayName).filter(Boolean) as string[] ?? []),
+    ...Object.values(selections),
+  ].reduce((acc, name) => {
+    acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="flex flex-col items-center p-4 max-w-[1400px] mx-auto w-full">
       <Scoreboard
         isVisible={gameStarted}
         gameName={(game as any)?.name}
-        squareGameId={id}
         gameStartTime={game?.startTime}
+        scoreData={scoreData}
+        isLoading={isLoading}
+        currentQuarter={currentQuarter}
+        currentLeader={currentLeader}
+        quarterWinners={quarterWinners}
       />
 
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 flex-1 w-full">
           <div className="flex items-center gap-4 w-full max-w-xl">
-            {/* {!gameStarted && (
-                <div className="flex gap-2 w-full">
-              <Input 
-                value={tempPlayerName}
-                onChange={(e) => setTempPlayerName(e.target.value)}
-                placeholder="Enter Username"
-                className="bg-black border-2 border-red-600 text-red-500 font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-red-400 placeholder:text-red-900/50"
-              />
-              <Button 
-                onClick={handleSetPlayer}
-                className="bg-red-600 text-black font-pixel h-12 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase px-6"
-              >
-                submit
-              </Button>
-            </div>
-            )} */}
-
             {!gameStarted ? (
               <>
                 
@@ -374,8 +330,6 @@ export default function GameBoard() {
                   onClick={() => {
                     if (confirm("RESET GAME?")) {
                       setGameStarted(false);
-                      clearNumbers();
-                      clearSelections();
                     }
                   }}
                   className="w-10 h-10 md:w-14 md:h-14 bg-red-600 border-2 border-red-900 flex items-center justify-center cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500 transition-colors"
@@ -403,17 +357,17 @@ export default function GameBoard() {
                     </div>
 
                     {Array.from({ length: 10 }).map((_, colIndex) => {
-                      const squareId = `${rowIndex}-${colIndex}`;
-                      const localSelection = selections[squareId];
-                      const savedSquare = savedSquares?.find(s => s.squareName === squareId);
+                      const boardSquare = boardSquares?.find(s => s.rowIndex === rowIndex && s.colIndex === colIndex);
+                      const squareId = boardSquare?.id;
+                      const localSelection = squareId ? selections[squareId] : undefined;
+                      const savedSquare = squareId ? boardSquares?.find(s => s.id === squareId) : undefined;
                       const displayName = savedSquare?.displayName || localSelection || "OPEN";
-                      const isSelected = savedSquare || localSelection;
-                      
+                      const isSelected = !!savedSquare?.displayName || !!localSelection;
+
                       return (
                         <div
-                          key={squareId}
-                          data-square-id={squareId}
-                          onClick={() => handleSquareClick(rowIndex, colIndex)}
+                          key={`${rowIndex}-${colIndex}`}
+                          onClick={() => squareId && handleSquareClick(squareId)}
                           className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
                             isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
                           }`}

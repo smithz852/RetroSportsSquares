@@ -27,15 +27,20 @@ namespace RSS_DB.Entities
         [Required]
         public int PlayerCount { get; set; }
         public int PricePerSquare { get; set; } = 0;
+        public List<int> TopNumbers { get; set; } = new List<int>();
+        public List<int> LeftNumbers { get; set; } = new List<int>();
         public string? WinnerQ1Id { get; set; }
         [ForeignKey(nameof(WinnerQ1Id))]
         public ApplicationUser? WinnerQ1 { get; set; }
+        public bool Q1Skipped { get; set; } = false;
         public string? WinnerQ2Id { get; set; }
         [ForeignKey(nameof(WinnerQ2Id))]
         public ApplicationUser? WinnerQ2 { get; set; }
+        public bool Q2Skipped { get; set; } = false;
         public string? WinnerQ3Id { get; set; }
         [ForeignKey(nameof(WinnerQ3Id))]
         public ApplicationUser? WinnerQ3 { get; set; }
+        public bool Q3Skipped { get; set; } = false;
         public string? WinnerQ4Id { get; set; }
         [ForeignKey(nameof(WinnerQ4Id))]
         public ApplicationUser? WinnerQ4 { get; set; }

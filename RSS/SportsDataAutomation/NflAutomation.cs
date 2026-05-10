@@ -39,7 +39,7 @@ namespace RSS.SportsDataAutomation
             var availableGames = await nflGameServices.GetGamesAvailableToday(SportsType, gameUrl);
             if (availableGames.Count > 0)
             {
-                nflGameServices.SaveSportsData(availableGames);
+                await nflGameServices.SaveSportsData(availableGames);
             }
             
         }

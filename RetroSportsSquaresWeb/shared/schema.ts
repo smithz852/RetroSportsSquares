@@ -30,13 +30,13 @@ export interface SquareGameScoreData {
   q4AwayScore: number;
   oTAwayScore: number;
   status: string;
-  winnerQ1Name?: string;      // Display name
+  winnerQ1?: string;      // Display name
   winnerQ1UserId?: string;    // For tracking wins, future dev
-  winnerQ2Name?: string;
+  winnerQ2?: string;
   winnerQ2UserId?: string;
-  winnerQ3Name?: string;
+  winnerQ3?: string;
   winnerQ3UserId?: string;
-  winnerQ4Name?: string;
+  winnerQ4?: string;
   winnerQ4UserId?: string;
 }
 
@@ -52,24 +52,31 @@ export interface CreateSquareGameRequest {
   name: string;
   gameType: string;
   playerCount: number;
-  Status: 'open' | 'closed';
+  isOpen: boolean;
   pricePerSquare: number | null;
   dailySportsGameId: string;
 }
 
+export interface BoardSquare {
+  id: string;
+  rowIndex: number;
+  colIndex: number;
+  displayName: string | null;
+}
+
 export interface CreateSquareSelectionRequest {
   selections: Array<{
-    squareName: string;
+    squareId: string;
   }>;
 }
 
 export interface OutsideSquare {
-  id: string | null;
-  squareName: string;
-  squareValue: number;
+  gameId: string | null;
+  topNumbers: number[];
+  leftNumbers: number[];
 }
 
-export interface CreateOutsideSquareNumbersRequest {
+export interface CreateOutsideSquareNumbersRequest { //Will be deleted 
   outsideSquares: Array<{
     squareName: string;
     squareValue: number;
@@ -84,9 +91,8 @@ export interface SquareSelectionResponse {
   selections:  SquareSelection[];
 }
 
-export interface SelectedSquares {
-  squareName: string;
-  displayName: string | null;
+export interface QuarterWinners {
+  quarterlyWinners: Record<number, string | null>; // quarter number to winner name
 }
 
 export interface AvailableGameOptions {

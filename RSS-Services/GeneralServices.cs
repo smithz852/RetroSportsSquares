@@ -17,16 +17,11 @@ namespace RSS_Services
             _appDbContext = appDbContext;
         }
 
-        public bool SaveData<T>(T entity) where T : class
+        public async Task<int> SaveData<T>(T entity) where T : class
         {
-            if (!typeof(T).Namespace.StartsWith("RSS_DB.Entities"))
-            {
-                //throw new InvalidOperationException("Only RSS entities allowed");
-                return false;
-            } 
-            _appDbContext.Set<T>().Add(entity);
-            _appDbContext.SaveChanges();
-            return true;
+            await _appDbContext.Set<T>().AddAsync(entity);
+            var result =  await _appDbContext.SaveChangesAsync();
+            return result;
         }
     }
 }

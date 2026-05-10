@@ -21,6 +21,7 @@ namespace RSS.SportsDataAutomation
             {
                 using var scope = _serviceProvider.CreateScope();
                 var sportsServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
+                var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
 
                 var gamesInUse = GetGamesInUse();
 
@@ -32,14 +33,26 @@ namespace RSS.SportsDataAutomation
                         if (hasGameStarted)
                         {
                             var newSportsData = await FetchSportGameData(game.Id);
-                            sportsServices.UpdateSportsData(newSportsData, game.Id);
+                            await sportsServices.UpdateSportsDataAsync(newSportsData, game.Id);
+                            var squareGames = await squareServices.GetSquareGamesBySportsGameId(game.Id);
+                            if (squareGames.Count > 0)
+                            {
+                                foreach (var squareGame in squareGames)
+                                {
+                                    var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
+                                    if (determineQuarterlyWinner != null && determineQuarterlyWinner.UserId != null)
+                                    {
+                                        await squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, squareGame.Id);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(7), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {

@@ -21,9 +21,7 @@ namespace RSS_DB
 
         public DbSet<SquareGames> SquareGames { get; set; }
         public DbSet<DailySportsGames> DailySportsGames { get; set; }
-        public DbSet<Squares> Squares { get; set; }
         public DbSet<GamePlayer> GamePlayers { get; set; }
-        public DbSet<GamePlayerSquare> GamePlayerSquares { get; set; }
         public DbSet<GameSquares> GameSquares { get; set; }
 
 
@@ -39,45 +37,7 @@ namespace RSS_DB
         {
             base.OnModelCreating(builder);
 
-            var squares = new List<Squares>();
-
-            // 1️⃣ Top numbers (top-0 → top-9)
-            for (int i = 0; i < 10; i++)
-            {
-                var name = $"top-{i}";
-                squares.Add(new Squares
-                {
-                    Id = CreateGuid(name),
-                    Name = name
-                });
-            }
-
-            // 2️⃣ Row numbers (row-0 → row-9)
-            for (int i = 0; i < 10; i++)
-            {
-                var name = $"row-{i}";
-                squares.Add(new Squares
-                {
-                    Id = CreateGuid(name),
-                    Name = name
-                });
-            }
-
-            // 3️⃣ Main 10x10 grid (0-0 → 9-9)
-            for (int row = 0; row < 10; row++)
-            {
-                for (int col = 0; col < 10; col++)
-                {
-                    var name = $"{row}-{col}";
-                    squares.Add(new Squares
-                    {
-                        Id = CreateGuid(name),
-                        Name = name
-                    });
-                }
-            }
-
-            builder.Entity<Squares>().HasData(squares);
+           
 
             var nbaGameSeeds = new List<DailySportsGames>
             {

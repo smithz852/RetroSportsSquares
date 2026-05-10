@@ -42,7 +42,7 @@ namespace RSS_Services
             return game;
         }
 
-        public SquareGames GetGameById(string id)
+        public async Task<SquareGames> GetGameById(string id)
         {
             var gameId = Guid.Parse(id);
             return _appDbContext.SquareGames

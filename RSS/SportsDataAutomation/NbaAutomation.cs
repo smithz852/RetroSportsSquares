@@ -37,7 +37,7 @@ namespace RSS.SportsDataAutomation
 
             if (availableGames.Count > 0)
             {
-                nbaGameServices.SaveSportsData(availableGames);
+                await nbaGameServices.SaveSportsData(availableGames);
             }
 
         }

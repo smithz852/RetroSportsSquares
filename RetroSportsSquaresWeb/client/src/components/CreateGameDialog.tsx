@@ -31,7 +31,6 @@ export function CreateGameDialog() {
   const [playerCount, setPlayerCount] = useState("");
   const [dailySportsGameId, setDailySportsGameId] = useState("");
   const [wagerAmount, setWagerAmount] = useState("");
-  const gameStatus = "open";
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -51,7 +50,7 @@ export function CreateGameDialog() {
         name,
         gameType: type,
         playerCount: parseInt(playerCount),
-        Status: gameStatus,
+        isOpen: true,
         dailySportsGameId,
         pricePerSquare: parseInt(wagerAmount) || 0,
       },
