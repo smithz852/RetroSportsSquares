@@ -141,6 +141,13 @@ namespace RSS_Services
                 .ToListAsync();
         }
 
+        public async Task<SquareGames> GetSquareGameById(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+            return await _appDbContext.SquareGames
+                .FirstOrDefaultAsync(g => g.Id == gameGuid);
+        }
+
         public async Task<SquareGames?> GetOutsideSquareNumbers(string gameId)
         {
             var gameGuid = Guid.Parse(gameId);
