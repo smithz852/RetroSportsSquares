@@ -1,6 +1,8 @@
 ﻿using RSS.DTOs;
+using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.DTOs;
+using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
@@ -12,21 +14,23 @@ namespace RSS.SportsDataAutomation
 
         }
 
-        protected override List<SportsGamesInUseDTO> GetGamesInUse()
+        protected override async Task<List<DailySportsGames>> GetAllGames()
         {
             var scope = _serviceProvider.CreateScope();
             var basketballGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
-            return basketballGameServices.GetAllGamesInUse(sportsType);
+            return await basketballGameServices.GetAllGamesBySporttType(sportsType);
         }
 
-        protected override async Task<SportScoreUpdateDTO> FetchSportGameData(Guid id)
+        protected override async Task<List<SportScoreUpdateDTO>> FetchSportGameData()
         {
             var scope = _serviceProvider.CreateScope();
             var basketballGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
-            var gameId = basketballGameServices.GetGameApiIdFromId(id);
-            var gameUrl = $"https://v1.{sportsType}.api-sports.io/games?id={gameId}&timezone=America%2FLos_Angeles";
+            var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
+            var todayInPst = timeHelpers.GetTimeStringTodayInPst();
+            //var gameId = basketballGameServices.GetGameApiIdFromId();
+            var gameUrl = $"https://v1.basketball.api-sports.io/games?date={todayInPst}&timezone=America%2FLos_Angeles";
 
-            var game = await basketballGameServices.GetSportsGameDataByGameId(gameUrl, sportsType);
+            var game = await basketballGameServices.GetNbaGameData(gameUrl, sportsType);
             return game;
         }
     }

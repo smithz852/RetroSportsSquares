@@ -61,6 +61,7 @@ namespace RSS_Services.Helpers
                     status = statusLong;
                 }
 
+                gameDto.ApiGameId = gameElement.GetProperty("id").GetInt32();
                 gameDto.Status = status;
                 gameDto.CurrentHomeScore = gameElement.GetProperty("scores").GetProperty("home").GetProperty("total").ValueKind == JsonValueKind.Null ? 0 : gameElement.GetProperty("scores").GetProperty("home").GetProperty("total").GetInt32();
                 gameDto.CurrentAwayScore = gameElement.GetProperty("scores").GetProperty("away").GetProperty("total").ValueKind == JsonValueKind.Null ? 0 : gameElement.GetProperty("scores").GetProperty("away").GetProperty("total").GetInt32();

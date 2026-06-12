@@ -131,36 +131,33 @@ namespace RSS_Services
             _appDbContext.SaveChanges();
         }
 
-        public async Task UpdateSportsDataAsync(SportScoreUpdateDTO newSportsData, Guid id)
+        public async Task UpdateSportsDataAsync(List<SportScoreUpdateDTO> newSportsData)
         {
-            var sportsGame = await _appDbContext.DailySportsGames
-                .FirstOrDefaultAsync(g => g.Id == id);
 
-            if (sportsGame == null)
-                return;
+            foreach (var data in newSportsData)
+            {
+                var sportsGame = await _appDbContext.DailySportsGames
+                    .FirstOrDefaultAsync(g => g.ApiGameId == data.ApiGameId);
 
-            var status = newSportsData.Status;
+                if (sportsGame == null) continue;
 
-            // Mark the game as no longer in use if it has ended or is unavailable
-            sportsGame.InUse = !(status == "FT" ||
-                                 status == "AOT" ||
-                                 status == null ||
-                                 status == "Final/OT" ||
-                                 status == "Postponed");
+                var status = data.Status;
 
-            sportsGame.Status = status;
-            sportsGame.CurrentHomeScore = newSportsData.CurrentHomeScore;
-            sportsGame.CurrentAwayScore = newSportsData.CurrentAwayScore;
-            sportsGame.Q1HomeScore = newSportsData.Q1HomeScore;
-            sportsGame.Q1AwayScore = newSportsData.Q1AwayScore;
-            sportsGame.Q2HomeScore = newSportsData.Q2HomeScore;
-            sportsGame.Q2AwayScore = newSportsData.Q2AwayScore;
-            sportsGame.Q3HomeScore = newSportsData.Q3HomeScore;
-            sportsGame.Q3AwayScore = newSportsData.Q3AwayScore;
-            sportsGame.Q4HomeScore = newSportsData.Q4HomeScore;
-            sportsGame.Q4AwayScore = newSportsData.Q4AwayScore;
-            sportsGame.OTHomeScore = newSportsData.OTHomeScore;
-            sportsGame.OTAwayScore = newSportsData.OTAwayScore;
+                sportsGame.InUse = !(status == "FT" || status == "AOT" || status == null || status == "Final/OT" || status == "Postponed");
+                sportsGame.Status = status;
+                sportsGame.CurrentHomeScore = data.CurrentHomeScore;
+                sportsGame.CurrentAwayScore = data.CurrentAwayScore;
+                sportsGame.Q1HomeScore = data.Q1HomeScore;
+                sportsGame.Q1AwayScore = data.Q1AwayScore;
+                sportsGame.Q2HomeScore = data.Q2HomeScore;
+                sportsGame.Q2AwayScore = data.Q2AwayScore;
+                sportsGame.Q3HomeScore = data.Q3HomeScore;
+                sportsGame.Q3AwayScore = data.Q3AwayScore;
+                sportsGame.Q4HomeScore = data.Q4HomeScore;
+                sportsGame.Q4AwayScore = data.Q4AwayScore;
+                sportsGame.OTHomeScore = data.OTHomeScore;
+                sportsGame.OTAwayScore = data.OTAwayScore;
+            }
 
             await _appDbContext.SaveChangesAsync();
         }
@@ -188,6 +185,37 @@ namespace RSS_Services
             catch (HttpRequestException)
             {
                 var game = new SportScoreUpdateDTO();
+                return game; //need to change later for actual error handling
+            }
+        }
+
+        public async Task<List<SportScoreUpdateDTO>> GetNbaGameData(string gameUrl, string sportType)
+        {
+            try
+            {
+                var gamesList = new List<SportScoreUpdateDTO>();
+                var response = await _httpClient.GetAsync(gameUrl);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(json);
+                var responseArray = document.RootElement.GetProperty("response");
+
+                foreach (var sportsGame in responseArray.EnumerateArray())
+                {
+                    var leagueName = sportsGame.GetProperty("league").GetProperty("name").GetString();
+                    if (leagueName != "NBA") continue;
+
+                    var game = _nbaDataPullHelper.MapBasketballScoreData(sportsGame, sportType);
+                    gamesList.Add(game);
+                }
+                return gamesList;
+            }
+
+
+            catch (HttpRequestException ex)
+            {
+                var game = new List<SportScoreUpdateDTO>();
+
                 return game; //need to change later for actual error handling
             }
         }
@@ -222,6 +250,14 @@ namespace RSS_Services
                 })
                 .ToList();
             return allGameInUse;
+        }
+
+        public async Task<List<DailySportsGames>> GetAllGamesBySporttType(string sportType)
+        {
+            var allGames = _appDbContext.DailySportsGames
+                .Where(g => g.SportType == sportType)
+                 .ToListAsync();
+            return await allGames;
         }
 
         public bool HasGameStarted(Guid gameId)
