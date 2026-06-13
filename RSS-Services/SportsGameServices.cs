@@ -254,10 +254,16 @@ namespace RSS_Services
 
         public async Task<List<DailySportsGames>> GetAllGamesBySporttType(string sportType)
         {
-            var allGames = _appDbContext.DailySportsGames
-                .Where(g => g.SportType == sportType)
-                 .ToListAsync();
-            return await allGames;
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+            var todayStartUtc = TimeZoneInfo.ConvertTimeToUtc(todayPst, pacific);
+            var todayEndUtc = todayStartUtc.AddDays(1);
+
+            return await _appDbContext.DailySportsGames
+                .Where(g => g.SportType == sportType
+                    && g.GameStartTime >= todayStartUtc
+                    && g.GameStartTime < todayEndUtc)
+                .ToListAsync();
         }
 
         public bool HasGameStarted(Guid gameId)

@@ -26,7 +26,7 @@ namespace RSS_Services.Helpers
                 var gameStartTimeUnix = gameElement.GetProperty("timestamp").GetInt64();
                 var gameStartTime = DateTimeOffset.FromUnixTimeSeconds(gameStartTimeUnix);
 
-                if (leagueId == 12)
+                if (leagueId == 12) 
                 {
 
                     var gameDto = new SportsGamesAvailableDTO

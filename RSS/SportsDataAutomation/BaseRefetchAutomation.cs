@@ -24,19 +24,23 @@ namespace RSS.SportsDataAutomation
                 var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
 
                 var getAllGames = await GetAllGames();
-                if (getAllGames.Count == 0) continue;
 
-                var newSportsData = await FetchSportGameData();
-                await sportsServices.UpdateSportsDataAsync(newSportsData);
-
-                foreach (var game in getAllGames)
+                if (getAllGames.Count > 0)
                 {
-                    if (!sportsServices.HasGameStarted(game.Id)) continue;
+                    var newSportsData = await FetchSportGameData();
+                    await sportsServices.UpdateSportsDataAsync(newSportsData);
 
-                    var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
-                    if (gameData == null) continue;
+                    foreach (var game in getAllGames)
+                    {
+                        if (!sportsServices.HasGameStarted(game.Id)) continue;
 
-                    await ProcessQuarterlyWinners(squareServices, gameData, game.Id);
+                        var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
+                        if (gameData == null) continue;
+
+                        if (gameData.Status is "FT" or "AOT" or "Final/OT" or "Postponed") continue;
+
+                        await ProcessQuarterlyWinners(squareServices, gameData, game.Id);
+                    }
                 }
 
                 try
