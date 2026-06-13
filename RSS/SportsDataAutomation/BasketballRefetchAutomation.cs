@@ -27,8 +27,7 @@ namespace RSS.SportsDataAutomation
             var basketballGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
             var todayInPst = timeHelpers.GetTimeStringTodayInPst();
-            //var gameId = basketballGameServices.GetGameApiIdFromId();
-            var gameUrl = $"https://v1.basketball.api-sports.io/games?date={todayInPst}&timezone=America%2FLos_Angeles";
+            var gameUrl = $"https://v1.{sportsType}.api-sports.io/games?date={todayInPst}&timezone=America%2FLos_Angeles";
 
             var game = await basketballGameServices.GetNbaGameData(gameUrl, sportsType);
             return game;

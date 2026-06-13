@@ -27,11 +27,10 @@ namespace RSS.SportsDataAutomation
             var nflGameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
             var todayInPst = timeHelpers.GetTimeStringTodayInPst();
-            //var gameId = nflGameServices.GetGameApiIdFromId(id);
             var gameUrl = $" https://v1.{sportsType}.api-sports.io/games?date={todayInPst}&timezone=America%2FLos_Angeles";
 
-            //var game = await nflGameServices.GetSportsGameDataByGameId(gameUrl, sportsType);
-            var game = new List<SportScoreUpdateDTO>(); //temp, replace when updating nfl automation, refactor above formula
+            var game = await nflGameServices.GetNflGameData(gameUrl, sp);
+
             return game;
         }
     }

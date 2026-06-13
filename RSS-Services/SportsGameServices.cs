@@ -220,6 +220,36 @@ namespace RSS_Services
             }
         }
 
+        public async Task<List<SportScoreUpdateDTO>> GetNflGameData(string gameUrl, string sportType)
+        {
+            try
+            {
+                var gamesList = new List<SportScoreUpdateDTO>();
+                var response = await _httpClient.GetAsync(gameUrl);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(json);
+                var responseArray = document.RootElement.GetProperty("response");
+
+                foreach (var sportsGame in responseArray.EnumerateArray())
+                {
+                    var leagueName = sportsGame.GetProperty("league").GetProperty("name").GetString();
+                    if (leagueName != "NFL") continue;
+
+                    var game = _footballMapperHelper.MapFootballScoreData(sportsGame, sportType);
+                    gamesList.Add(game);
+                }
+                return gamesList;
+            }
+
+            catch (HttpRequestException ex)
+            {
+                var game = new List<SportScoreUpdateDTO>();
+
+                return game; //need to change later for actual error handling
+            }
+        }
+
         public int GetGameApiIdFromId(Guid id)
         {
             var game = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == id);
