@@ -29,7 +29,7 @@ namespace RSS.SportsDataAutomation
             var todayInPst = timeHelpers.GetTimeStringTodayInPst();
             var gameUrl = $" https://v1.{sportsType}.api-sports.io/games?date={todayInPst}&timezone=America%2FLos_Angeles";
 
-            var game = await nflGameServices.GetNflGameData(gameUrl, sp);
+            var game = await nflGameServices.GetNflGameData(gameUrl, sportsType);
 
             return game;
         }
