@@ -9,6 +9,7 @@ namespace RSS.DTOs
 {
     public class SportScoreUpdateDTO
     {
+        public int ApiGameId { get; set; }
         public string HomeTeamName { get; set; }
         public string AwayTeamName { get; set; }
         public string Status { get; set; }

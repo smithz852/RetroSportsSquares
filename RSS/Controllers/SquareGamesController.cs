@@ -138,17 +138,25 @@ namespace RSS.Controllers
             {
                 return Unauthorized();
             }
-            var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
-            if (unavailableSquares.Any())
+            try
             {
-                return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
+                var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
+                if (unavailableSquares.Any())
+                {
+                    return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
+                }
+                var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+                if (selectedSquares == null || !selectedSquares.Any())
+                    return BadRequest("Failed to save square selection data.");
+                var squareCount = selectedSquares.Count;
+                await _gamePlayerServices.AreGamePlayerSelectionsRecorded(squareCount, userId, gameId);
+                var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
+                return Ok(squareDtos);
             }
-            var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
-            if (selectedSquares == null || !selectedSquares.Any())
-                return BadRequest("Failed to save square selection data.");
-
-            var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
-            return Ok(squareDtos);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 

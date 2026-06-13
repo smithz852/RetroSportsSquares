@@ -1,4 +1,4 @@
-﻿using RSS.DTOs;
+using RSS.DTOs;
 using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.DTOs;
@@ -23,48 +23,49 @@ namespace RSS.SportsDataAutomation
                 var sportsServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
                 var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
 
-                var gamesInUse = GetGamesInUse();
+                var getAllGames = await GetAllGames();
 
-                if (gamesInUse.Count > 0)
+                if (getAllGames.Count > 0)
                 {
-                    foreach (var game in gamesInUse)
+                    var newSportsData = await FetchSportGameData();
+                    await sportsServices.UpdateSportsDataAsync(newSportsData);
+
+                    foreach (var game in getAllGames)
                     {
-                        var hasGameStarted = sportsServices.HasGameStarted(game.Id);
-                        if (hasGameStarted)
-                        {
-                            var newSportsData = await FetchSportGameData(game.Id);
-                            await sportsServices.UpdateSportsDataAsync(newSportsData, game.Id);
-                            var squareGames = await squareServices.GetSquareGamesBySportsGameId(game.Id);
-                            if (squareGames.Count > 0)
-                            {
-                                foreach (var squareGame in squareGames)
-                                {
-                                    var determineQuarterlyWinner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
-                                    if (determineQuarterlyWinner != null && determineQuarterlyWinner.UserId != null)
-                                    {
-                                        await squareServices.SaveQuarterlyWinner(determineQuarterlyWinner, squareGame.Id);
-                                    }
-                                }
-                            }
-                        }
+                        if (!sportsServices.HasGameStarted(game.Id)) continue;
+
+                        var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
+                        if (gameData == null) continue;
+
+                        if (gameData.Status is "FT" or "AOT" or "Final/OT" or "Postponed") continue;
+
+                        await ProcessQuarterlyWinners(squareServices, gameData, game.Id);
                     }
                 }
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(7), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 }
                 catch (OperationCanceledException)
                 {
                     break;
                 }
             }
-
         }
 
-        protected abstract List<SportsGamesInUseDTO> GetGamesInUse();
+        private async Task ProcessQuarterlyWinners(SquareServices squareServices, SportScoreUpdateDTO newSportsData, Guid sportGameId)
+        {
+            var squareGames = await squareServices.GetSquareGamesBySportsGameId(sportGameId);
+            foreach (var squareGame in squareGames)
+            {
+                var winner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
+                if (winner?.UserId != null)
+                    await squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
+            }
+        }
 
-        protected abstract Task<SportScoreUpdateDTO> FetchSportGameData(Guid gameId);
-        
+        protected abstract Task<List<DailySportsGames>> GetAllGames();
+        protected abstract Task<List<SportScoreUpdateDTO>> FetchSportGameData();
     }
 }
