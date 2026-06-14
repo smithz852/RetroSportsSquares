@@ -10,6 +10,7 @@ import GameOptions from "@/pages/GameOptions";
 import Login from "@/pages/Login";
 import GameBoard from "@/pages/GameBoard";
 import Dashboard from "@/pages/Dashboard";
+import LeagueOptions from "@/pages/LeagueOptions";
 import Signup from "@/pages/SignUp";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
           <Route path="/login" component={Login} />
            <Route path="/signup" component={Signup} />
           <Route path="/options" component={GameOptions} />
+          <Route path="/leagues/:sport" component={LeagueOptions} />
           <Route path="/arena/:type/:leagueId" component={Dashboard} />
           <Route path="/game/:id" component={GameBoard} />
           <Route component={NotFound} />
