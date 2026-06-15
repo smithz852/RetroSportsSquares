@@ -26,38 +26,9 @@ namespace RSS_DB
 
 
 
-        private static Guid CreateGuid(string input)
-        {
-            using var md5 = System.Security.Cryptography.MD5.Create();
-            var hash = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
-            return new Guid(hash);
-        }
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-           
-
-            var nbaGameSeeds = new List<DailySportsGames>
-            {
-                new DailySportsGames
-                {
-                    Id = CreateGuid("nba-game-1"),
-                    ApiGameId = 12345,
-                    HomeTeam = "Lakers",
-                    AwayTeam = "Warriors",
-                    GameStartTime = DateTimeOffset.UtcNow,
-                    SportType = "basketball",
-                    League = "NBA",
-                    LeagueId = 12,
-                    Status = "NS",
-                    InUse = false
-                },
-                // Add more games...
-            };
-
-            builder.Entity<DailySportsGames>().HasData(nbaGameSeeds);
         }
     }
 }

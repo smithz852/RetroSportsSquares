@@ -9,7 +9,8 @@ export const endpoints = {
     options: (gameType: string, leagueId: string) =>  `/AvailableSportsGames/GetAvailable${gameType}League${leagueId}GameOptions`,
     scoreData: (gameId: string) => `/SquareGames/GetSquareGameScoreData/${gameId}`,
     squareGameById: (gameId: string) => `/SquareGames/${gameId}`,
-    start: (gameId: string) => `/SquareGames/Start/${gameId}`
+    start: (gameId: string) => `/SquareGames/Start/${gameId}`,
+    join: (gameId: string) => `/SquareGames/join/${gameId}`
   },
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,

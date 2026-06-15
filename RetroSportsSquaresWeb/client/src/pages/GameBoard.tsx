@@ -9,7 +9,7 @@ import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { GetGameScoreData, getSquareGameById, useStartGame } from "@/hooks/use-games";
-import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares } from "@/hooks/use-gameplay";
+import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
@@ -36,6 +36,7 @@ export default function GameBoard() {
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
+  const { mutate: joinGame } = useJoinGame(id);
   const { mutate: startGame } = useStartGame(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
 
@@ -91,6 +92,13 @@ useEffect(() => {
     setWinningCol(null);
   }
 }, [scoreData?.currentHomeScore, scoreData?.currentAwayScore, gameStarted, squareByPosition, leftNumbers, topNumbers]);
+
+  // Register the current user as a game player when they open the board
+  useEffect(() => {
+    if (user && id) {
+      joinGame();
+    }
+  }, [user, id]);
 
   // Update state when game data loads
   useEffect(() => {
