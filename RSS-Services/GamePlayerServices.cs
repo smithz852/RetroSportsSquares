@@ -31,9 +31,35 @@ namespace RSS_Services
             return gamePlayer;
         }
 
+        public async Task<bool> JoinGame(string userId, string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                throw new ArgumentException($"Invalid game ID: {gameId}");
+
+            var existing = await _appDbContext.GamePlayers
+                .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
+
+            if (existing != null) return true;
+
+            var gamePlayer = new GamePlayer
+            {
+                ApplicationUserId = userId,
+                GameId = gameGuid,
+                IsHost = false,
+            };
+
+            _appDbContext.GamePlayers.Add(gamePlayer);
+            await _appDbContext.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> AreGamePlayerSelectionsRecorded(int squareSelections, string userId, string gameId)
         {
-            var gamePlayer = await _appDbContext.GamePlayers.FirstOrDefaultAsync(u => u.ApplicationUserId == userId);
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                throw new ArgumentException($"Invalid game ID: {gameId}");
+
+            var gamePlayer = await _appDbContext.GamePlayers
+                .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
             if (gamePlayer == null)
             {
                 throw new Exception("Game Player not found: " + userId + " for game: " + gameId + "  ");

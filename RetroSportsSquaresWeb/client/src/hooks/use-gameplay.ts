@@ -9,6 +9,20 @@ import {
   type CreateSquareSelectionRequest
 } from "@shared/schema";
 
+export function useJoinGame(gameId: string) {
+  return useMutation({
+    mutationFn: async (): Promise<void> => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Please login to join a game");
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.join(gameId)}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to join game");
+    },
+  });
+}
+
 export function usePostSquareSelection(gameId: string) {
   const queryClient = useQueryClient();
 

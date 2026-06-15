@@ -129,6 +129,25 @@ namespace RSS.Controllers
             return Ok(gameDto);
         }
 
+        [HttpPost("join/{gameId}")]
+        [Authorize]
+        public async Task<IActionResult> JoinGame(string gameId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            try
+            {
+                await _gamePlayerServices.JoinGame(userId, gameId);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("SquareSelections/{gameId}")]
         [Authorize]
         public async Task<IActionResult> SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)

@@ -298,12 +298,12 @@ namespace RSS_DB.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("b8a1c73c-90cc-db79-a168-6a039c88804e"),
-                            ApiGameId = 12345,
+                            Id = new Guid("05ca7b87-f645-b145-e65b-fbbf22b50624"),
+                            ApiGameId = 12346,
                             AwayTeam = "Warriors",
                             CurrentAwayScore = 0,
                             CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 5, 10, 2, 42, 0, 569, DateTimeKind.Unspecified).AddTicks(7844), new TimeSpan(0, 0, 0, 0, 0)),
+                            GameStartTime = new DateTimeOffset(new DateTime(2026, 6, 15, 4, 44, 24, 341, DateTimeKind.Unspecified).AddTicks(48), new TimeSpan(0, 0, 0, 0, 0)),
                             HomeTeam = "Lakers",
                             InUse = false,
                             League = "NBA",
