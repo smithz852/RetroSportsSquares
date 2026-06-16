@@ -31,6 +31,8 @@ export function CreateGameDialog() {
   const [playerCount, setPlayerCount] = useState("");
   const [dailySportsGameId, setDailySportsGameId] = useState("");
   const [wagerAmount, setWagerAmount] = useState("");
+  const [squareSelectionLimit, setSquareSelectionLimit] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -135,6 +137,48 @@ export function CreateGameDialog() {
               className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-700"
               autoFocus
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">
+              SQUARE SELECTION LIMIT
+            </label>
+            <input
+              value={squareSelectionLimit}
+              onChange={(e) => setSquareSelectionLimit(e.target.value)}
+              placeholder="MAX SQUARES PER PLAYER (OPTIONAL)"
+              className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-700"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">
+              VISIBILITY
+            </label>
+            <div className="flex gap-6">
+              <button
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className="flex items-center gap-2 group"
+              >
+                <div className={`w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center transition-colors ${isPublic ? "bg-primary" : "bg-black"}`}>
+                  {isPublic && <div className="w-2 h-2 rounded-full bg-black" />}
+                </div>
+                <span className={`font-['Press_Start_2P'] text-xs ${isPublic ? "text-primary" : "text-gray-500"}`}>
+                  PUBLIC
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className="flex items-center gap-2 group"
+              >
+                <div className={`w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center transition-colors ${!isPublic ? "bg-primary" : "bg-black"}`}>
+                  {!isPublic && <div className="w-2 h-2 rounded-full bg-black" />}
+                </div>
+                <span className={`font-['Press_Start_2P'] text-xs ${!isPublic ? "text-primary" : "text-gray-500"}`}>
+                  PRIVATE
+                </span>
+              </button>
+            </div>
           </div>
           <div>
             <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">
