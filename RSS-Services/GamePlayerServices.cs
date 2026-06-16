@@ -41,6 +41,16 @@ namespace RSS_Services
 
             if (existing != null) return true;
 
+            var game = await _appDbContext.SquareGames
+                .Include(g => g.GamePlayers)
+                .FirstOrDefaultAsync(g => g.Id == gameGuid);
+
+            if (game == null)
+                throw new ArgumentException($"Game not found: {gameId}");
+
+            if (game.GamePlayers.Count >= game.PlayerCount)
+                throw new InvalidOperationException("Game is full.");
+
             var gamePlayer = new GamePlayer
             {
                 ApplicationUserId = userId,

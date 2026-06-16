@@ -18,6 +18,7 @@ namespace RSS.Helpers
                 CreatedAt = availableGames.CreatedAt,
                 IsOpen = availableGames.isOpen,
                 PlayerCount = availableGames.PlayerCount,
+                CurrentPlayerCount = availableGames.GamePlayers.Count,
                 PricePerSquare = availableGames.PricePerSquare,
                 SportGameId = availableGames.DailySportGame.ApiGameId,
                 HomeTeam = availableGames.DailySportGame.HomeTeam,

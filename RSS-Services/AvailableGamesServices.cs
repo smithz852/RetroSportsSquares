@@ -20,6 +20,7 @@ namespace RSS_Services
         {
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
+                .Include(g => g.GamePlayers)
                 .ToList();
         }
 
@@ -47,6 +48,7 @@ namespace RSS_Services
             var gameId = Guid.Parse(id);
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
+                .Include(g => g.GamePlayers)
                 .FirstOrDefault(g => g.Id == gameId);
         }
 

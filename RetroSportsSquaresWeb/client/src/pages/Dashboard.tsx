@@ -90,7 +90,7 @@ if (user) {
                   </div>
                   <div className="flex items-center text-gray-400 text-sm font-['VT323'] text-lg">
                     <User className="w-4 h-4 mr-2" />
-                    Players: {(game as any).playerCount || 0}/100
+                    Players: {game.currentPlayerCount}/{game.playerCount}
                   </div>
                 </div>
               </RetroCard>
