@@ -2,12 +2,13 @@ import { useGames } from "@/hooks/use-games";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
-import { Loader2, Calendar, User, Trophy } from "lucide-react";
+import { Loader2, Calendar, User, Trophy, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
 import { useState } from "react";
 import { useJoinGame } from "@/hooks/use-gameplay";
+import { useDeleteGame } from "@/hooks/use-games";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,8 +25,23 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { mutate: joinGame, isPending: isJoining } = useJoinGame();
+  const { mutate: deleteGame } = useDeleteGame();
   const [joiningGameId, setJoiningGameId] = useState<string | null>(null);
   const [showFullModal, setShowFullModal] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  function handleDeleteClick(e: React.MouseEvent, gameId: string) {
+    e.stopPropagation();
+    setConfirmDeleteId(gameId);
+  }
+
+  function confirmDelete() {
+    if (!confirmDeleteId) return;
+    deleteGame(confirmDeleteId, {
+      onSuccess: () => setConfirmDeleteId(null),
+      onError: () => setConfirmDeleteId(null),
+    });
+  }
 
   function handleGameClick(gameId: string) {
     setJoiningGameId(gameId);
@@ -100,11 +116,22 @@ if (user) {
                   <h3 className="font-['Press_Start_2P'] text-white text-sm leading-6 line-clamp-2 group-hover:text-primary transition-colors">
                     {game.gameName}
                   </h3>
-                  <span className={`px-2 py-1 text-xs font-['Press_Start_2P'] ${
-                    game.isOpen ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
-                  }`}>
-                    {game.isOpen ? "Open" : "Closed"}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-2 py-1 text-xs font-['Press_Start_2P'] ${
+                      game.isOpen ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
+                    }`}>
+                      {game.isOpen ? "Open" : "Closed"}
+                    </span>
+                    {game.hostUserId === user?.id && game.isOpen && (
+                      <button
+                        onClick={(e) => handleDeleteClick(e, game.gameId)}
+                        className="text-red-600 hover:text-red-400 transition-colors p-0.5"
+                        title="Delete game"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="space-y-2 mt-4 pt-4 border-t-2 border-primary/20">
@@ -128,6 +155,33 @@ if (user) {
           ))}
         </div>
       )}
+
+      <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <DialogContent className="bg-black border-4 border-red-600 rounded-none text-red-500 font-pixel max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 font-pixel text-lg uppercase tracking-widest">
+              Delete Game?
+            </DialogTitle>
+            <DialogDescription className="text-red-400 font-['VT323'] text-xl pt-2">
+              This will permanently delete the game and all its data. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="pt-2 flex gap-2">
+            <Button
+              onClick={() => setConfirmDeleteId(null)}
+              className="bg-black text-red-600 font-pixel rounded-none hover:bg-red-900/20 border-2 border-red-600 uppercase flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              className="bg-red-600 text-black font-pixel rounded-none hover:bg-red-500 border-b-4 border-red-900 active:border-b-0 active:translate-y-1 transition-all uppercase flex-1"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showFullModal} onOpenChange={setShowFullModal}>
         <DialogContent className="bg-black border-4 border-red-600 rounded-none text-red-500 font-pixel max-w-sm">

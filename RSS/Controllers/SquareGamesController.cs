@@ -210,6 +210,34 @@ namespace RSS.Controllers
             return Ok(gameboardDto);
         }
 
+        [HttpDelete("{gameId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteGame(string gameId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
+            if (!isHost)
+                return Forbid();
+
+            var game = await _availableGamesServices.GetGameById(gameId);
+            if (game == null)
+                return NotFound();
+
+            if (!game.isOpen)
+                return BadRequest("Cannot delete a game that has already started.");
+
+            var dailySportGameId = game.DailySportGameId;
+            var deleted = await _availableGamesServices.DeleteGame(gameId);
+            if (!deleted)
+                return BadRequest("Failed to delete game.");
+
+            _sportsGameServices.SetGameNotInUse(dailySportGameId);
+            return Ok();
+        }
+
         [HttpGet("GetOutsideSquareNumbers/{gameId}")]
         public async Task<IActionResult> GetOutsideSquareNumbers(string gameId)
         {

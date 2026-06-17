@@ -11,6 +11,7 @@
         public int CurrentPlayerCount { get; set; }
         public decimal PricePerSquare { get; set; }
         public int SquareSelectionLimit { get; set; }
+        public string? HostUserId { get; set; }
         public int SportGameId { get; set; }
         public string HomeTeam { get; set; }
         public string AwayTeam { get; set; }

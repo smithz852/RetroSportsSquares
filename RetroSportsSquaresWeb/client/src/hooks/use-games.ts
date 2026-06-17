@@ -86,6 +86,26 @@ export function useStartGame(gameId: string) {
   });
 }
 
+export function useDeleteGame() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (gameId: string): Promise<void> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Please login to delete a game');
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.delete(gameId)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Failed to delete game');
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['games'] }),
+  });
+}
+
 export function getSquareGameById(id: string) {
   return useQuery({
     queryKey: ['game', id],

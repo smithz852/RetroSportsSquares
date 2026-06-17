@@ -21,6 +21,7 @@ namespace RSS.Helpers
                 CurrentPlayerCount = availableGames.GamePlayers.Count,
                 PricePerSquare = availableGames.PricePerSquare,
                 SquareSelectionLimit = availableGames.SquareSelectionLimit,
+                HostUserId = availableGames.GamePlayers.FirstOrDefault(p => p.IsHost)?.ApplicationUserId,
                 SportGameId = availableGames.DailySportGame.ApiGameId,
                 HomeTeam = availableGames.DailySportGame.HomeTeam,
                 AwayTeam = availableGames.DailySportGame.AwayTeam,
