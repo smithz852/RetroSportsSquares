@@ -1,1 +1,2 @@
 C:\Users\surff\Documents\zachs-repos\C#\RetroSportsSquares\RetroSportsSquaresWeb\obj\Debug\RetroSportsSquaresWeb.esproj.CoreCompileInputs.cache
+C:\Users\surff\Documents\zachs-repos\Csharp\RetroSportsSquares\RetroSportsSquaresWeb\obj\Debug\RetroSportsSquaresWeb.esproj.CoreCompileInputs.cache

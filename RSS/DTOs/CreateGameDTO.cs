@@ -8,6 +8,8 @@ namespace RSS.DTOs
         public int PlayerCount { get; set; }
         public int PricePerSquare { get; set; }
         public int SquareSelectionLimit { get; set; }
+        public bool IsTurnBased { get; set; }
+        public int TurnTimeoutSeconds { get; set; } = 60;
         public string DailySportsGameId { get; set; }
     }
 }

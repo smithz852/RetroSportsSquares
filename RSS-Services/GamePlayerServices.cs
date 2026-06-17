@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RSS_DB;
 using RSS_DB.Entities;
+using RSS_Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,94 @@ namespace RSS_Services
                 .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
 
             return gamePlayer?.IsHost ?? false;
+        }
+
+        public async Task BeginSelections(string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                throw new ArgumentException($"Invalid game ID: {gameId}");
+
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null) throw new ArgumentException("Game not found");
+            if (!game.IsTurnBased) throw new InvalidOperationException("Game is not turn-based.");
+            if (game.SelectionPhaseActive) throw new InvalidOperationException("Selection phase has already begun.");
+
+            var players = await _appDbContext.GamePlayers
+                .Where(p => p.GameId == gameGuid)
+                .ToListAsync();
+
+            if (players.Count == 0) throw new InvalidOperationException("No players have joined yet.");
+
+            var shuffled = players.OrderBy(_ => Guid.NewGuid()).ToList();
+            for (int i = 0; i < shuffled.Count; i++)
+                shuffled[i].TurnOrder = i + 1;
+
+            game.SelectionPhaseActive = true;
+            game.CurrentTurnUserId = shuffled[0].ApplicationUserId;
+            game.TurnStartedAt = DateTimeOffset.UtcNow;
+
+            await _appDbContext.SaveChangesAsync();
+        }
+
+        public async Task AdvanceTurn(string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid)) return;
+
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null || !game.SelectionPhaseActive) return;
+
+            var players = await _appDbContext.GamePlayers
+                .Where(p => p.GameId == gameGuid)
+                .OrderBy(p => p.TurnOrder)
+                .ToListAsync();
+
+            var current = players.FirstOrDefault(p => p.ApplicationUserId == game.CurrentTurnUserId);
+            if (current != null) current.HasHadTurn = true;
+
+            var next = players.FirstOrDefault(p => !p.HasHadTurn);
+            if (next == null)
+            {
+                game.SelectionPhaseActive = false;
+                game.CurrentTurnUserId = null;
+                game.TurnStartedAt = null;
+            }
+            else
+            {
+                game.CurrentTurnUserId = next.ApplicationUserId;
+                game.TurnStartedAt = DateTimeOffset.UtcNow;
+            }
+
+            await _appDbContext.SaveChangesAsync();
+        }
+
+        public async Task<TurnStatusDTO> GetTurnStatus(string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                throw new ArgumentException($"Invalid game ID: {gameId}");
+
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null) throw new ArgumentException("Game not found");
+
+            var players = await _appDbContext.GamePlayers
+                .Include(p => p.User)
+                .Where(p => p.GameId == gameGuid)
+                .OrderBy(p => p.TurnOrder)
+                .ToListAsync();
+
+            return new TurnStatusDTO
+            {
+                SelectionPhaseActive = game.SelectionPhaseActive,
+                CurrentTurnUserId = game.CurrentTurnUserId,
+                TurnStartedAt = game.TurnStartedAt,
+                TurnTimeoutSeconds = game.TurnTimeoutSeconds,
+                Players = players.Select(p => new TurnPlayerDTO
+                {
+                    UserId = p.ApplicationUserId,
+                    DisplayName = p.User?.DisplayName ?? "Unknown",
+                    TurnOrder = p.TurnOrder,
+                    HasHadTurn = p.HasHadTurn,
+                }).ToList()
+            };
         }
 
         public async Task<bool> AreGamePlayerSelectionsRecorded(int squareSelections, string userId, string gameId)
