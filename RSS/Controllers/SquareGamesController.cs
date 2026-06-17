@@ -67,7 +67,7 @@ namespace RSS.Controllers
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.DailySportsGameId);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();
@@ -177,10 +177,16 @@ namespace RSS.Controllers
                 {
                     return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
                 }
+                var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
+                if (!withinSquareLimit)
+                {
+                    var squareLimit = await _squareServices.GetSquareSelectionLimit(gameId);
+                    return BadRequest(new { message = $"You have exceeded the square selection limit for this game (Limit: {squareLimit})" });
+                }
                 var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+                var squareCount = selectedSquares.Count;
                 if (selectedSquares == null || !selectedSquares.Any())
                     return BadRequest("Failed to save square selection data.");
-                var squareCount = selectedSquares.Count;
                 await _gamePlayerServices.AreGamePlayerSelectionsRecorded(squareCount, userId, gameId);
                 var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);

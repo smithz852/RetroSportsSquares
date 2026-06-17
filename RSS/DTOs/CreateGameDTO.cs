@@ -7,6 +7,7 @@ namespace RSS.DTOs
         public bool IsOpen { get; set; }
         public int PlayerCount { get; set; }
         public int PricePerSquare { get; set; }
+        public int SquareSelectionLimit { get; set; }
         public string DailySportsGameId { get; set; }
     }
 }

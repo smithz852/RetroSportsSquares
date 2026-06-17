@@ -24,7 +24,7 @@ namespace RSS_Services
                 .ToList();
         }
 
-        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, int squareSelectionLimit, string dailySportsGameId)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = DateTimeOffset.UtcNow;
@@ -37,6 +37,7 @@ namespace RSS_Services
                 CreatedAt = createdAt,
                 GameType = gameType,
                 PricePerSquare = pricePerSquare,
+                SquareSelectionLimit = squareSelectionLimit,
                 DailySportGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid)
             };
 

@@ -55,6 +55,7 @@ export function CreateGameDialog() {
         isOpen: true,
         dailySportsGameId,
         pricePerSquare: parseInt(wagerAmount) || 0,
+        squareSelectionLimit: parseInt(squareSelectionLimit) || 0,
       },
       {
         onSuccess: (createdGame) => {

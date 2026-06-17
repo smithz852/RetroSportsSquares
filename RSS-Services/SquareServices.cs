@@ -46,6 +46,28 @@ namespace RSS_Services
             return gameSquares;
         }
 
+        public async Task<bool> SquareLimitCheck(string gameId, string userId, int incomingCount)
+        {
+            var gameGuid = Guid.Parse(gameId);
+
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null || game.SquareSelectionLimit <= 0) return true;
+
+            var alreadySelected = await _appDbContext.GameSquares
+                .Where(sq => sq.SquareGamesId == gameGuid && sq.GamePlayer.ApplicationUserId == userId)
+                .CountAsync();
+
+            return (alreadySelected + incomingCount) <= game.SquareSelectionLimit;
+        }
+
+        public async Task<int> GetSquareSelectionLimit(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+            var game =  _appDbContext.SquareGames.FirstOrDefault(g => g.Id == gameGuid);
+            if (game is null) throw new InvalidOperationException($"Game {gameId} not found");
+            return game.SquareSelectionLimit;
+        }
+
         public List<string> CheckIfSquaresAreSelected(string gameId, List<string> squareSelections)
         {
             var gameIdGuid = Guid.Parse(gameId);
