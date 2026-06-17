@@ -93,8 +93,17 @@ namespace RSS.Controllers
         }
 
         [HttpPost("start/{gameId}")]
+        [Authorize]
         public async Task<IActionResult> StartGame(string gameId)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
+            if (!isHost)
+                return Forbid();
+
             var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
             if (!setGameToClosed)
             {
@@ -139,8 +148,8 @@ namespace RSS.Controllers
 
             try
             {
-                await _gamePlayerServices.JoinGame(userId, gameId);
-                return Ok();
+                var gamePlayer = await _gamePlayerServices.JoinGame(userId, gameId);
+                return Ok(new { isHost = gamePlayer.IsHost });
             }
             catch (ArgumentException ex)
             {

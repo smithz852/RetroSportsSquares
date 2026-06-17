@@ -45,9 +45,15 @@ export default function GameBoard() {
     return Object.fromEntries(boardSquares.map(sq => [`${sq.rowIndex}-${sq.colIndex}`, sq]));
   }, [gameStarted, boardSquares]);
 
+  const hasSubmittedSelections = useMemo(() => {
+    if (!boardSquares || !user) return false;
+    return boardSquares.some(s => s.displayName === user.displayName);
+  }, [boardSquares, user]);
+
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
   });
+  const [isHost, setIsHost] = useState(false);
 
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
@@ -96,7 +102,9 @@ useEffect(() => {
   // Register the current user as a game player when they open the board
   useEffect(() => {
     if (user && id) {
-      joinGame();
+      joinGame(undefined, {
+        onSuccess: (data) => setIsHost(data.isHost),
+      });
     }
   }, [user, id]);
 
@@ -302,21 +310,25 @@ useEffect(() => {
           <div className="flex items-center gap-4 w-full max-w-xl">
             {!gameStarted ? (
               <>
-                
-                  <Button
-                    onClick={handleStartGame}
-                    className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
-                  >
-                    INSERT COIN / START GAME
-                  </Button>
 
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={isPending}
-                    className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
-                  >
-                    Submit
-                  </Button>
+                  {isHost && (
+                    <Button
+                      onClick={handleStartGame}
+                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                    >
+                      INSERT COIN / START GAME
+                    </Button>
+                  )}
+
+                  {!hasSubmittedSelections && (
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={isPending}
+                      className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                    >
+                      Submit
+                    </Button>
+                  )}
                 
               </>
             ) : (
@@ -423,19 +435,21 @@ useEffect(() => {
                 </label>
                 <div className="flex gap-2">
                   <Input
+                    readOnly
                     value={tempMultiplier}
                     onChange={(e) =>
                       setTempMultiplier(parseInt(e.target.value))
                     }
                     className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
                   />
-                  <Button
+                  {/* May make this button only visible to the host and build in rules for changing wager amount when players have already joined */}
+                  {/* <Button
                     size="sm"
                     onClick={handleSetMultiplier}
                     className="bg-green-700 text-white font-pixel text-[10px] rounded-none hover:bg-green-600 h-9"
                   >
                     SET
-                  </Button>
+                  </Button> */} 
                 </div>
               </div>
 

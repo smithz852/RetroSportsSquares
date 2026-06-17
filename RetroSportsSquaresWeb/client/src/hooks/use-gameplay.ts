@@ -11,7 +11,7 @@ import {
 
 export function useJoinGame(gameId: string) {
   return useMutation({
-    mutationFn: async (): Promise<void> => {
+    mutationFn: async (): Promise<{ isHost: boolean }> => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please login to join a game");
       const res = await fetch(`${API_BASE_URL}${endpoints.games.join(gameId)}`, {
@@ -19,6 +19,8 @@ export function useJoinGame(gameId: string) {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to join game");
+      const data = await res.json();
+      return data;
     },
   });
 }
