@@ -20,10 +20,11 @@ namespace RSS_Services
         {
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
+                .Include(g => g.GamePlayers)
                 .ToList();
         }
 
-        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, string dailySportsGameId)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, int squareSelectionLimit, string dailySportsGameId)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = DateTimeOffset.UtcNow;
@@ -36,10 +37,32 @@ namespace RSS_Services
                 CreatedAt = createdAt,
                 GameType = gameType,
                 PricePerSquare = pricePerSquare,
+                SquareSelectionLimit = squareSelectionLimit,
                 DailySportGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid)
             };
 
             return game;
+        }
+
+        public async Task<bool> DeleteGame(string gameId)
+        {
+            var gameGuid = Guid.Parse(gameId);
+
+            var game = await _appDbContext.SquareGames
+                .FirstOrDefaultAsync(g => g.Id == gameGuid);
+
+            if (game == null) return false;
+
+            var squares = _appDbContext.GameSquares.Where(s => s.SquareGamesId == gameGuid);
+            _appDbContext.GameSquares.RemoveRange(squares);
+
+            var players = _appDbContext.GamePlayers.Where(p => p.GameId == gameGuid);
+            _appDbContext.GamePlayers.RemoveRange(players);
+
+            _appDbContext.SquareGames.Remove(game);
+            await _appDbContext.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<SquareGames> GetGameById(string id)
@@ -47,6 +70,7 @@ namespace RSS_Services
             var gameId = Guid.Parse(id);
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
+                .Include(g => g.GamePlayers)
                 .FirstOrDefault(g => g.Id == gameId);
         }
 

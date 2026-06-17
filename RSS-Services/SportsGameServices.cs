@@ -131,6 +131,16 @@ namespace RSS_Services
             _appDbContext.SaveChanges();
         }
 
+        public void SetGameNotInUse(Guid dailySportsGameId)
+        {
+            var game = GetDailySportGameById(dailySportsGameId);
+            if (game != null)
+            {
+                game.InUse = false;
+                _appDbContext.SaveChanges();
+            }
+        }
+
         public async Task UpdateSportsDataAsync(List<SportScoreUpdateDTO> newSportsData)
         {
 

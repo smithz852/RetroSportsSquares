@@ -27,6 +27,7 @@ namespace RSS_DB.Entities
         [Required]
         public int PlayerCount { get; set; }
         public int PricePerSquare { get; set; } = 0;
+        public int SquareSelectionLimit { get; set; } = 0; // 0 = no limit
         public List<int> TopNumbers { get; set; } = new List<int>();
         public List<int> LeftNumbers { get; set; } = new List<int>();
         public string? WinnerQ1Id { get; set; }

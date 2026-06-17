@@ -67,7 +67,7 @@ namespace RSS.Controllers
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.DailySportsGameId);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.DailySportsGameId);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();
@@ -93,8 +93,17 @@ namespace RSS.Controllers
         }
 
         [HttpPost("start/{gameId}")]
+        [Authorize]
         public async Task<IActionResult> StartGame(string gameId)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
+            if (!isHost)
+                return Forbid();
+
             var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
             if (!setGameToClosed)
             {
@@ -139,10 +148,14 @@ namespace RSS.Controllers
 
             try
             {
-                await _gamePlayerServices.JoinGame(userId, gameId);
-                return Ok();
+                var gamePlayer = await _gamePlayerServices.JoinGame(userId, gameId);
+                return Ok(new { isHost = gamePlayer.IsHost });
             }
             catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -164,10 +177,16 @@ namespace RSS.Controllers
                 {
                     return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
                 }
+                var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
+                if (!withinSquareLimit)
+                {
+                    var squareLimit = await _squareServices.GetSquareSelectionLimit(gameId);
+                    return BadRequest(new { message = $"You have exceeded the square selection limit for this game (Limit: {squareLimit})" });
+                }
                 var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+                var squareCount = selectedSquares.Count;
                 if (selectedSquares == null || !selectedSquares.Any())
                     return BadRequest("Failed to save square selection data.");
-                var squareCount = selectedSquares.Count;
                 await _gamePlayerServices.AreGamePlayerSelectionsRecorded(squareCount, userId, gameId);
                 var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);
@@ -189,6 +208,34 @@ namespace RSS.Controllers
             }
             var gameboardDto = _mapperHelpers.PreGameboardMapper(gameboard);
             return Ok(gameboardDto);
+        }
+
+        [HttpDelete("{gameId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteGame(string gameId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
+            if (!isHost)
+                return Forbid();
+
+            var game = await _availableGamesServices.GetGameById(gameId);
+            if (game == null)
+                return NotFound();
+
+            if (!game.isOpen)
+                return BadRequest("Cannot delete a game that has already started.");
+
+            var dailySportGameId = game.DailySportGameId;
+            var deleted = await _availableGamesServices.DeleteGame(gameId);
+            if (!deleted)
+                return BadRequest("Failed to delete game.");
+
+            _sportsGameServices.SetGameNotInUse(dailySportGameId);
+            return Ok();
         }
 
         [HttpGet("GetOutsideSquareNumbers/{gameId}")]

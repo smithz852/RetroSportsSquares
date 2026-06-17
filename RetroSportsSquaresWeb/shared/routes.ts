@@ -10,7 +10,8 @@ export const endpoints = {
     scoreData: (gameId: string) => `/SquareGames/GetSquareGameScoreData/${gameId}`,
     squareGameById: (gameId: string) => `/SquareGames/${gameId}`,
     start: (gameId: string) => `/SquareGames/Start/${gameId}`,
-    join: (gameId: string) => `/SquareGames/join/${gameId}`
+    join: (gameId: string) => `/SquareGames/join/${gameId}`,
+    delete: (gameId: string) => `/SquareGames/${gameId}`
   },
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,

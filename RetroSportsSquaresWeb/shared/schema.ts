@@ -6,7 +6,10 @@ export interface SquareGame {
   gameType: string;
   isOpen: boolean;
   pricePerSquare: number;
+  squareSelectionLimit: number;
+  hostUserId: string | null;
   playerCount: number;
+  currentPlayerCount: number;
   createdAt: string;
   sportGameId: number;
   homeTeam: string;
@@ -54,6 +57,7 @@ export interface CreateSquareGameRequest {
   playerCount: number;
   isOpen: boolean;
   pricePerSquare: number | null;
+  squareSelectionLimit: number | null;
   dailySportsGameId: string;
 }
 

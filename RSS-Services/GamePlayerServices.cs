@@ -31,7 +31,7 @@ namespace RSS_Services
             return gamePlayer;
         }
 
-        public async Task<bool> JoinGame(string userId, string gameId)
+        public async Task<GamePlayer> JoinGame(string userId, string gameId)
         {
             if (!Guid.TryParse(gameId, out var gameGuid))
                 throw new ArgumentException($"Invalid game ID: {gameId}");
@@ -39,7 +39,17 @@ namespace RSS_Services
             var existing = await _appDbContext.GamePlayers
                 .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
 
-            if (existing != null) return true;
+            if (existing != null) return existing;
+
+            var game = await _appDbContext.SquareGames
+                .Include(g => g.GamePlayers)
+                .FirstOrDefaultAsync(g => g.Id == gameGuid);
+
+            if (game == null)
+                throw new ArgumentException($"Game not found: {gameId}");
+
+            if (game.GamePlayers.Count >= game.PlayerCount)
+                throw new InvalidOperationException("Game is full.");
 
             var gamePlayer = new GamePlayer
             {
@@ -50,7 +60,18 @@ namespace RSS_Services
 
             _appDbContext.GamePlayers.Add(gamePlayer);
             await _appDbContext.SaveChangesAsync();
-            return true;
+            return gamePlayer;
+        }
+
+        public async Task<bool> IsPlayerHost(string userId, string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                return false;
+
+            var gamePlayer = await _appDbContext.GamePlayers
+                .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
+
+            return gamePlayer?.IsHost ?? false;
         }
 
         public async Task<bool> AreGamePlayerSelectionsRecorded(int squareSelections, string userId, string gameId)
@@ -70,8 +91,9 @@ namespace RSS_Services
                 throw new Exception($"Square game {gameId} not found.");
             }
             var pricePerSquare = squareGame.PricePerSquare;
+            var squaresPreviouslyChosen = gamePlayer.NumbersOfSquareSelected;
 
-            gamePlayer.NumbersOfSquareSelected = squareSelections;
+            gamePlayer.NumbersOfSquareSelected = squareSelections + squaresPreviouslyChosen;
             if (pricePerSquare > 0)
             {
                 gamePlayer.TotalWagerAmount = squareSelections * pricePerSquare;

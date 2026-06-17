@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -10,6 +10,7 @@ import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { GetGameScoreData, getSquareGameById, useStartGame } from "@/hooks/use-games";
 import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame } from "@/hooks/use-gameplay";
+import { useDeleteGame } from "@/hooks/use-games";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
@@ -19,6 +20,7 @@ export default function GameBoard() {
   const id = params.id as string;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
   const { data: boardSquares } = useGetBoardSquares(id);
@@ -36,7 +38,8 @@ export default function GameBoard() {
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
-  const { mutate: joinGame } = useJoinGame(id);
+  const { mutate: joinGame } = useJoinGame();
+  const { mutate: deleteGame } = useDeleteGame();
   const { mutate: startGame } = useStartGame(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
 
@@ -45,9 +48,15 @@ export default function GameBoard() {
     return Object.fromEntries(boardSquares.map(sq => [`${sq.rowIndex}-${sq.colIndex}`, sq]));
   }, [gameStarted, boardSquares]);
 
+  const hasSubmittedSelections = useMemo(() => {
+    if (!boardSquares || !user) return false;
+    return boardSquares.some(s => s.displayName === user.displayName);
+  }, [boardSquares, user]);
+
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
   });
+  const [isHost, setIsHost] = useState(false);
 
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
@@ -96,7 +105,9 @@ useEffect(() => {
   // Register the current user as a game player when they open the board
   useEffect(() => {
     if (user && id) {
-      joinGame();
+      joinGame(id, {
+        onSuccess: (data) => setIsHost(data.isHost),
+      });
     }
   }, [user, id]);
 
@@ -184,6 +195,19 @@ useEffect(() => {
   
 
   const handleStartGame = () => startGame();
+
+  const handleDeleteGame = () => {
+    if (!confirm("Delete this game? This cannot be undone.")) return;
+    deleteGame(id, {
+      onSuccess: () => setLocation("/"),
+      onError: () => toast({
+        title: "ERROR",
+        description: "Failed to delete game.",
+        variant: "destructive",
+        className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+      }),
+    });
+  };
 
 
   const handleSubmit = () => {
@@ -302,21 +326,25 @@ useEffect(() => {
           <div className="flex items-center gap-4 w-full max-w-xl">
             {!gameStarted ? (
               <>
-                
-                  <Button
-                    onClick={handleStartGame}
-                    className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
-                  >
-                    INSERT COIN / START GAME
-                  </Button>
 
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={isPending}
-                    className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
-                  >
-                    Submit
-                  </Button>
+                  {isHost && (
+                    <Button
+                      onClick={handleStartGame}
+                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                    >
+                      INSERT COIN / START GAME
+                    </Button>
+                  )}
+
+                  {!hasSubmittedSelections && (
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={isPending}
+                      className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                    >
+                      Submit
+                    </Button>
+                  )}
                 
               </>
             ) : (
@@ -347,15 +375,15 @@ useEffect(() => {
               {/* Game Grid */}
               <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
                 <div
-                  onClick={() => {
-                    if (confirm("RESET GAME?")) {
-                      setGameStarted(false);
-                    }
-                  }}
-                  className="w-10 h-10 md:w-14 md:h-14 bg-red-600 border-2 border-red-900 flex items-center justify-center cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500 transition-colors"
+                  onClick={isHost && !gameStarted ? handleDeleteGame : undefined}
+                  className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900 flex items-center justify-center transition-colors ${
+                    isHost && !gameStarted
+                      ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500"
+                      : "bg-red-900/20 cursor-default"
+                  }`}
                 >
                   <span className="text-black font-pixel text-[8px] md:text-[10px]">
-                    RESET
+                    {isHost && !gameStarted ? "DEL" : ""}
                   </span>
                 </div>
 
@@ -423,19 +451,21 @@ useEffect(() => {
                 </label>
                 <div className="flex gap-2">
                   <Input
+                    readOnly
                     value={tempMultiplier}
                     onChange={(e) =>
                       setTempMultiplier(parseInt(e.target.value))
                     }
                     className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
                   />
-                  <Button
+                  {/* May make this button only visible to the host and build in rules for changing wager amount when players have already joined */}
+                  {/* <Button
                     size="sm"
                     onClick={handleSetMultiplier}
                     className="bg-green-700 text-white font-pixel text-[10px] rounded-none hover:bg-green-600 h-9"
                   >
                     SET
-                  </Button>
+                  </Button> */} 
                 </div>
               </div>
 

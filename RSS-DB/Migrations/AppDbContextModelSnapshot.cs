@@ -294,33 +294,6 @@ namespace RSS_DB.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DailySportsGames");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("05ca7b87-f645-b145-e65b-fbbf22b50624"),
-                            ApiGameId = 12346,
-                            AwayTeam = "Warriors",
-                            CurrentAwayScore = 0,
-                            CurrentHomeScore = 0,
-                            GameStartTime = new DateTimeOffset(new DateTime(2026, 6, 15, 4, 44, 24, 341, DateTimeKind.Unspecified).AddTicks(48), new TimeSpan(0, 0, 0, 0, 0)),
-                            HomeTeam = "Lakers",
-                            InUse = false,
-                            League = "NBA",
-                            LeagueId = 12,
-                            OTAwayScore = 0,
-                            OTHomeScore = 0,
-                            Q1AwayScore = 0,
-                            Q1HomeScore = 0,
-                            Q2AwayScore = 0,
-                            Q2HomeScore = 0,
-                            Q3AwayScore = 0,
-                            Q3HomeScore = 0,
-                            Q4AwayScore = 0,
-                            Q4HomeScore = 0,
-                            SportType = "basketball",
-                            Status = "NS"
-                        });
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>
@@ -434,6 +407,9 @@ namespace RSS_DB.Migrations
 
                     b.Property<bool>("Q3Skipped")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("SquareSelectionLimit")
+                        .HasColumnType("int");
 
                     b.Property<string>("TopNumbers")
                         .IsRequired()
