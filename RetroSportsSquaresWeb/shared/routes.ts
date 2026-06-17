@@ -11,7 +11,10 @@ export const endpoints = {
     squareGameById: (gameId: string) => `/SquareGames/${gameId}`,
     start: (gameId: string) => `/SquareGames/Start/${gameId}`,
     join: (gameId: string) => `/SquareGames/join/${gameId}`,
-    delete: (gameId: string) => `/SquareGames/${gameId}`
+    delete: (gameId: string) => `/SquareGames/${gameId}`,
+    beginSelections: (gameId: string) => `/SquareGames/begin-selections/${gameId}`,
+    skipPlayer: (gameId: string) => `/SquareGames/skip-player/${gameId}`,
+    turnStatus: (gameId: string) => `/SquareGames/turn-status/${gameId}`
   },
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
-import { GetGameScoreData, getSquareGameById, useStartGame } from "@/hooks/use-games";
+import { GetGameScoreData, getSquareGameById, useStartGame, useDeleteGame, useGetTurnStatus, useBeginSelections, useSkipPlayer } from "@/hooks/use-games";
 import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame } from "@/hooks/use-gameplay";
-import { useDeleteGame } from "@/hooks/use-games";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 
@@ -22,8 +21,10 @@ export default function GameBoard() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
+  const [gameStarted, setGameStarted] = useState(false);
+
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
-  const { data: boardSquares } = useGetBoardSquares(id);
+  const { data: boardSquares } = useGetBoardSquares(id, !gameStarted ? 4000 : false);
   const { data: outsideSquares } = useGetOutsideSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
@@ -34,14 +35,27 @@ export default function GameBoard() {
   );
   const [selections, setSelections] = useState<Record<string, string>>({}); // { [squareGuid]: playerName }
   console.log(selections);
-  const [gameStarted, setGameStarted] = useState(false);
+  
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
   const { mutate: joinGame } = useJoinGame();
   const { mutate: deleteGame } = useDeleteGame();
   const { mutate: startGame } = useStartGame(id);
+  const { mutate: beginSelections, isPending: isBeginPending } = useBeginSelections(id);
+  const { mutate: skipPlayer, isPending: isSkipPending } = useSkipPlayer(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
+
+  const isTurnBased = game?.isTurnBased ?? false;
+  const { data: turnStatus } = useGetTurnStatus(id, isTurnBased && !gameStarted);
+  const selectionPhaseActive = turnStatus?.selectionPhaseActive ?? game?.selectionPhaseActive ?? false;
+
+  const isMyTurn = isTurnBased
+    ? turnStatus?.currentTurnUserId === user?.id
+    : true;
+
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const autoSubmitRef = useRef(false);
 
   const squareByPosition = useMemo(() => {
     if (!gameStarted || !boardSquares) return {};
@@ -144,6 +158,55 @@ useEffect(() => {
   setLeftNumbers(outsideSquares.leftNumbers);
   setGameStarted(true);
 }, [outsideSquares]);
+
+  // Countdown timer — starts/resets when it becomes this player's turn
+  useEffect(() => {
+    if (!isTurnBased || !turnStatus?.selectionPhaseActive || !isMyTurn) {
+      setCountdown(null);
+      autoSubmitRef.current = false;
+      return;
+    }
+    const timeout = turnStatus.turnTimeoutSeconds;
+    if (timeout <= 0) { setCountdown(null); return; }
+
+    const elapsed = turnStatus.turnStartedAt
+      ? Math.floor((Date.now() - new Date(turnStatus.turnStartedAt).getTime()) / 1000)
+      : 0;
+    const remaining = Math.max(timeout - elapsed, 0);
+    setCountdown(remaining);
+    autoSubmitRef.current = false;
+
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [turnStatus?.currentTurnUserId, turnStatus?.turnStartedAt, isMyTurn]);
+
+  // Auto-submit when countdown hits 0
+  useEffect(() => {
+    if (countdown !== 0 || !isMyTurn || autoSubmitRef.current) return;
+    autoSubmitRef.current = true;
+    const selectionArray = Object.keys(selections).map(squareId => ({ squareId }));
+    if (selectionArray.length === 0) {
+      // No selections — just skip (submit empty to advance turn)
+      mutate({ selections: [] }, {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['boardSquares', id] }),
+      });
+    } else {
+      mutate({ selections: selectionArray }, {
+        onSuccess: () => {
+          setSelections({});
+          queryClient.invalidateQueries({ queryKey: ['boardSquares', id] });
+        },
+      });
+    }
+  }, [countdown]);
 
   // Redirect if not authenticated
   if (authLoading) {
@@ -253,6 +316,15 @@ useEffect(() => {
   const handleSquareClick = (squareId: string) => {
     if (gameStarted) return;
 
+    if (isTurnBased && selectionPhaseActive && !isMyTurn) {
+      toast({
+        title: "NOT YOUR TURN",
+        description: "Wait for your turn to select squares.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const savedSquare = boardSquares?.find(s => s.id === squareId);
     if (savedSquare?.displayName) {
       toast({
@@ -263,19 +335,13 @@ useEffect(() => {
       return;
     }
 
+    const playerName = user?.displayName || activePlayer;
+
     if (selections[squareId]) {
       const { [squareId]: _, ...rest } = selections;
       setSelections(rest);
     } else {
-      if (!activePlayer) {
-        toast({
-          title: "PLAYER REQUIRED",
-          description: "Please enter and submit a username above the board first!",
-          variant: "destructive",
-        });
-        return;
-      }
-      setSelections({ ...selections, [squareId]: activePlayer });
+      setSelections({ ...selections, [squareId]: playerName });
     }
   };
 
@@ -321,11 +387,20 @@ useEffect(() => {
         quarterWinners={quarterWinners}
       />
 
-      <div className="flex flex-col lg:flex-row items-start justify-center gap-8 w-full">
-        <div className="flex flex-col items-center gap-8 flex-1 w-full">
+      <div className="flex flex-col items-center gap-8 w-full">
+        <div className="flex flex-col items-center gap-8 w-full">
           <div className="flex items-center gap-4 w-full max-w-xl">
             {!gameStarted ? (
               <>
+                  {isHost && isTurnBased && !selectionPhaseActive && (
+                    <Button
+                      onClick={() => beginSelections()}
+                      disabled={isBeginPending}
+                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                    >
+                      BEGIN SELECTIONS
+                    </Button>
+                  )}
 
                   {isHost && (
                     <Button
@@ -336,16 +411,26 @@ useEffect(() => {
                     </Button>
                   )}
 
-                  {!hasSubmittedSelections && (
+                  {isHost && isTurnBased && selectionPhaseActive && (
+                    <Button
+                      onClick={() => skipPlayer()}
+                      disabled={isSkipPending}
+                      className="bg-red-900 text-red-400 font-pixel text-xl py-8 rounded-none border-b-8 border-red-950 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-800"
+                    >
+                      SKIP
+                    </Button>
+                  )}
+
+                  {!hasSubmittedSelections && (!isTurnBased || selectionPhaseActive) && isMyTurn && (
                     <Button
                       onClick={handleSubmit}
                       disabled={isPending}
-                      className=" bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                      className="bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
                     >
-                      Submit
+                      {countdown !== null ? `SUBMIT (${countdown}s)` : "Submit"}
                     </Button>
                   )}
-                
+
               </>
             ) : (
               <div className="w-full bg-red-900/20 border-2 border-red-600 p-4 font-pixel text-red-500 animate-pulse text-center uppercase">
@@ -436,83 +521,135 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Odds Board */}
-        <div className="w-full lg:w-80 shrink-0">
-          <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
-            <CardHeader className="border-b-2 border-red-900 p-4">
-              <CardTitle className="text-xl text-red-600 font-pixel text-center uppercase tracking-tighter">
-                THE ODDS
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] text-red-900 font-pixel uppercase">
-                  Multiplier
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    readOnly
-                    value={tempMultiplier}
-                    onChange={(e) =>
-                      setTempMultiplier(parseInt(e.target.value))
-                    }
-                    className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
-                  />
-                  {/* May make this button only visible to the host and build in rules for changing wager amount when players have already joined */}
-                  {/* <Button
-                    size="sm"
-                    onClick={handleSetMultiplier}
-                    className="bg-green-700 text-white font-pixel text-[10px] rounded-none hover:bg-green-600 h-9"
-                  >
-                    SET
-                  </Button> */} 
-                </div>
-              </div>
+        {/* Panels row — sits below the board */}
+        <div className="flex flex-wrap gap-8 w-full justify-center">
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 text-[8px] text-red-900 font-pixel uppercase border-b border-red-900/30 pb-2">
-                  <span>User</span>
-                  <span className="text-center">Squares</span>
-                  <span className="text-right">Wager</span>
-                </div>
-
-                <div className="max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
-                  {Object.entries(playerStats).length === 0 ? (
-                    <div className="text-center py-4 text-red-900/40 font-pixel text-[8px] uppercase">
-                      No Selections
-                    </div>
+          {/* Turn Order Panel */}
+          {isTurnBased && !gameStarted && turnStatus && (
+            <div className="flex-1 min-w-[280px] max-w-md">
+              <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
+                <CardHeader className="border-b-2 border-red-900 p-4">
+                  <CardTitle className="text-xl text-red-600 font-pixel text-center uppercase tracking-tighter">
+                    {selectionPhaseActive ? "TURN ORDER" : "PLAYERS"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-2">
+                  {!selectionPhaseActive ? (
+                    <p className="text-red-900/60 font-pixel text-[8px] text-center uppercase pt-2">
+                      Waiting for host to begin selections...
+                    </p>
                   ) : (
-                    Object.entries(playerStats).map(([name, count]) => (
-                      <motion.div
-                        key={name}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="grid grid-cols-3 text-[10px] font-pixel text-red-500 items-center"
-                      >
-                        <span className="truncate pr-1">{name}</span>
-                        <span className="text-center">{count}</span>
-                        <span className="text-right flex items-center justify-end gap-1">
-                          <Coins size={10} className="text-yellow-600" />
-                          {count * multiplier}
-                        </span>
-                      </motion.div>
-                    ))
+                    turnStatus.players.map((p) => {
+                      const isCurrent = p.userId === turnStatus.currentTurnUserId;
+                      return (
+                        <motion.div
+                          key={p.userId}
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className={`flex items-center gap-3 p-2 border ${
+                            isCurrent
+                              ? "border-red-500 bg-red-900/20 animate-pulse"
+                              : p.hasHadTurn
+                              ? "border-red-900/20 opacity-40"
+                              : "border-red-900/40"
+                          }`}
+                        >
+                          <span className="font-pixel text-[8px] text-red-900/60 w-4">{p.turnOrder}</span>
+                          <span className={`font-pixel text-[10px] flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
+                            {p.displayName}
+                            {p.hasHadTurn && " ✓"}
+                          </span>
+                          {isCurrent && countdown !== null && countdown > 0 && (
+                            <span className="font-pixel text-[8px] text-red-500">{countdown}s</span>
+                          )}
+                        </motion.div>
+                      );
+                    })
                   )}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-              <div className="pt-4 border-t-2 border-red-900 flex justify-between items-center">
-                <span className="text-[8px] text-red-900 font-pixel uppercase">
-                  Total Pool
-                </span>
-                <span className="text-sm text-red-600 font-pixel flex items-center gap-1">
-                  <Coins size={14} className="text-yellow-600" />
-                  {Object.values(playerStats).reduce((a, b) => a + b, 0) *
-                    multiplier}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Odds Board */}
+          <div className="flex-1 min-w-[280px] max-w-md">
+            <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
+              <CardHeader className="border-b-2 border-red-900 p-4">
+                <CardTitle className="text-xl text-red-600 font-pixel text-center uppercase tracking-tighter">
+                  THE ODDS
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-red-900 font-pixel uppercase">
+                    Multiplier
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={tempMultiplier}
+                      onChange={(e) =>
+                        setTempMultiplier(parseInt(e.target.value))
+                      }
+                      className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
+                    />
+                    {/* May make this button only visible to the host and build in rules for changing wager amount when players have already joined */}
+                    {/* <Button
+                      size="sm"
+                      onClick={handleSetMultiplier}
+                      className="bg-green-700 text-white font-pixel text-[10px] rounded-none hover:bg-green-600 h-9"
+                    >
+                      SET
+                    </Button> */}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 text-[8px] text-red-900 font-pixel uppercase border-b border-red-900/30 pb-2">
+                    <span>User</span>
+                    <span className="text-center">Squares</span>
+                    <span className="text-right">Wager</span>
+                  </div>
+
+                  <div className="max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
+                    {Object.entries(playerStats).length === 0 ? (
+                      <div className="text-center py-4 text-red-900/40 font-pixel text-[8px] uppercase">
+                        No Selections
+                      </div>
+                    ) : (
+                      Object.entries(playerStats).map(([name, count]) => (
+                        <motion.div
+                          key={name}
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="grid grid-cols-3 text-[10px] font-pixel text-red-500 items-center"
+                        >
+                          <span className="truncate pr-1">{name}</span>
+                          <span className="text-center">{count}</span>
+                          <span className="text-right flex items-center justify-end gap-1">
+                            <Coins size={10} className="text-yellow-600" />
+                            {count * multiplier}
+                          </span>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t-2 border-red-900 flex justify-between items-center">
+                  <span className="text-[8px] text-red-900 font-pixel uppercase">
+                    Total Pool
+                  </span>
+                  <span className="text-sm text-red-600 font-pixel flex items-center gap-1">
+                    <Coins size={14} className="text-yellow-600" />
+                    {Object.values(playerStats).reduce((a, b) => a + b, 0) *
+                      multiplier}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
         </div>
       </div>
     </div>

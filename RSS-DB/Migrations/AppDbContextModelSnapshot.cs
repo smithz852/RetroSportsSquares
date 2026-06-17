@@ -309,6 +309,9 @@ namespace RSS_DB.Migrations
                     b.Property<Guid>("GameId")
                         .HasColumnType("char(36)");
 
+                    b.Property<bool>("HasHadTurn")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsHost")
                         .HasColumnType("tinyint(1)");
 
@@ -378,6 +381,9 @@ namespace RSS_DB.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("CurrentTurnUserId")
+                        .HasColumnType("longtext");
+
                     b.Property<Guid>("DailySportGameId")
                         .HasColumnType("char(36)");
 
@@ -388,6 +394,9 @@ namespace RSS_DB.Migrations
                     b.Property<string>("GameType")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("IsTurnBased")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LeftNumbers")
                         .IsRequired()
@@ -408,12 +417,21 @@ namespace RSS_DB.Migrations
                     b.Property<bool>("Q3Skipped")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("SelectionPhaseActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("SquareSelectionLimit")
                         .HasColumnType("int");
 
                     b.Property<string>("TopNumbers")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset?>("TurnStartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("TurnTimeoutSeconds")
+                        .HasColumnType("int");
 
                     b.Property<string>("WinnerQ1Id")
                         .HasColumnType("varchar(255)");

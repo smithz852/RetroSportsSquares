@@ -77,7 +77,7 @@ export function usePostSquareSelection(gameId: string) {
   });
 }
 
-export function useGetBoardSquares(gameId: string) {
+export function useGetBoardSquares(gameId: string, refetchInterval?: number | false) {
   return useQuery({
     queryKey: ["boardSquares", gameId],
     queryFn: async (): Promise<BoardSquare[]> => {
@@ -88,6 +88,7 @@ export function useGetBoardSquares(gameId: string) {
       return data;
     },
     enabled: !!gameId,
+    refetchInterval: refetchInterval ?? false,
   });
 }
 

@@ -32,6 +32,8 @@ export function CreateGameDialog() {
   const [dailySportsGameId, setDailySportsGameId] = useState("");
   const [wagerAmount, setWagerAmount] = useState("");
   const [squareSelectionLimit, setSquareSelectionLimit] = useState("");
+  const [isTurnBased, setIsTurnBased] = useState(false);
+  const [turnTimeoutSeconds, setTurnTimeoutSeconds] = useState(60);
   const [isPublic, setIsPublic] = useState(true);
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
@@ -56,6 +58,8 @@ export function CreateGameDialog() {
         dailySportsGameId,
         pricePerSquare: parseInt(wagerAmount) || 0,
         squareSelectionLimit: parseInt(squareSelectionLimit) || 0,
+        isTurnBased,
+        turnTimeoutSeconds,
       },
       {
         onSuccess: (createdGame) => {
@@ -150,6 +154,56 @@ export function CreateGameDialog() {
               className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-700"
             />
           </div>
+          <div className="space-y-2">
+            <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">
+              SELECTION MODE
+            </label>
+            <div className="flex gap-6">
+              <button
+                type="button"
+                onClick={() => setIsTurnBased(false)}
+                className="flex items-center gap-2 group"
+              >
+                <div className={`w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center transition-colors ${!isTurnBased ? "bg-primary" : "bg-black"}`}>
+                  {!isTurnBased && <div className="w-2 h-2 rounded-full bg-black" />}
+                </div>
+                <span className={`font-['Press_Start_2P'] text-xs ${!isTurnBased ? "text-primary" : "text-gray-500"}`}>
+                  OPEN
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsTurnBased(true)}
+                className="flex items-center gap-2 group"
+              >
+                <div className={`w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center transition-colors ${isTurnBased ? "bg-primary" : "bg-black"}`}>
+                  {isTurnBased && <div className="w-2 h-2 rounded-full bg-black" />}
+                </div>
+                <span className={`font-['Press_Start_2P'] text-xs ${isTurnBased ? "text-primary" : "text-gray-500"}`}>
+                  TURN-BASED
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {isTurnBased && (
+            <div className="space-y-2">
+              <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">
+                TURN TIMEOUT
+              </label>
+              <select
+                value={turnTimeoutSeconds}
+                onChange={(e) => setTurnTimeoutSeconds(parseInt(e.target.value))}
+                className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white"
+              >
+                <option value={0}>None</option>
+                <option value={60}>1 min</option>
+                <option value={120}>2 min</option>
+                <option value={180}>3 min</option>
+              </select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-primary font-['Press_Start_2P'] text-xs block mb-2">
               VISIBILITY

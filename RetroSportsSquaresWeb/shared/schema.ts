@@ -8,6 +8,11 @@ export interface SquareGame {
   pricePerSquare: number;
   squareSelectionLimit: number;
   hostUserId: string | null;
+  isTurnBased: boolean;
+  selectionPhaseActive: boolean;
+  currentTurnUserId: string | null;
+  turnTimeoutSeconds: number;
+  turnStartedAt: string | null;
   playerCount: number;
   currentPlayerCount: number;
   createdAt: string;
@@ -58,6 +63,8 @@ export interface CreateSquareGameRequest {
   isOpen: boolean;
   pricePerSquare: number | null;
   squareSelectionLimit: number | null;
+  isTurnBased: boolean;
+  turnTimeoutSeconds: number;
   dailySportsGameId: string;
 }
 
@@ -126,4 +133,19 @@ export interface SignupRequest {
   name: string;
   email: string;
   password: string;
+}
+
+export interface TurnPlayer {
+  userId: string;
+  displayName: string;
+  turnOrder: number;
+  hasHadTurn: boolean;
+}
+
+export interface TurnStatus {
+  selectionPhaseActive: boolean;
+  currentTurnUserId: string | null;
+  turnStartedAt: string | null;
+  turnTimeoutSeconds: number;
+  players: TurnPlayer[];
 }

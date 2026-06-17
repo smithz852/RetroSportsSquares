@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
-import { type SquareGame, type CreateSquareGameRequest, type AvailableGameOptions, SquareGameScoreData } from "@shared/schema";
+import { type SquareGame, type CreateSquareGameRequest, type AvailableGameOptions, SquareGameScoreData, TurnStatus } from "@shared/schema";
 
 export function useGames() {
   return useQuery({
@@ -83,6 +83,59 @@ export function useStartGame(gameId: string) {
       if (!res.ok) throw new Error('Failed to start game');
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['OutsideSquares', gameId] }),
+  });
+}
+
+export function useGetTurnStatus(gameId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['turnStatus', gameId],
+    queryFn: async (): Promise<TurnStatus> => {
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.turnStatus(gameId)}`);
+      if (!res.ok) throw new Error('Failed to fetch turn status');
+      return res.json();
+    },
+    enabled: !!gameId && enabled,
+    refetchInterval: enabled ? 4000 : false,
+  });
+}
+
+export function useBeginSelections(gameId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<TurnStatus> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Not authenticated');
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.beginSelections(gameId)}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Failed to begin selections');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['turnStatus', gameId] });
+      queryClient.invalidateQueries({ queryKey: ['game', gameId] });
+    },
+  });
+}
+
+export function useSkipPlayer(gameId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<TurnStatus> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Not authenticated');
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.skipPlayer(gameId)}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to skip player');
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['turnStatus', gameId] }),
   });
 }
 

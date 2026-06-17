@@ -67,7 +67,7 @@ namespace RSS.Controllers
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.DailySportsGameId);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();
@@ -161,40 +161,91 @@ namespace RSS.Controllers
             }
         }
 
+        [HttpPost("begin-selections/{gameId}")]
+        [Authorize]
+        public async Task<IActionResult> BeginSelections(string gameId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
+            if (!isHost) return Forbid();
+
+            try
+            {
+                await _gamePlayerServices.BeginSelections(gameId);
+                var status = await _gamePlayerServices.GetTurnStatus(gameId);
+                return Ok(status);
+            }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
+            catch (ArgumentException ex) { return NotFound(ex.Message); }
+        }
+
+        [HttpPost("skip-player/{gameId}")]
+        [Authorize]
+        public async Task<IActionResult> SkipPlayer(string gameId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
+            if (!isHost) return Forbid();
+
+            await _gamePlayerServices.AdvanceTurn(gameId);
+            var status = await _gamePlayerServices.GetTurnStatus(gameId);
+            return Ok(status);
+        }
+
+        [HttpGet("turn-status/{gameId}")]
+        public async Task<IActionResult> GetTurnStatus(string gameId)
+        {
+            try
+            {
+                var status = await _gamePlayerServices.GetTurnStatus(gameId);
+                return Ok(status);
+            }
+            catch (ArgumentException ex) { return NotFound(ex.Message); }
+        }
+
         [HttpPost("SquareSelections/{gameId}")]
         [Authorize]
         public async Task<IActionResult> SelectSquare(string gameId, [FromBody] SquareSelectionDTO squareSelections)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
             try
             {
+                var game = await _availableGamesServices.GetGameById(gameId);
+                if (game == null) return NotFound();
+
+                if (game.IsTurnBased && game.SelectionPhaseActive && game.CurrentTurnUserId != userId)
+                    return BadRequest(new { message = "It is not your turn." });
+
                 var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
                 if (unavailableSquares.Any())
-                {
                     return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
-                }
+
                 var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
                 if (!withinSquareLimit)
                 {
                     var squareLimit = await _squareServices.GetSquareSelectionLimit(gameId);
                     return BadRequest(new { message = $"You have exceeded the square selection limit for this game (Limit: {squareLimit})" });
                 }
+
                 var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
-                var squareCount = selectedSquares.Count;
                 if (selectedSquares == null || !selectedSquares.Any())
                     return BadRequest("Failed to save square selection data.");
-                await _gamePlayerServices.AreGamePlayerSelectionsRecorded(squareCount, userId, gameId);
+
+                await _gamePlayerServices.AreGamePlayerSelectionsRecorded(selectedSquares.Count, userId, gameId);
+
+                if (game.IsTurnBased && game.SelectionPhaseActive)
+                    await _gamePlayerServices.AdvanceTurn(gameId);
+
                 var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);
             }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
         }
 
 
