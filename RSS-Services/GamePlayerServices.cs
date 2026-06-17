@@ -91,8 +91,9 @@ namespace RSS_Services
                 throw new Exception($"Square game {gameId} not found.");
             }
             var pricePerSquare = squareGame.PricePerSquare;
+            var squaresPreviouslyChosen = gamePlayer.NumbersOfSquareSelected;
 
-            gamePlayer.NumbersOfSquareSelected = squareSelections;
+            gamePlayer.NumbersOfSquareSelected = squareSelections + squaresPreviouslyChosen;
             if (pricePerSquare > 0)
             {
                 gamePlayer.TotalWagerAmount = squareSelections * pricePerSquare;
