@@ -36,7 +36,7 @@ export default function GameBoard() {
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
-  const { mutate: joinGame } = useJoinGame(id);
+  const { mutate: joinGame } = useJoinGame();
   const { mutate: startGame } = useStartGame(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
 
@@ -102,7 +102,7 @@ useEffect(() => {
   // Register the current user as a game player when they open the board
   useEffect(() => {
     if (user && id) {
-      joinGame(undefined, {
+      joinGame(id, {
         onSuccess: (data) => setIsHost(data.isHost),
       });
     }
