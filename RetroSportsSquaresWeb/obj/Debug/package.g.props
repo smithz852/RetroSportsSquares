@@ -12,6 +12,7 @@
     <PackageJsonScriptsDbPush Condition="$(PackageJsonScriptsDbPush) == ''">drizzle-kit push</PackageJsonScriptsDbPush>
     <PackageJsonDependenciesHookformResolvers Condition="$(PackageJsonDependenciesHookformResolvers) == ''">^3.10.0</PackageJsonDependenciesHookformResolvers>
     <PackageJsonDependenciesJridgewellTraceMapping Condition="$(PackageJsonDependenciesJridgewellTraceMapping) == ''">^0.3.25</PackageJsonDependenciesJridgewellTraceMapping>
+    <PackageJsonDependenciesMicrosoftSignalr Condition="$(PackageJsonDependenciesMicrosoftSignalr) == ''">^10.0.0</PackageJsonDependenciesMicrosoftSignalr>
     <PackageJsonDependenciesRadixUiReactAccordion Condition="$(PackageJsonDependenciesRadixUiReactAccordion) == ''">^1.2.4</PackageJsonDependenciesRadixUiReactAccordion>
     <PackageJsonDependenciesRadixUiReactAlertDialog Condition="$(PackageJsonDependenciesRadixUiReactAlertDialog) == ''">^1.1.7</PackageJsonDependenciesRadixUiReactAlertDialog>
     <PackageJsonDependenciesRadixUiReactAspectRatio Condition="$(PackageJsonDependenciesRadixUiReactAspectRatio) == ''">^1.1.3</PackageJsonDependenciesRadixUiReactAspectRatio>

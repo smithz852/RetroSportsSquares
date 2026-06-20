@@ -14,10 +14,13 @@ namespace RSS_Services
     {
         private AppDbContext _appDbContext;
         private readonly SquareServices _squareServices;
-        public GamePlayerServices(AppDbContext appDbContext, SquareServices squareServices) 
-        { 
-           _appDbContext = appDbContext;
+        private readonly IGameHubNotifier _hubNotifier;
+
+        public GamePlayerServices(AppDbContext appDbContext, SquareServices squareServices, IGameHubNotifier hubNotifier)
+        {
+            _appDbContext = appDbContext;
             _squareServices = squareServices;
+            _hubNotifier = hubNotifier;
         }
 
         public GamePlayer CreatePlayerHostedGame(string userId, Guid gameId)
@@ -61,6 +64,7 @@ namespace RSS_Services
 
             _appDbContext.GamePlayers.Add(gamePlayer);
             await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifyPlayerJoined(gameId);
             return gamePlayer;
         }
 
@@ -100,6 +104,7 @@ namespace RSS_Services
             game.TurnStartedAt = DateTimeOffset.UtcNow;
 
             await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifySelectionsStarted(gameId);
         }
 
         public async Task AdvanceTurn(string gameId)
@@ -131,6 +136,7 @@ namespace RSS_Services
             }
 
             await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifyTurnAdvanced(gameId);
         }
 
         public async Task<TurnStatusDTO> GetTurnStatus(string gameId)

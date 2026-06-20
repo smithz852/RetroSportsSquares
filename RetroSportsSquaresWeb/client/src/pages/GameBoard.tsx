@@ -12,6 +12,7 @@ import { GetGameScoreData, getSquareGameById, useStartGame, useDeleteGame, useGe
 import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
+import { useGameHub } from "@/hooks/use-game-hub";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -34,7 +35,7 @@ export default function GameBoard() {
     Array(10).fill(null),
   );
   const [selections, setSelections] = useState<Record<string, string>>({}); // { [squareGuid]: playerName }
-  console.log(selections);
+  // console.log(selections);
   
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
@@ -45,6 +46,8 @@ export default function GameBoard() {
   const { mutate: beginSelections, isPending: isBeginPending } = useBeginSelections(id);
   const { mutate: skipPlayer, isPending: isSkipPending } = useSkipPlayer(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
+
+  useGameHub(id);
 
   const isTurnBased = game?.isTurnBased ?? false;
   const { data: turnStatus } = useGetTurnStatus(id, isTurnBased && !gameStarted);
