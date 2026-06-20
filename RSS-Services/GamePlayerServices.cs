@@ -165,6 +165,7 @@ namespace RSS_Services
                     DisplayName = p.User?.DisplayName ?? "Unknown",
                     TurnOrder = p.TurnOrder,
                     HasHadTurn = p.HasHadTurn,
+                    IsHost = p.IsHost,
                 }).ToList()
             };
         }

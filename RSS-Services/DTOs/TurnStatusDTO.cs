@@ -15,5 +15,6 @@ namespace RSS_Services.DTOs
         public string DisplayName { get; set; }
         public int TurnOrder { get; set; }
         public bool HasHadTurn { get; set; }
+        public bool IsHost { get; set; }
     }
 }

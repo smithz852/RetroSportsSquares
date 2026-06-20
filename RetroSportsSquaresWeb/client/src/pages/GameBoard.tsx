@@ -50,7 +50,7 @@ export default function GameBoard() {
   useGameHub(id);
 
   const isTurnBased = game?.isTurnBased ?? false;
-  const { data: turnStatus } = useGetTurnStatus(id, isTurnBased && !gameStarted);
+  const { data: turnStatus } = useGetTurnStatus(id, !gameStarted);
   const selectionPhaseActive = turnStatus?.selectionPhaseActive ?? game?.selectionPhaseActive ?? false;
 
   const isMyTurn = isTurnBased
@@ -527,8 +527,8 @@ useEffect(() => {
         {/* Panels row — sits below the board */}
         <div className="flex flex-wrap gap-8 w-full justify-center">
 
-          {/* Turn Order Panel */}
-          {isTurnBased && !gameStarted && turnStatus && (
+          {/* Players / Turn Order Panel */}
+          {!gameStarted && turnStatus && (
             <div className="flex-1 min-w-[280px] max-w-md">
               <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
                 <CardHeader className="border-b-2 border-red-900 p-4">
@@ -537,11 +537,11 @@ useEffect(() => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-2">
-                  {!selectionPhaseActive ? (
+                  {turnStatus.players.length === 0 ? (
                     <p className="text-red-900/60 font-pixel text-[8px] text-center uppercase pt-2">
-                      Waiting for host to begin selections...
+                      Waiting for players to join...
                     </p>
-                  ) : (
+                  ) : selectionPhaseActive ? (
                     turnStatus.players.map((p) => {
                       const isCurrent = p.userId === turnStatus.currentTurnUserId;
                       return (
@@ -560,6 +560,7 @@ useEffect(() => {
                           <span className="font-pixel text-[8px] text-red-900/60 w-4">{p.turnOrder}</span>
                           <span className={`font-pixel text-[10px] flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
                             {p.displayName}
+                            {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
                             {p.hasHadTurn && " ✓"}
                           </span>
                           {isCurrent && countdown !== null && countdown > 0 && (
@@ -568,6 +569,30 @@ useEffect(() => {
                         </motion.div>
                       );
                     })
+                  ) : (
+                    <>
+                      {turnStatus.players.map((p) => (
+                        <div
+                          key={p.userId}
+                          className={`flex items-center gap-3 p-2 border ${
+                            p.hasHadTurn ? "border-red-900/20 opacity-40" : "border-red-900/40"
+                          }`}
+                        >
+                          <span className={`font-pixel text-[10px] flex-1 truncate ${p.hasHadTurn ? "text-red-700" : "text-red-500"}`}>
+                            {p.displayName}
+                            {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
+                            {p.hasHadTurn && " ✓"}
+                          </span>
+                        </div>
+                      ))}
+                      {isTurnBased && (
+                        <p className="text-red-900/40 font-pixel text-[8px] text-center uppercase pt-2">
+                          {turnStatus.players.every(p => p.hasHadTurn)
+                            ? "All players have selected"
+                            : "Waiting for host to begin selections..."}
+                        </p>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
