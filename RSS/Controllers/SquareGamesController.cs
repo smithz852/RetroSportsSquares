@@ -222,10 +222,6 @@ namespace RSS.Controllers
                 if (game.IsTurnBased && game.SelectionPhaseActive && game.CurrentTurnUserId != userId)
                     return BadRequest(new { message = "It is not your turn." });
 
-                var unavailableSquares = _squareServices.CheckIfSquaresAreSelected(gameId, squareSelections.Selections);
-                if (unavailableSquares.Any())
-                    return BadRequest(new { message = $"Some squares aren't available, please choose {unavailableSquares.Count} more squares.", unavailableSquares });
-
                 var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
                 if (!withinSquareLimit)
                 {
@@ -233,11 +229,11 @@ namespace RSS.Controllers
                     return BadRequest(new { message = $"You have exceeded the square selection limit for this game (Limit: {squareLimit})" });
                 }
 
+
+
                 var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
                 if (selectedSquares == null || !selectedSquares.Any())
                     return BadRequest("Failed to save square selection data.");
-
-                await _gamePlayerServices.AreGamePlayerSelectionsRecorded(selectedSquares.Count, userId, gameId);
 
                 if (game.IsTurnBased && game.SelectionPhaseActive)
                     await _gamePlayerServices.AdvanceTurn(gameId);
@@ -245,8 +241,11 @@ namespace RSS.Controllers
                 var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);
             }
-            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
-        }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+          }
 
 
         [HttpGet("GetGameboard/{gameId}")]

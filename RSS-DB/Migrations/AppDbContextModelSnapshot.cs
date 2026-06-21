@@ -315,12 +315,6 @@ namespace RSS_DB.Migrations
                     b.Property<bool>("IsHost")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("NumbersOfSquareSelected")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalWagerAmount")
-                        .HasColumnType("decimal(65,30)");
-
                     b.Property<int>("TurnOrder")
                         .HasColumnType("int");
 

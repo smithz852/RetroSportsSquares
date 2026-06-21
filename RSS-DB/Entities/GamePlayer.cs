@@ -18,9 +18,7 @@ namespace RSS_DB.Entities
         public ApplicationUser User { get; set; }
         public int TurnOrder {  get; set; }
         public bool IsHost {  get; set; } = false;
-        public int NumbersOfSquareSelected { get; set; } = 0;
         public bool HasHadTurn { get; set; } = false;
-        public decimal TotalWagerAmount { get; set; } = 0;
         public ICollection<GameSquares> GamePlayerSquares { get; set; } = new List<GameSquares>();
     }
 }

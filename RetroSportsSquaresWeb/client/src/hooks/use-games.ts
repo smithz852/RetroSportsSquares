@@ -95,7 +95,7 @@ export function useGetTurnStatus(gameId: string, enabled: boolean) {
       return res.json();
     },
     enabled: !!gameId && enabled,
-    refetchInterval: enabled ? 4000 : false,
+    refetchInterval: enabled ? 30000 : false,
   });
 }
 

@@ -25,7 +25,7 @@ export default function GameBoard() {
   const [gameStarted, setGameStarted] = useState(false);
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
-  const { data: boardSquares } = useGetBoardSquares(id, !gameStarted ? 4000 : false);
+  const { data: boardSquares } = useGetBoardSquares(id);
   const { data: outsideSquares } = useGetOutsideSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
@@ -67,8 +67,11 @@ export default function GameBoard() {
 
   const hasSubmittedSelections = useMemo(() => {
     if (!boardSquares || !user) return false;
-    return boardSquares.some(s => s.displayName === user.displayName);
-  }, [boardSquares, user]);
+    const mySquareCount = boardSquares.filter(s => s.displayName === user.displayName).length;
+    const limit = game?.squareSelectionLimit;
+    if (limit && limit > 0) return mySquareCount >= limit;
+    return mySquareCount > 0;
+  }, [boardSquares, user, game?.squareSelectionLimit]);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";

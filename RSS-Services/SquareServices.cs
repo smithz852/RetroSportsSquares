@@ -30,7 +30,9 @@ namespace RSS_Services
 
            var gamePlayer = _appDbContext.GamePlayers.FirstOrDefault(g => g.GameId == gameIdGuid && g.ApplicationUserId == userId);
 
-            foreach (var square in squareSelections)
+            var availableSquares = CheckIfSquaresAreSelected(gameId, squareSelections);
+            
+            foreach (var square in availableSquares)
             {
                 var squareId = Guid.Parse(square);
                 var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
@@ -39,10 +41,15 @@ namespace RSS_Services
                 gameSquares.Add(selectedSquare);
             }
             var savedSquares = await _appDbContext.SaveChangesAsync();
+
             if (savedSquares <= 0)
             {
                 return null;
             }
+
+            if (availableSquares.Count < squareSelections.Count)
+                throw new InvalidOperationException($"Some squares aren't available, please choose {squareSelections.Count - availableSquares.Count} more squares.");
+
             return gameSquares;
         }
 
@@ -71,7 +78,7 @@ namespace RSS_Services
         public List<string> CheckIfSquaresAreSelected(string gameId, List<string> squareSelections)
         {
             var gameIdGuid = Guid.Parse(gameId);
-            var unavailableSquares = new List<string>();
+            var availableSquares = new List<string>();
 
             foreach (var square in squareSelections)
             {
@@ -80,12 +87,12 @@ namespace RSS_Services
             .Any(gs => gs.Id == squareId &&
                         gs.GamePlayer.GameId == gameIdGuid);
 
-                if (isSquareTaken)
+                if (!isSquareTaken)
                 {
-                    unavailableSquares.Add(square);
+                    availableSquares.Add(square);
                 }
             }  
-            return unavailableSquares;
+            return availableSquares;
         }
 
         public List<GameSquares> GetAllSelectedSquares(string gameId)
