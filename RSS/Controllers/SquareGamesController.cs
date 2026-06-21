@@ -22,8 +22,9 @@ namespace RSS.Controllers
         private readonly SquareServices _squareServices;
         private readonly AppDbContext _appDbContext;
         private readonly GamePlayerServices _gamePlayerServices;
+        private readonly IGameHubNotifier _hubNotifier;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -32,6 +33,7 @@ namespace RSS.Controllers
             _squareServices = squareServices;
             _appDbContext = appDbContext;
             _gamePlayerServices = gamePlayerServices;
+            _hubNotifier = hubNotifier;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -284,6 +286,7 @@ namespace RSS.Controllers
             if (!deleted)
                 return BadRequest("Failed to delete game.");
 
+            await _hubNotifier.NotifyGameDeleted(gameId);
             _sportsGameServices.SetGameNotInUse(dailySportGameId);
             return Ok();
         }

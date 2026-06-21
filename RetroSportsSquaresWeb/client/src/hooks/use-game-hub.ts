@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { API_BASE_URL } from "@shared/routes";
 
 export function useGameHub(gameId: string) {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   useEffect(() => {
@@ -32,6 +34,11 @@ export function useGameHub(gameId: string) {
     // Selection phase kicked off by host
     connection.on("SelectionsStarted", () => {
       queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
+    });
+
+    // Host cancelled the game before it started
+    connection.on("GameDeleted", () => {
+      setLocation("/");
     });
 
     connection
