@@ -84,7 +84,7 @@ export function useGetBoardSquares(gameId: string, refetchInterval?: number | fa
       const res = await fetch(`${API_BASE_URL}${endpoints.selections.getBoard(gameId)}`);
       if (!res.ok) throw new Error("Failed to fetch board squares");
       const data = await res.json();
-      console.log("BoardSquares:", data);
+      // console.log("BoardSquares:", data);
       return data;
     },
     enabled: !!gameId,

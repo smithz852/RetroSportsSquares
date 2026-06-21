@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -48,6 +49,18 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
+    // SignalR sends the token via query string on the WebSocket handshake
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = ctx =>
+        {
+            var token = ctx.Request.Query["access_token"];
+            if (!string.IsNullOrEmpty(token) &&
+                ctx.Request.Path.StartsWithSegments("/hubs"))
+                ctx.Token = token;
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Your existing services
@@ -64,6 +77,7 @@ builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
     client.DefaultRequestHeaders.Add("x-rapidapi-host", "v1.american-football.api-sports.io");
 });
 builder.Services.AddScoped<RSS.Helpers.MapperHelpers>();
+builder.Services.AddScoped<RSS_Services.IGameHubNotifier, RSS.Hubs.GameHubNotifier>();
 
 builder.Services.AddCors(options =>
 {
@@ -71,7 +85,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -96,6 +111,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<RSS.Hubs.GameHub>("/hubs/game");
 
 if (app.Environment.IsDevelopment())
 {

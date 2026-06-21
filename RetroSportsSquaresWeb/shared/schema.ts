@@ -140,6 +140,7 @@ export interface TurnPlayer {
   displayName: string;
   turnOrder: number;
   hasHadTurn: boolean;
+  isHost: boolean;
 }
 
 export interface TurnStatus {

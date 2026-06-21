@@ -12,6 +12,7 @@ import { GetGameScoreData, getSquareGameById, useStartGame, useDeleteGame, useGe
 import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
+import { useGameHub } from "@/hooks/use-game-hub";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -24,7 +25,7 @@ export default function GameBoard() {
   const [gameStarted, setGameStarted] = useState(false);
 
   const { data: game, isLoading: gameLoading, error } = getSquareGameById(id);
-  const { data: boardSquares } = useGetBoardSquares(id, !gameStarted ? 4000 : false);
+  const { data: boardSquares } = useGetBoardSquares(id);
   const { data: outsideSquares } = useGetOutsideSquares(id);
 
   const [topNumbers, setTopNumbers] = useState<(number | null)[]>(
@@ -34,7 +35,7 @@ export default function GameBoard() {
     Array(10).fill(null),
   );
   const [selections, setSelections] = useState<Record<string, string>>({}); // { [squareGuid]: playerName }
-  console.log(selections);
+  // console.log(selections);
   
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
@@ -46,8 +47,10 @@ export default function GameBoard() {
   const { mutate: skipPlayer, isPending: isSkipPending } = useSkipPlayer(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
 
+  useGameHub(id);
+
   const isTurnBased = game?.isTurnBased ?? false;
-  const { data: turnStatus } = useGetTurnStatus(id, isTurnBased && !gameStarted);
+  const { data: turnStatus } = useGetTurnStatus(id, !gameStarted);
   const selectionPhaseActive = turnStatus?.selectionPhaseActive ?? game?.selectionPhaseActive ?? false;
 
   const isMyTurn = isTurnBased
@@ -64,8 +67,11 @@ export default function GameBoard() {
 
   const hasSubmittedSelections = useMemo(() => {
     if (!boardSquares || !user) return false;
-    return boardSquares.some(s => s.displayName === user.displayName);
-  }, [boardSquares, user]);
+    const mySquareCount = boardSquares.filter(s => s.displayName === user.displayName).length;
+    const limit = game?.squareSelectionLimit;
+    if (limit && limit > 0) return mySquareCount >= limit;
+    return mySquareCount > 0;
+  }, [boardSquares, user, game?.squareSelectionLimit]);
 
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
@@ -524,8 +530,8 @@ useEffect(() => {
         {/* Panels row — sits below the board */}
         <div className="flex flex-wrap gap-8 w-full justify-center">
 
-          {/* Turn Order Panel */}
-          {isTurnBased && !gameStarted && turnStatus && (
+          {/* Players / Turn Order Panel */}
+          {!gameStarted && turnStatus && (
             <div className="flex-1 min-w-[280px] max-w-md">
               <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
                 <CardHeader className="border-b-2 border-red-900 p-4">
@@ -534,11 +540,11 @@ useEffect(() => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-2">
-                  {!selectionPhaseActive ? (
+                  {turnStatus.players.length === 0 ? (
                     <p className="text-red-900/60 font-pixel text-[8px] text-center uppercase pt-2">
-                      Waiting for host to begin selections...
+                      Waiting for players to join...
                     </p>
-                  ) : (
+                  ) : selectionPhaseActive ? (
                     turnStatus.players.map((p) => {
                       const isCurrent = p.userId === turnStatus.currentTurnUserId;
                       return (
@@ -557,6 +563,7 @@ useEffect(() => {
                           <span className="font-pixel text-[8px] text-red-900/60 w-4">{p.turnOrder}</span>
                           <span className={`font-pixel text-[10px] flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
                             {p.displayName}
+                            {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
                             {p.hasHadTurn && " ✓"}
                           </span>
                           {isCurrent && countdown !== null && countdown > 0 && (
@@ -565,6 +572,30 @@ useEffect(() => {
                         </motion.div>
                       );
                     })
+                  ) : (
+                    <>
+                      {turnStatus.players.map((p) => (
+                        <div
+                          key={p.userId}
+                          className={`flex items-center gap-3 p-2 border ${
+                            p.hasHadTurn ? "border-red-900/20 opacity-40" : "border-red-900/40"
+                          }`}
+                        >
+                          <span className={`font-pixel text-[10px] flex-1 truncate ${p.hasHadTurn ? "text-red-700" : "text-red-500"}`}>
+                            {p.displayName}
+                            {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
+                            {p.hasHadTurn && " ✓"}
+                          </span>
+                        </div>
+                      ))}
+                      {isTurnBased && (
+                        <p className="text-red-900/40 font-pixel text-[8px] text-center uppercase pt-2">
+                          {turnStatus.players.every(p => p.hasHadTurn)
+                            ? "All players have selected"
+                            : "Waiting for host to begin selections..."}
+                        </p>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>

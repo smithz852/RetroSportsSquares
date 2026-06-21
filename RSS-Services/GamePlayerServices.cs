@@ -14,10 +14,13 @@ namespace RSS_Services
     {
         private AppDbContext _appDbContext;
         private readonly SquareServices _squareServices;
-        public GamePlayerServices(AppDbContext appDbContext, SquareServices squareServices) 
-        { 
-           _appDbContext = appDbContext;
+        private readonly IGameHubNotifier _hubNotifier;
+
+        public GamePlayerServices(AppDbContext appDbContext, SquareServices squareServices, IGameHubNotifier hubNotifier)
+        {
+            _appDbContext = appDbContext;
             _squareServices = squareServices;
+            _hubNotifier = hubNotifier;
         }
 
         public GamePlayer CreatePlayerHostedGame(string userId, Guid gameId)
@@ -61,6 +64,7 @@ namespace RSS_Services
 
             _appDbContext.GamePlayers.Add(gamePlayer);
             await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifyPlayerJoined(gameId);
             return gamePlayer;
         }
 
@@ -100,6 +104,7 @@ namespace RSS_Services
             game.TurnStartedAt = DateTimeOffset.UtcNow;
 
             await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifySelectionsStarted(gameId);
         }
 
         public async Task AdvanceTurn(string gameId)
@@ -131,6 +136,7 @@ namespace RSS_Services
             }
 
             await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifyTurnAdvanced(gameId);
         }
 
         public async Task<TurnStatusDTO> GetTurnStatus(string gameId)
@@ -159,38 +165,10 @@ namespace RSS_Services
                     DisplayName = p.User?.DisplayName ?? "Unknown",
                     TurnOrder = p.TurnOrder,
                     HasHadTurn = p.HasHadTurn,
+                    IsHost = p.IsHost,
                 }).ToList()
             };
         }
 
-        public async Task<bool> AreGamePlayerSelectionsRecorded(int squareSelections, string userId, string gameId)
-        {
-            if (!Guid.TryParse(gameId, out var gameGuid))
-                throw new ArgumentException($"Invalid game ID: {gameId}");
-
-            var gamePlayer = await _appDbContext.GamePlayers
-                .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
-            if (gamePlayer == null)
-            {
-                throw new Exception("Game Player not found: " + userId + " for game: " + gameId + "  ");
-            }
-            var squareGame = await _squareServices.GetSquareGameById(gameId);
-            if (squareGame == null)
-            {
-                throw new Exception($"Square game {gameId} not found.");
-            }
-            var pricePerSquare = squareGame.PricePerSquare;
-            var squaresPreviouslyChosen = gamePlayer.NumbersOfSquareSelected;
-
-            gamePlayer.NumbersOfSquareSelected = squareSelections + squaresPreviouslyChosen;
-            if (pricePerSquare > 0)
-            {
-                gamePlayer.TotalWagerAmount = squareSelections * pricePerSquare;
-            }
-            var saved = await _appDbContext.SaveChangesAsync();
-
-            if (saved > 0) return true;
-            return false;
-        }
     }
 }
