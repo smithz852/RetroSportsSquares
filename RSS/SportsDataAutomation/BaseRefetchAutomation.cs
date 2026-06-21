@@ -37,9 +37,12 @@ namespace RSS.SportsDataAutomation
                         var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
                         if (gameData == null) continue;
 
-                        if (gameData.Status is "FT" or "AOT" or "Final/OT" or "Postponed") continue;
-
+                        // Process winners before the terminal-status check so sports like soccer
+                        // that use "FT" as both their final-period trigger and terminal status
+                        // still get their last period resolved.
                         await ProcessQuarterlyWinners(squareServices, gameData, game.Id);
+
+                        if (gameData.Status is "FT" or "AOT" or "Final/OT" or "Postponed") continue;
                     }
                 }
 

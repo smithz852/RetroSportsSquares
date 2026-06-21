@@ -186,42 +186,29 @@ namespace RSS_Services
        
         public async Task<QuarterlyWinnerDTO> DetermineQuarterlyWinner(SportScoreUpdateDTO newScore, Guid gameId)
         {
-            var currentQuarter = GetCurrentGamePeriodIndex(newScore.Status);
-            var completedQuarter = currentQuarter - 1;
-            if (completedQuarter < 1)
-            {
+            var currentPeriod = GetCurrentGamePeriodIndex(newScore.Status, newScore.SportType);
+            var completedPeriod = currentPeriod - 1;
+            if (completedPeriod < 1 || completedPeriod > newScore.HomePeriodScores.Count)
                 return null;
-            }
 
-            var quarterScores = new[]
-            {
-                (Home: newScore.Q1HomeScore, Away: newScore.Q1AwayScore),
-                (Home: newScore.Q2HomeScore, Away: newScore.Q2AwayScore),
-                (Home: newScore.Q3HomeScore, Away: newScore.Q3AwayScore),
-                (Home: newScore.Q4HomeScore, Away: newScore.Q4AwayScore),
-            };
-
-            var homeTotal = quarterScores.Take(completedQuarter).Sum(q => q.Home);
-            var awayTotal = quarterScores.Take(completedQuarter).Sum(q => q.Away);
+            var homeTotal = newScore.HomePeriodScores.Take(completedPeriod).Sum();
+            var awayTotal = newScore.AwayPeriodScores.Take(completedPeriod).Sum();
 
             var winningHomeDigit = homeTotal % 10;
             var winningAwayDigit = awayTotal % 10;
 
             var winningSquare = await _appDbContext.GameSquares
-                //.Include(gs => gs.GamePlayer)
-                //.ThenInclude(gp => gp.User)
                 .FirstOrDefaultAsync(sq =>
                     sq.SquareGamesId == gameId &&
                     sq.HomeDigit == winningHomeDigit &&
                     sq.AwayDigit == winningAwayDigit &&
                     sq.GamePlayerId != null);
 
-            var quarterlyWinner = new QuarterlyWinnerDTO
+            return new QuarterlyWinnerDTO
             {
-                Period = completedQuarter,
+                Period = completedPeriod,
                 UserId = winningSquare?.GamePlayerId
             };
-            return quarterlyWinner;
         }
 
         public async Task SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
@@ -232,69 +219,58 @@ namespace RSS_Services
             var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
             if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
 
-            var periodSetters = new Dictionary<int, Action<SquareGames, string>>
-            {
-                { 1, (g, id) => g.WinnerQ1Id = id },
-                { 2, (g, id) => g.WinnerQ2Id = id },
-                { 3, (g, id) => g.WinnerQ3Id = id },
-                { 4, (g, id) => g.WinnerQ4Id = id },
-            };
+            // Already resolved — skip
+            if (game.PeriodWinners.ContainsKey(winner.Period)) return;
 
-            // Backfill skipped quarters
-            for (int q = 1; q < winner.Period; q++)
+            // Backfill any periods that were skipped (no winning square)
+            for (int p = 1; p < winner.Period; p++)
             {
-                var isNull = q switch
-                {
-                    1 => game.WinnerQ1Id == null && !game.Q1Skipped,
-                    2 => game.WinnerQ2Id == null && !game.Q2Skipped,
-                    3 => game.WinnerQ3Id == null && !game.Q3Skipped,
-                    _ => false
-                };
-
-                if (isNull)
-                {
-                    var backfillSetters = new Dictionary<int, Action<SquareGames>>
-                    {
-                        { 1, g => g.Q1Skipped = true },
-                        { 2, g => g.Q2Skipped = true },
-                        { 3, g => g.Q3Skipped = true },
-                    };
-                    if (backfillSetters.TryGetValue(q, out var backfill))
-                        backfill(game);
-                }
+                if (!game.PeriodWinners.ContainsKey(p))
+                    game.PeriodWinners[p] = null;
             }
 
-            var alreadySet = winner.Period switch
-            {
-                1 => game.WinnerQ1Id != null || game.Q1Skipped,
-                2 => game.WinnerQ2Id != null || game.Q2Skipped,
-                3 => game.WinnerQ3Id != null || game.Q3Skipped,
-                4 => game.WinnerQ4Id != null,
-                _ => true
-            };
+            game.PeriodWinners[winner.Period] = player.ApplicationUserId;
 
-            if (alreadySet) return;
+            if (winner.Period >= game.PeriodCount)
+                game.IsCompleted = true;
 
-            if (periodSetters.TryGetValue(winner.Period, out var setter))
-                setter(game, player.ApplicationUserId);
+            // Notify EF Core the JSON column was mutated
+            _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
 
             var saved = await _appDbContext.SaveChangesAsync();
             if (saved <= 0) throw new InvalidOperationException("Could not save winner");
         }
 
-        private static readonly Dictionary<string, int> PeriodMap = new()
+        private static readonly Dictionary<string, Dictionary<string, int>> SportPeriodMaps = new()
         {
-            { "Q1", 1 }, { "Q2", 2 }, { "HALF", 3 }, { "HT", 3 },
-            { "Q3", 3 }, { "Q4", 4 },
-            { "FINAL", 5 }, { "FT", 5 }, { "OT", 5 }, { "AOT", 5 }
+            ["basketball"] = new()
+            {
+                ["Q1"] = 1, ["Q2"] = 2, ["HALF"] = 3, ["HT"] = 3,
+                ["Q3"] = 3, ["Q4"] = 4,
+                ["FINAL"] = 5, ["FT"] = 5, ["OT"] = 5, ["AOT"] = 5
+            },
+            ["american-football"] = new()
+            {
+                ["Q1"] = 1, ["Q2"] = 2, ["HALF"] = 3, ["HT"] = 3,
+                ["Q3"] = 3, ["Q4"] = 4,
+                ["FINAL"] = 5, ["FT"] = 5, ["OT"] = 5, ["AOT"] = 5
+            },
+            ["soccer"] = new()
+            {
+                ["1H"] = 1, ["HT"] = 2, ["2H"] = 2,
+                ["ET"] = 2, ["BT"] = 2, ["P"] = 2,
+                ["FT"] = 3, ["AET"] = 3, ["PEN"] = 3
+            },
         };
 
-        public static int GetCurrentGamePeriodIndex(string? period)
+        public static int GetCurrentGamePeriodIndex(string? status, string? sportType)
         {
-            if (string.IsNullOrEmpty(period)) return 0;
-            var upper = period.ToUpper();
-            foreach (var key in PeriodMap.Keys)
-                if (upper.Contains(key)) return PeriodMap[key];
+            if (string.IsNullOrEmpty(status)) return 0;
+            var mapKey = sportType?.ToLower() ?? "basketball";
+            if (!SportPeriodMaps.TryGetValue(mapKey, out var periodMap)) return 0;
+            var upper = status.ToUpper();
+            foreach (var key in periodMap.Keys)
+                if (upper.Contains(key)) return periodMap[key];
             return 0;
         }
 

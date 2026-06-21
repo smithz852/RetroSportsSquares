@@ -20,20 +20,21 @@ namespace RSS_Services
         private readonly HttpClient _httpClient;
         private readonly BasketballMapperHelper _nbaDataPullHelper;
         private readonly FootballMapperHelper _footballMapperHelper;
+        private readonly SoccerMapperHelper _soccerMapperHelper;
         private readonly GeneralServices _generalServices;
         private readonly TimeHelpers _timeHelpers;
         private readonly AvailableGamesServices _availableGamesServices;
 
-        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, BasketballMapperHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
+        public SportsGameServices(AppDbContext appDbContext, HttpClient httpClient, BasketballMapperHelper nbaDataPullHelper, FootballMapperHelper footballMapperHelper, SoccerMapperHelper soccerMapperHelper, GeneralServices generalServices, TimeHelpers timeHelpers, AvailableGamesServices availableGamesServices)
         {
             _appDbContext = appDbContext;
             _httpClient = httpClient;
             _nbaDataPullHelper = nbaDataPullHelper;
             _footballMapperHelper = footballMapperHelper;
+            _soccerMapperHelper = soccerMapperHelper;
             _generalServices = generalServices;
             _timeHelpers = timeHelpers;
             _availableGamesServices = availableGamesServices;
-
         }
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
@@ -69,6 +70,12 @@ namespace RSS_Services
                 if (sportType == "basketball")
                 {
                     _nbaDataPullHelper.GetNbaGameData(responseArray, gamesList, sportType);
+                    return gamesList;
+                }
+
+                if (sportType == "soccer")
+                {
+                    _soccerMapperHelper.GetSoccerGameData(responseArray, gamesList, sportType);
                     return gamesList;
                 }
 
@@ -157,16 +164,8 @@ namespace RSS_Services
                 sportsGame.Status = status;
                 sportsGame.CurrentHomeScore = data.CurrentHomeScore;
                 sportsGame.CurrentAwayScore = data.CurrentAwayScore;
-                sportsGame.Q1HomeScore = data.Q1HomeScore;
-                sportsGame.Q1AwayScore = data.Q1AwayScore;
-                sportsGame.Q2HomeScore = data.Q2HomeScore;
-                sportsGame.Q2AwayScore = data.Q2AwayScore;
-                sportsGame.Q3HomeScore = data.Q3HomeScore;
-                sportsGame.Q3AwayScore = data.Q3AwayScore;
-                sportsGame.Q4HomeScore = data.Q4HomeScore;
-                sportsGame.Q4AwayScore = data.Q4AwayScore;
-                sportsGame.OTHomeScore = data.OTHomeScore;
-                sportsGame.OTAwayScore = data.OTAwayScore;
+                sportsGame.HomePeriodScores = data.HomePeriodScores;
+                sportsGame.AwayPeriodScores = data.AwayPeriodScores;
             }
 
             await _appDbContext.SaveChangesAsync();
@@ -257,6 +256,30 @@ namespace RSS_Services
                 var game = new List<SportScoreUpdateDTO>();
 
                 return game; //need to change later for actual error handling
+            }
+        }
+
+        public async Task<List<SportScoreUpdateDTO>> GetSoccerGameData(string gameUrl, string sportType)
+        {
+            try
+            {
+                var gamesList = new List<SportScoreUpdateDTO>();
+                var response = await _httpClient.GetAsync(gameUrl);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(json);
+                var responseArray = document.RootElement.GetProperty("response");
+
+                foreach (var sportsGame in responseArray.EnumerateArray())
+                {
+                    var game = _soccerMapperHelper.MapSoccerScoreData(sportsGame, sportType);
+                    gamesList.Add(game);
+                }
+                return gamesList;
+            }
+            catch (HttpRequestException)
+            {
+                return new List<SportScoreUpdateDTO>();
             }
         }
 

@@ -81,22 +81,16 @@ export default function GameBoard() {
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
   const [tempMultiplier, setTempMultiplier] = useState(0);
-  const [quarterWinners, setQuarterWinners] = useState<Record<number, string | null>>({});
+  const [periodWinners, setPeriodWinners] = useState<Record<number, string | null>>({});
   const [currentLeader, setCurrentLeader] = useState<string | null>(null);
   const [winningRow, setWinningRow] = useState<number | null>(null);
   const [winningCol, setWinningCol] = useState<number | null>(null);
 
-const currentQuarter = getCurrentGamePeriodIndex(scoreData?.status);
+const currentPeriod = getCurrentGamePeriodIndex(scoreData?.status, scoreData?.sportType);
 
-// // Use currentQuarter to trigger winner calculations
 useEffect(() => {
-  if (scoreData) {
-    setQuarterWinners({
-      1: scoreData.winnerQ1 ?? null,
-      2: scoreData.winnerQ2 ?? null,
-      3: scoreData.winnerQ3 ?? null,
-      4: scoreData.winnerQ4 ?? null,
-    });
+  if (scoreData?.periodWinners) {
+    setPeriodWinners(scoreData.periodWinners);
   }
 }, [scoreData]);
 
@@ -388,9 +382,9 @@ useEffect(() => {
         gameStartTime={game?.startTime}
         scoreData={scoreData}
         isLoading={isLoading}
-        currentQuarter={currentQuarter}
+        currentPeriod={currentPeriod}
         currentLeader={currentLeader}
-        quarterWinners={quarterWinners}
+        periodWinners={periodWinners}
       />
 
       <div className="flex flex-col items-center gap-8 w-full">

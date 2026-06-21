@@ -129,14 +129,14 @@ namespace RSS.Controllers
         }
 
         [HttpGet("GetSquareGameScoreData/{id}")]
-        public IActionResult GetGameScoreData(string id)
+        public async Task<IActionResult> GetGameScoreData(string id)
         {
             var scoreData = _availableGamesServices.GetAllScoreAndWinnerDataByGameId(id);
             if (scoreData == null)
-            {
                 return NotFound();
-            }
-            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData);
+
+            var winnerNames = await _availableGamesServices.GetPeriodWinnerDisplayNames(scoreData.PeriodWinners);
+            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames);
             return Ok(gameDto);
         }
 

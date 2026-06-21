@@ -28,6 +28,13 @@ namespace RSS_Services
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = DateTimeOffset.UtcNow;
+            var dailySportGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
+
+            var periodCount = dailySportGame?.SportType switch
+            {
+                "soccer" => 2,
+                _ => 4
+            };
 
             var game = new SquareGames
             {
@@ -40,7 +47,8 @@ namespace RSS_Services
                 SquareSelectionLimit = squareSelectionLimit,
                 IsTurnBased = isTurnBased,
                 TurnTimeoutSeconds = turnTimeoutSeconds,
-                DailySportGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid)
+                DailySportGame = dailySportGame,
+                PeriodCount = periodCount,
             };
 
             return game;
@@ -81,11 +89,27 @@ namespace RSS_Services
             var gameId = Guid.Parse(id);
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
-                .Include(g => g.WinnerQ1)
-                .Include(g => g.WinnerQ2)
-                .Include(g => g.WinnerQ3)
-                .Include(g => g.WinnerQ4)
                 .FirstOrDefault(g => g.Id == gameId);
+        }
+
+        public async Task<Dictionary<int, string?>> GetPeriodWinnerDisplayNames(Dictionary<int, string?> periodWinners)
+        {
+            if (periodWinners.Count == 0) return new();
+
+            var userIds = periodWinners.Values
+                .Where(v => v != null)
+                .Cast<string>()
+                .Distinct()
+                .ToList();
+
+            var users = await _appDbContext.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.DisplayName);
+
+            return periodWinners.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value != null ? users.GetValueOrDefault(kvp.Value) : null
+            );
         }
 
     }

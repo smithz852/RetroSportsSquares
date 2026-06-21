@@ -67,6 +67,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<RSS_Services.AvailableGamesServices>();
 builder.Services.AddScoped<BasketballMapperHelper>();
 builder.Services.AddScoped<FootballMapperHelper>();
+builder.Services.AddScoped<SoccerMapperHelper>();
 builder.Services.AddScoped<GeneralServices>();
 builder.Services.AddScoped<TimeHelpers>();
 builder.Services.AddScoped<RSS_Services.SquareServices>();
@@ -96,8 +97,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHostedService<NflAutomation>();
 builder.Services.AddHostedService<NbaAutomation>();
+builder.Services.AddHostedService<SoccerAutomation>();
 builder.Services.AddHostedService<NflRefetchAutomation>();
 builder.Services.AddHostedService<BasketballRefetchAutomation>();
+builder.Services.AddHostedService<SoccerRefetchAutomation>();
 
 var app = builder.Build();
 

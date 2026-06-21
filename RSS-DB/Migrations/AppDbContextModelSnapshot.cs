@@ -226,6 +226,10 @@ namespace RSS_DB.Migrations
                     b.Property<int>("ApiGameId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AwayPeriodScores")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("AwayTeam")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -239,6 +243,10 @@ namespace RSS_DB.Migrations
                     b.Property<DateTimeOffset>("GameStartTime")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("HomePeriodScores")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("HomeTeam")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -251,36 +259,6 @@ namespace RSS_DB.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<int>("LeagueId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OTAwayScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OTHomeScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q1AwayScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q1HomeScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q2AwayScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q2HomeScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q3AwayScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q3HomeScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q4AwayScore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Q4HomeScore")
                         .HasColumnType("int");
 
                     b.Property<string>("SportType")
@@ -389,10 +367,20 @@ namespace RSS_DB.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsTurnBased")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LeftNumbers")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("PeriodCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PeriodWinners")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -401,15 +389,6 @@ namespace RSS_DB.Migrations
 
                     b.Property<int>("PricePerSquare")
                         .HasColumnType("int");
-
-                    b.Property<bool>("Q1Skipped")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("Q2Skipped")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("Q3Skipped")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("SelectionPhaseActive")
                         .HasColumnType("tinyint(1)");
@@ -427,32 +406,12 @@ namespace RSS_DB.Migrations
                     b.Property<int>("TurnTimeoutSeconds")
                         .HasColumnType("int");
 
-                    b.Property<string>("WinnerQ1Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("WinnerQ2Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("WinnerQ3Id")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("WinnerQ4Id")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<bool>("isOpen")
                         .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DailySportGameId");
-
-                    b.HasIndex("WinnerQ1Id");
-
-                    b.HasIndex("WinnerQ2Id");
-
-                    b.HasIndex("WinnerQ3Id");
-
-                    b.HasIndex("WinnerQ4Id");
 
                     b.ToTable("SquareGames");
                 });
@@ -552,31 +511,7 @@ namespace RSS_DB.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ1")
-                        .WithMany()
-                        .HasForeignKey("WinnerQ1Id");
-
-                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ2")
-                        .WithMany()
-                        .HasForeignKey("WinnerQ2Id");
-
-                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ3")
-                        .WithMany()
-                        .HasForeignKey("WinnerQ3Id");
-
-                    b.HasOne("RSS_DB.Entities.ApplicationUser", "WinnerQ4")
-                        .WithMany()
-                        .HasForeignKey("WinnerQ4Id");
-
                     b.Navigation("DailySportGame");
-
-                    b.Navigation("WinnerQ1");
-
-                    b.Navigation("WinnerQ2");
-
-                    b.Navigation("WinnerQ3");
-
-                    b.Navigation("WinnerQ4");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.ApplicationUser", b =>
