@@ -20,4 +20,7 @@ public class GameHubNotifier : IGameHubNotifier
 
     public Task NotifySelectionsStarted(string gameId) =>
         _hubContext.Clients.Group($"game-{gameId}").SendAsync("SelectionsStarted");
+
+    public Task NotifyGameDeleted(string gameId) =>
+        _hubContext.Clients.Group($"game-{gameId}").SendAsync("GameDeleted");
 }
