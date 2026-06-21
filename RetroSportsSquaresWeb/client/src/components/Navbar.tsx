@@ -40,6 +40,11 @@ export function Navbar() {
                     ARENA
                   </RetroButton>
                 </Link>
+                <Link href="/player-dashboard">
+                  <RetroButton variant="outline" size="sm">
+                    PROFILE
+                  </RetroButton>
+                </Link>
                 <RetroButton 
                   variant="outline" 
                   size="sm" 

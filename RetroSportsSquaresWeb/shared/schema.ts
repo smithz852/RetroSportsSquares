@@ -150,3 +150,41 @@ export interface TurnStatus {
   turnTimeoutSeconds: number;
   players: TurnPlayer[];
 }
+
+export interface PlayerStats {
+  periodsWon: number;
+  totalWagered: number;
+  wagersWon: number;
+  winRate: number;
+  totalSquaresClaimed: number;
+}
+
+export interface CurrentGameSummary {
+  gameId: string;
+  gameName: string;
+  gameType: string;
+  pricePerSquare: number;
+  squaresClaimed: number;
+  isHost: boolean;
+  isOpen: boolean;
+  selectionPhaseActive: boolean;
+}
+
+export interface PastGameSummary {
+  gameId: string;
+  gameName: string;
+  gameType: string;
+  pricePerSquare: number;
+  squaresClaimed: number;
+  periodsWon: number;
+  totalWagered: number;
+  totalWon: number;
+  createdAt: string;
+}
+
+export interface PaginatedPastGames {
+  games: PastGameSummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
