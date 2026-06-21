@@ -24,6 +24,11 @@ export const endpoints = {
     getBoard: (gameId: string) => `/SquareGames/GetGameboard/${gameId}`,
     // getWinners: (gameId: string) => `/SquareGames/GetQuarterWinners/${gameId}`
   },
+  dashboard: {
+    stats: '/PlayerDashboard/stats',
+    currentGames: '/PlayerDashboard/current-games',
+    pastGames: (page: number, pageSize: number) => `/PlayerDashboard/past-games?page=${page}&pageSize=${pageSize}`,
+  },
   auth: {
     login: '/Auth/login',
     logout: '/Auth/logout',
