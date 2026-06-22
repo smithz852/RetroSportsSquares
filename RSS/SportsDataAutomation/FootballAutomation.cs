@@ -3,20 +3,21 @@ using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
-    public class SoccerAutomation : BaseSportsAutomation
+    public class FootballAutomation : BaseSportsAutomation
     {
-        protected override string SportName => "Soccer";
+        protected override string SportName => "Football";
         protected override int LoadHourPst => 1;
 
-        private const string SportsType = "soccer";
+        private const string SportsType = "american-football";
 
-        // TODO: Replace with the correct soccer API base URL from the API docs
-        private const string ApiBaseUrl = "https://v3.football.api-sports.io";
+        // TODO: Confirm the correct base URL for a generic american-football data pull
+        // The current URL targets api-sports.io — swap if you move to a different provider
+        private const string ApiBaseUrl = "https://v1.american-football.api-sports.io";
 
-        // Add league IDs here to expand coverage (e.g. MLS, Champions League)
-        private static readonly int[] LeagueIds = { 1 };
+        // Add league IDs here to expand coverage (e.g. NCAA)
+        private static readonly int[] LeagueIds = { 1 }; // 1 = NFL
 
-        public SoccerAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
+        public FootballAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         protected override async Task<bool> HasTodaysDataBeenLoaded()
         {
@@ -32,8 +33,9 @@ namespace RSS.SportsDataAutomation
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
             var dateString = timeHelpers.GetTimeStringTodayInPst();
 
-           
-                var gameUrl = $"{ApiBaseUrl}/fixtures?date={dateString}&timezone=America%2FLos_Angeles";
+
+
+            var gameUrl = $"{ApiBaseUrl}/games?date={dateString}&timezone=America%2FLos_Angeles";
                 var availableGames = await gameServices.GetGamesAvailableToday(SportsType, gameUrl, LeagueIds);
                 if (availableGames.Count > 0)
                     await gameServices.SaveSportsData(availableGames);

@@ -49,7 +49,7 @@ namespace RSS_Services
                         && g.LeagueId == leagueId);
         }
 
-        public async Task<List<SportsGamesAvailableDTO>> GetGamesAvailableToday(string sportType, string gameUrl)
+        public async Task<List<SportsGamesAvailableDTO>> GetGamesAvailableToday(string sportType, string gameUrl, int[] leagueIds)
         {
             var gamesList = new List<SportsGamesAvailableDTO>();
             try
@@ -69,17 +69,17 @@ namespace RSS_Services
 
                 if (sportType == "basketball")
                 {
-                    _nbaDataPullHelper.GetNbaGameData(responseArray, gamesList, sportType);
+                    _nbaDataPullHelper.GetBasketballGameData(responseArray, gamesList, sportType, leagueIds);
                     return gamesList;
                 }
 
                 if (sportType == "soccer")
                 {
-                    _soccerMapperHelper.GetSoccerGameData(responseArray, gamesList, sportType);
+                    _soccerMapperHelper.MapSoccerGameData(responseArray, gamesList, sportType, leagueIds);
                     return gamesList;
                 }
 
-                _footballMapperHelper.MapFootballData(responseArray, gamesList, sportType);
+                _footballMapperHelper.MapFootballData(responseArray, gamesList, sportType, leagueIds);
                 return gamesList;
             }
             catch (HttpRequestException)
@@ -198,7 +198,7 @@ namespace RSS_Services
             }
         }
 
-        public async Task<List<SportScoreUpdateDTO>> GetNbaGameData(string gameUrl, string sportType)
+        public async Task<List<SportScoreUpdateDTO>> GetBasketballGameData(string gameUrl, string sportType, int[] leagueIds)
         {
             try
             {
@@ -211,25 +211,21 @@ namespace RSS_Services
 
                 foreach (var sportsGame in responseArray.EnumerateArray())
                 {
-                    var leagueName = sportsGame.GetProperty("league").GetProperty("name").GetString();
-                    if (leagueName != "NBA") continue;
+                    var leagueId = sportsGame.GetProperty("league").GetProperty("id").GetInt32();
+                    if (!leagueIds.Contains(leagueId)) continue;
 
                     var game = _nbaDataPullHelper.MapBasketballScoreData(sportsGame, sportType);
                     gamesList.Add(game);
                 }
                 return gamesList;
             }
-
-
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
-                var game = new List<SportScoreUpdateDTO>();
-
-                return game; //need to change later for actual error handling
+                return new List<SportScoreUpdateDTO>();
             }
         }
 
-        public async Task<List<SportScoreUpdateDTO>> GetNflGameData(string gameUrl, string sportType)
+        public async Task<List<SportScoreUpdateDTO>> GetFootballGameData(string gameUrl, string sportType, int[] leagueIds)
         {
             try
             {
@@ -242,24 +238,21 @@ namespace RSS_Services
 
                 foreach (var sportsGame in responseArray.EnumerateArray())
                 {
-                    var leagueName = sportsGame.GetProperty("league").GetProperty("name").GetString();
-                    if (leagueName != "NFL") continue;
+                    var leagueId = sportsGame.GetProperty("league").GetProperty("id").GetInt32();
+                    if (!leagueIds.Contains(leagueId)) continue;
 
                     var game = _footballMapperHelper.MapFootballScoreData(sportsGame, sportType);
                     gamesList.Add(game);
                 }
                 return gamesList;
             }
-
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
-                var game = new List<SportScoreUpdateDTO>();
-
-                return game; //need to change later for actual error handling
+                return new List<SportScoreUpdateDTO>();
             }
         }
 
-        public async Task<List<SportScoreUpdateDTO>> GetSoccerGameData(string gameUrl, string sportType)
+        public async Task<List<SportScoreUpdateDTO>> GetSoccerGameData(string gameUrl, string sportType, int[] leagueIds)
         {
             try
             {
@@ -272,6 +265,9 @@ namespace RSS_Services
 
                 foreach (var sportsGame in responseArray.EnumerateArray())
                 {
+                    var leagueId = sportsGame.GetProperty("league").GetProperty("id").GetInt32();
+                    if (!leagueIds.Contains(leagueId)) continue;
+
                     var game = _soccerMapperHelper.MapSoccerScoreData(sportsGame, sportType);
                     gamesList.Add(game);
                 }

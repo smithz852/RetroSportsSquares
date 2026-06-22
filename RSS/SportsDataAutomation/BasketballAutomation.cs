@@ -3,20 +3,17 @@ using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
-    public class SoccerAutomation : BaseSportsAutomation
+    public class BasketballAutomation : BaseSportsAutomation
     {
-        protected override string SportName => "Soccer";
+        protected override string SportName => "Basketball";
         protected override int LoadHourPst => 1;
 
-        private const string SportsType = "soccer";
+        private const string SportsType = "basketball";
 
-        // TODO: Replace with the correct soccer API base URL from the API docs
-        private const string ApiBaseUrl = "https://v3.football.api-sports.io";
+        // Add league IDs here to expand coverage (e.g. WNBA, EuroLeague)
+        private static readonly int[] LeagueIds = { 12 };
 
-        // Add league IDs here to expand coverage (e.g. MLS, Champions League)
-        private static readonly int[] LeagueIds = { 1 };
-
-        public SoccerAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
+        public BasketballAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         protected override async Task<bool> HasTodaysDataBeenLoaded()
         {
@@ -32,12 +29,11 @@ namespace RSS.SportsDataAutomation
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
             var dateString = timeHelpers.GetTimeStringTodayInPst();
 
-           
-                var gameUrl = $"{ApiBaseUrl}/fixtures?date={dateString}&timezone=America%2FLos_Angeles";
-                var availableGames = await gameServices.GetGamesAvailableToday(SportsType, gameUrl, LeagueIds);
+                var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?date={dateString}&timezone=America%2FLos_Angeles";
+            var availableGames = await gameServices.GetGamesAvailableToday(SportsType, gameUrl, LeagueIds);
                 if (availableGames.Count > 0)
                     await gameServices.SaveSportsData(availableGames);
-            
+          
         }
     }
 }

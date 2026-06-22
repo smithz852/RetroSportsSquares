@@ -8,15 +8,23 @@ namespace RSS_Services.Helpers
     public class SoccerMapperHelper
     {
         // TODO: Confirm exact JSON property paths from the soccer API response
-        public void GetSoccerGameData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
+        public void MapSoccerGameData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType, int[] leagueIds)
         {
             foreach (var gameElement in responseArray.EnumerateArray())
             {
-                // TODO: Replace property paths below to match the soccer API response shape
                 var leagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32();
+                if (!leagueIds.Contains(leagueId)) continue;
+
                 var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
                 var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
                 var status = gameElement.GetProperty("fixture").GetProperty("status").GetProperty("short").GetString();
+
+                if (status == null)
+                {
+                    var statusLong = gameElement.GetProperty("fixture").GetProperty("status").GetProperty("long").GetString();
+                    status = statusLong;
+                }
+
                 var gameStartTimeUnix = gameElement.GetProperty("fixture").GetProperty("timestamp").GetInt64();
                 var gameStartTime = DateTimeOffset.FromUnixTimeSeconds(gameStartTimeUnix);
                 var leagueName = gameElement.GetProperty("league").GetProperty("name").GetString();

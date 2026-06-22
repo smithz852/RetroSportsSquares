@@ -16,7 +16,7 @@ namespace RSS_Services.Helpers
         {
 
         }
-        public void MapFootballData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
+        public void MapFootballData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType, int[] leagueIds)
         {
 
             foreach (var gameElement in responseArray.EnumerateArray())
@@ -26,6 +26,9 @@ namespace RSS_Services.Helpers
                 var status = gameElement.GetProperty("game").GetProperty("status").GetProperty("short").GetString();
                 var gameStartTimeUnix = gameElement.GetProperty("game").GetProperty("date").GetProperty("timestamp").GetInt64();
                 var gameStartTime = DateTimeOffset.FromUnixTimeSeconds(gameStartTimeUnix);
+
+                var leagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32();
+                if (!leagueIds.Contains(leagueId)) continue;
 
                 if (status == null)
                 {
@@ -43,7 +46,7 @@ namespace RSS_Services.Helpers
                     Status = status,
                     SportType = sportType,
                     League = gameElement.GetProperty("league").GetProperty("name").GetString(),
-                    LeagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32()
+                    LeagueId = leagueId
                 };
                 gamesList.Add(gameDto);
             }

@@ -15,35 +15,33 @@ namespace RSS_Services.Helpers
         {
 
         }
-        public void GetNbaGameData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType)
+        public void GetBasketballGameData(JsonElement responseArray, List<SportsGamesAvailableDTO> gamesList, string sportType, int[] leagueIds)
         {
-  
             foreach (var gameElement in responseArray.EnumerateArray())
             {
                 var leagueId = gameElement.GetProperty("league").GetProperty("id").GetInt32();
+                if (!leagueIds.Contains(leagueId)) continue;
+
                 var homeTeamName = gameElement.GetProperty("teams").GetProperty("home").GetProperty("name").GetString();
                 var awayTeamName = gameElement.GetProperty("teams").GetProperty("away").GetProperty("name").GetString();
                 var gameStartTimeUnix = gameElement.GetProperty("timestamp").GetInt64();
                 var gameStartTime = DateTimeOffset.FromUnixTimeSeconds(gameStartTimeUnix);
+                var status = gameElement.GetProperty("status").GetProperty("short").GetString()
+                    ?? gameElement.GetProperty("status").GetProperty("long").GetString();
 
-                if (leagueId == 12) 
+                var gameDto = new SportsGamesAvailableDTO
                 {
-
-                    var gameDto = new SportsGamesAvailableDTO
-                    {
-                        ApiGameId = gameElement.GetProperty("id").GetInt32(),
-                        InUse = false,
-                        GameStartTime = gameStartTime,
-                        HomeTeam = homeTeamName,
-                        AwayTeam = awayTeamName,
-                        Status = gameElement.GetProperty("status").GetProperty("short").GetString(),
-                        SportType = sportType,
-                        League = gameElement.GetProperty("league").GetProperty("name").GetString(),
-                        LeagueId = leagueId
-                    };
-                    gamesList.Add(gameDto);
-                }
-                 
+                    ApiGameId = gameElement.GetProperty("id").GetInt32(),
+                    InUse = false,
+                    GameStartTime = gameStartTime,
+                    HomeTeam = homeTeamName,
+                    AwayTeam = awayTeamName,
+                    Status = status,
+                    SportType = sportType,
+                    League = gameElement.GetProperty("league").GetProperty("name").GetString(),
+                    LeagueId = leagueId
+                };
+                gamesList.Add(gameDto);
             }
         }
 

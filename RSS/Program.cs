@@ -95,10 +95,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHostedService<NflAutomation>();
-builder.Services.AddHostedService<NbaAutomation>();
+builder.Services.AddHostedService<BasketballAutomation>();
+builder.Services.AddHostedService<FootballAutomation>();
 builder.Services.AddHostedService<SoccerAutomation>();
-builder.Services.AddHostedService<NflRefetchAutomation>();
+builder.Services.AddHostedService<FootballRefetchAutomation>();
 builder.Services.AddHostedService<BasketballRefetchAutomation>();
 builder.Services.AddHostedService<SoccerRefetchAutomation>();
 
