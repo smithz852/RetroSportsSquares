@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-import { Trophy, Circle, GraduationCap } from "lucide-react";
+import { Trophy, Circle, GraduationCap, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocation, useParams, Link } from "wouter";
 
@@ -30,6 +30,12 @@ const SPORT_LEAGUES: Record<string, SportConfig> = {
     leagues: [
       { name: "NBA", leagueId: 12, icon: Circle, subtitle: "NATIONAL BASKETBALL ASSOCIATION", animation: "animate-pulse" },
       { name: "NCAA", leagueId: 116, icon: GraduationCap, subtitle: "COLLEGE BASKETBALL", animation: "animate-bounce" },
+    ],
+  },
+  soccer: {
+    title: "Soccer Leagues",
+    leagues: [
+      { name: "World Cup", leagueId: 1, icon: Globe, subtitle: "FIFA WORLD CUP", animation: "animate-spin" },
     ],
   },
 };
