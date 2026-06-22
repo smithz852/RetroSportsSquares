@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-import { Trophy, Circle, GraduationCap } from "lucide-react";
+import { Trophy, Circle, GraduationCap, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocation, useParams, Link } from "wouter";
 
@@ -30,6 +30,12 @@ const SPORT_LEAGUES: Record<string, SportConfig> = {
     leagues: [
       { name: "NBA", leagueId: 12, icon: Circle, subtitle: "NATIONAL BASKETBALL ASSOCIATION", animation: "animate-pulse" },
       { name: "NCAA", leagueId: 116, icon: GraduationCap, subtitle: "COLLEGE BASKETBALL", animation: "animate-bounce" },
+    ],
+  },
+  soccer: {
+    title: "Soccer Leagues",
+    leagues: [
+      { name: "World Cup", leagueId: 1, icon: Globe, subtitle: "FIFA WORLD CUP", animation: "animate-spin" },
     ],
   },
 };
@@ -66,7 +72,7 @@ export default function LeagueOptions() {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+      <div className="flex flex-wrap justify-center gap-8 w-full max-w-4xl">
         {sportConfig.leagues.map((league, i) => {
           const Icon = league.icon;
           return (
@@ -77,9 +83,9 @@ export default function LeagueOptions() {
                 transition={{ delay: i * 0.1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="cursor-pointer"
+                className="cursor-pointer w-72"
               >
-                <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all">
+                <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full">
                   <CardContent className="p-12 flex flex-col items-center gap-6">
                     <div className={`text-red-600 group-hover:${league.animation}`}>
                       <Icon size={80} />

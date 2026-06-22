@@ -6,14 +6,17 @@ using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
-    public class BasketballRefetchAutomation : BaseRefetchAutomation
+    public class FootballRefetchAutomation : BaseRefetchAutomation
     {
-        private const string SportsType = "basketball";
+        private const string SportsType = "american-football";
 
-        // Add league IDs here to expand coverage (e.g. WNBA, EuroLeague)
-        private static readonly int[] LeagueIds = { 12 }; // 12 = NBA
+        // TODO: Confirm base URL supports a generic sport-wide pull (no league filter in URL)
+        private const string ApiBaseUrl = "https://v1.american-football.api-sports.io";
 
-        public BasketballRefetchAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
+        // Add league IDs here to expand coverage (e.g. NCAA)
+        private static readonly int[] LeagueIds = { 1 }; // 1 = NFL
+
+        public FootballRefetchAutomation(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
         protected override async Task<List<DailySportsGames>> GetAllGames()
         {
@@ -28,9 +31,9 @@ namespace RSS.SportsDataAutomation
             var gameServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
             var todayInPst = timeHelpers.GetTimeStringTodayInPst();
-            var gameUrl = $"https://v1.{SportsType}.api-sports.io/games?date={todayInPst}&timezone=America%2FLos_Angeles";
+            var gameUrl = $"{ApiBaseUrl}/games?date={todayInPst}&timezone=America%2FLos_Angeles";
 
-            return await gameServices.GetBasketballGameData(gameUrl, SportsType, LeagueIds);
+            return await gameServices.GetFootballGameData(gameUrl, SportsType, LeagueIds);
         }
     }
 }

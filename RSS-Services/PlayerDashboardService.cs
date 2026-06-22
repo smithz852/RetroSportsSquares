@@ -20,40 +20,24 @@ namespace RSS_Services
                 .Select(gp => new
                 {
                     gp.Game.PricePerSquare,
-                    gp.Game.WinnerQ1Id,
-                    gp.Game.WinnerQ2Id,
-                    gp.Game.WinnerQ3Id,
-                    gp.Game.WinnerQ4Id,
-                    gp.Game.Q1Skipped,
-                    gp.Game.Q2Skipped,
-                    gp.Game.Q3Skipped,
+                    gp.Game.PeriodWinners,
                     PlayerSquaresCount = gp.GamePlayerSquares.Count(),
                     TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null)
                 })
                 .ToListAsync();
 
             var periodsWon = gameData.Sum(g =>
-                (g.WinnerQ1Id == userId && !g.Q1Skipped ? 1 : 0) +
-                (g.WinnerQ2Id == userId && !g.Q2Skipped ? 1 : 0) +
-                (g.WinnerQ3Id == userId && !g.Q3Skipped ? 1 : 0) +
-                (g.WinnerQ4Id == userId ? 1 : 0));
+                g.PeriodWinners.Values.Count(v => v == userId));
 
             var totalSquaresClaimed = gameData.Sum(g => g.PlayerSquaresCount);
             var totalWagered = gameData.Sum(g => g.PricePerSquare * g.PlayerSquaresCount);
 
             var wagersWon = gameData.Sum(g =>
             {
-                var won = (g.WinnerQ1Id == userId && !g.Q1Skipped ? 1 : 0) +
-                          (g.WinnerQ2Id == userId && !g.Q2Skipped ? 1 : 0) +
-                          (g.WinnerQ3Id == userId && !g.Q3Skipped ? 1 : 0) +
-                          (g.WinnerQ4Id == userId ? 1 : 0);
+                var won = g.PeriodWinners.Values.Count(v => v == userId);
                 if (won == 0) return 0;
 
-                var totalPeriods =
-                    (g.WinnerQ1Id != null && !g.Q1Skipped ? 1 : 0) +
-                    (g.WinnerQ2Id != null && !g.Q2Skipped ? 1 : 0) +
-                    (g.WinnerQ3Id != null && !g.Q3Skipped ? 1 : 0) +
-                    (g.WinnerQ4Id != null ? 1 : 0);
+                var totalPeriods = g.PeriodWinners.Values.Count(v => v != null);
                 if (totalPeriods == 0) return 0;
 
                 var totalPool = g.PricePerSquare * g.TotalGameSquaresCount;
@@ -61,10 +45,7 @@ namespace RSS_Services
             });
 
             var totalPeriodsPlayed = gameData.Sum(g =>
-                (g.WinnerQ1Id != null && !g.Q1Skipped ? 1 : 0) +
-                (g.WinnerQ2Id != null && !g.Q2Skipped ? 1 : 0) +
-                (g.WinnerQ3Id != null && !g.Q3Skipped ? 1 : 0) +
-                (g.WinnerQ4Id != null ? 1 : 0));
+                g.PeriodWinners.Values.Count(v => v != null));
 
             return new PlayerStatsDTO
             {
@@ -76,11 +57,10 @@ namespace RSS_Services
             };
         }
 
-        // A game is "current" when Q4 has no winner yet (final period unresolved)
         public async Task<List<CurrentGameSummaryDTO>> GetCurrentGamesAsync(string userId)
         {
             return await _context.GamePlayers
-                .Where(gp => gp.ApplicationUserId == userId && gp.Game.WinnerQ4Id == null)
+                .Where(gp => gp.ApplicationUserId == userId && !gp.Game.IsCompleted)
                 .Select(gp => new CurrentGameSummaryDTO
                 {
                     GameId = gp.GameId,
@@ -95,11 +75,10 @@ namespace RSS_Services
                 .ToListAsync();
         }
 
-        // A game is "past" when Q4 winner has been recorded
         public async Task<PaginatedPastGamesDTO> GetPastGamesAsync(string userId, int page, int pageSize)
         {
             var query = _context.GamePlayers
-                .Where(gp => gp.ApplicationUserId == userId && gp.Game.WinnerQ4Id != null);
+                .Where(gp => gp.ApplicationUserId == userId && gp.Game.IsCompleted);
 
             var totalCount = await query.CountAsync();
 
@@ -114,13 +93,7 @@ namespace RSS_Services
                     gp.Game.GameType,
                     gp.Game.PricePerSquare,
                     gp.Game.CreatedAt,
-                    gp.Game.WinnerQ1Id,
-                    gp.Game.WinnerQ2Id,
-                    gp.Game.WinnerQ3Id,
-                    gp.Game.WinnerQ4Id,
-                    gp.Game.Q1Skipped,
-                    gp.Game.Q2Skipped,
-                    gp.Game.Q3Skipped,
+                    gp.Game.PeriodWinners,
                     PlayerSquaresCount = gp.GamePlayerSquares.Count(),
                     TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null)
                 })
@@ -128,17 +101,8 @@ namespace RSS_Services
 
             var summaries = rawGames.Select(g =>
             {
-                var periodsWon =
-                    (g.WinnerQ1Id == userId && !g.Q1Skipped ? 1 : 0) +
-                    (g.WinnerQ2Id == userId && !g.Q2Skipped ? 1 : 0) +
-                    (g.WinnerQ3Id == userId && !g.Q3Skipped ? 1 : 0) +
-                    (g.WinnerQ4Id == userId ? 1 : 0);
-
-                var totalPeriods =
-                    (g.WinnerQ1Id != null && !g.Q1Skipped ? 1 : 0) +
-                    (g.WinnerQ2Id != null && !g.Q2Skipped ? 1 : 0) +
-                    (g.WinnerQ3Id != null && !g.Q3Skipped ? 1 : 0) +
-                    (g.WinnerQ4Id != null ? 1 : 0);
+                var periodsWon = g.PeriodWinners.Values.Count(v => v == userId);
+                var totalPeriods = g.PeriodWinners.Values.Count(v => v != null);
 
                 var totalPool = g.PricePerSquare * g.TotalGameSquaresCount;
                 var totalWon = totalPeriods > 0 ? (totalPool / totalPeriods) * periodsWon : 0;

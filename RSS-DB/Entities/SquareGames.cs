@@ -35,21 +35,9 @@ namespace RSS_DB.Entities
         public DateTimeOffset? TurnStartedAt { get; set; }
         public List<int> TopNumbers { get; set; } = new List<int>();
         public List<int> LeftNumbers { get; set; } = new List<int>();
-        public string? WinnerQ1Id { get; set; }
-        [ForeignKey(nameof(WinnerQ1Id))]
-        public ApplicationUser? WinnerQ1 { get; set; }
-        public bool Q1Skipped { get; set; } = false;
-        public string? WinnerQ2Id { get; set; }
-        [ForeignKey(nameof(WinnerQ2Id))]
-        public ApplicationUser? WinnerQ2 { get; set; }
-        public bool Q2Skipped { get; set; } = false;
-        public string? WinnerQ3Id { get; set; }
-        [ForeignKey(nameof(WinnerQ3Id))]
-        public ApplicationUser? WinnerQ3 { get; set; }
-        public bool Q3Skipped { get; set; } = false;
-        public string? WinnerQ4Id { get; set; }
-        [ForeignKey(nameof(WinnerQ4Id))]
-        public ApplicationUser? WinnerQ4 { get; set; }
+        public int PeriodCount { get; set; } = 4;
+        public bool IsCompleted { get; set; } = false;
+        public Dictionary<int, string?> PeriodWinners { get; set; } = new();
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
         public ICollection<GameSquares> GameSquares { get; set; } = new List<GameSquares>();
 

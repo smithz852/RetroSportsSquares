@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 interface TeamData {
   name: string;
   score: number;
-  quarters: (number | null | undefined)[];
+  periodScores: (number | null | undefined)[];
 }
 
 interface ScoreboardProps {
@@ -14,29 +14,41 @@ interface ScoreboardProps {
   scoreData: any;
   isLoading: boolean;
   gameStartTime: Date | undefined;
-  currentQuarter: number;
+  currentPeriod: number;
   currentLeader: string | null;
-  quarterWinners: Record<number, string | null>;
+  periodWinners: Record<number, string | null>;
 }
 
-const PERIOD_MAP: Record<string, number> = {
-  Q1: 1,
-  Q2: 2,
-  HALF: 2,
-  Q3: 3,
-  Q4: 4,
-  FINAL: 5,
-  FT: 5,
-  OT: 5,
+const SPORT_PERIOD_MAPS: Record<string, Record<string, number>> = {
+  basketball: { Q1: 1, Q2: 2, HALF: 3, HT: 3, Q3: 3, Q4: 4, FINAL: 5, FT: 5, OT: 5, AOT: 5 },
+  "american-football": { Q1: 1, Q2: 2, HALF: 3, HT: 3, Q3: 3, Q4: 4, FINAL: 5, FT: 5, OT: 5, AOT: 5 },
+  soccer: { "1H": 1, HT: 2, "2H": 2, ET: 2, BT: 2, FT: 3, AET: 3, PEN: 3 },
 };
 
-export const getCurrentGamePeriodIndex = (period?: string | null): number => {
-  if (!period) return 0;
-  const upper = period.toUpperCase();
-  for (const key in PERIOD_MAP) {
-    if (upper.includes(key)) return PERIOD_MAP[key];
+export const getCurrentGamePeriodIndex = (status?: string | null, sportType?: string | null): number => {
+  if (!status) return 0;
+  const upper = status.toUpperCase();
+  const map = SPORT_PERIOD_MAPS[sportType?.toLowerCase() ?? ""] ?? SPORT_PERIOD_MAPS["basketball"];
+  for (const key in map) {
+    if (upper.includes(key)) return map[key];
   }
   return 0;
+};
+
+const getPeriodLabel = (sportType: string | undefined, periodIndex: number): string => {
+  switch (sportType?.toLowerCase()) {
+    case "soccer": return `H${periodIndex}`;
+    case "baseball": return `I${periodIndex}`;
+    default: return `Q${periodIndex}`;
+  }
+};
+
+const getExpectedPeriods = (sportType: string | undefined): number => {
+  switch (sportType?.toLowerCase()) {
+    case "soccer": return 2;
+    case "baseball": return 9;
+    default: return 4;
+  }
 };
 
 export function Scoreboard({
@@ -45,81 +57,74 @@ export function Scoreboard({
   scoreData,
   isLoading,
   gameStartTime,
-  currentQuarter,
+  currentPeriod,
   currentLeader,
-  quarterWinners,
+  periodWinners,
 }: ScoreboardProps) {
 
   const [hasGameStarted, setHasGameStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  
+
+  const sportType = scoreData?.sportType as string | undefined;
+  const expectedPeriods = getExpectedPeriods(sportType);
+  const periodCount = Math.max(
+    scoreData?.homePeriodScores?.length ?? 0,
+    expectedPeriods
+  );
 
   const timeUntilGame = () => {
-  if (!gameStartTime) return <span>TBD</span>;
-  if (timeLeft === null) return null;
+    if (!gameStartTime) return <span>TBD</span>;
+    if (timeLeft === null) return null;
 
-  const totalMinutes = Math.floor(timeLeft / (1000 * 60));
-  const hoursLeft = Math.floor(totalMinutes / 60);
-  const minutesLeft = totalMinutes % 60;
-  const secondsLeft = Math.floor((timeLeft % (1000 * 60)) / 1000);
+    const totalMinutes = Math.floor(timeLeft / (1000 * 60));
+    const hoursLeft = Math.floor(totalMinutes / 60);
+    const minutesLeft = totalMinutes % 60;
+    const secondsLeft = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
-  return (
-    <span>
-      {hoursLeft}h {minutesLeft}m {secondsLeft}s
-    </span>
-  );
-};
-
-
-  useEffect(() => {
-  if (!gameStartTime) return;
-
-  setHasGameStarted(false);
-
-  let interval: ReturnType<typeof setInterval>;
-
-  const calculateTimeLeft = () => {
-    const startTime = new Date(gameStartTime);
-    const now = new Date();
-    const diff = startTime.getTime() - now.getTime();
-
-    if (diff <= 0) {
-      setHasGameStarted(true);
-      setTimeLeft(0);
-      clearInterval(interval);
-      return;
-    }
-
-    setTimeLeft(diff);
+    return (
+      <span>
+        {hoursLeft}h {minutesLeft}m {secondsLeft}s
+      </span>
+    );
   };
 
-  calculateTimeLeft();
-  interval = setInterval(calculateTimeLeft, 1000);
+  useEffect(() => {
+    if (!gameStartTime) return;
 
-  return () => clearInterval(interval);
+    setHasGameStarted(false);
 
-}, [gameStartTime]);
+    let interval: ReturnType<typeof setInterval>;
 
-  // Use scoreData if available, otherwise show placeholder
+    const calculateTimeLeft = () => {
+      const startTime = new Date(gameStartTime);
+      const now = new Date();
+      const diff = startTime.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setHasGameStarted(true);
+        setTimeLeft(0);
+        clearInterval(interval);
+        return;
+      }
+
+      setTimeLeft(diff);
+    };
+
+    calculateTimeLeft();
+    interval = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameStartTime]);
+
   const team1 = useMemo<TeamData>(
     () =>
       scoreData
         ? {
             name: scoreData.homeTeamName,
             score: scoreData.currentHomeScore,
-            quarters: [
-              scoreData?.q1HomeScore,
-              scoreData?.q2HomeScore,
-              scoreData?.q3HomeScore,
-              scoreData?.q4HomeScore,
-              // scoreData?.oTHomeScore,
-            ],
+            periodScores: scoreData.homePeriodScores ?? [],
           }
-        : {
-            name: "HOME",
-            score: 0,
-            quarters: [null, null, null, null],
-          },
+        : { name: "HOME", score: 0, periodScores: [] },
     [scoreData],
   );
 
@@ -129,59 +134,36 @@ export function Scoreboard({
         ? {
             name: scoreData.awayTeamName,
             score: scoreData.currentAwayScore,
-            quarters: [
-              scoreData?.q1AwayScore,
-              scoreData?.q2AwayScore,
-              scoreData?.q3AwayScore,
-              scoreData?.q4AwayScore,
-              // scoreData?.oTAwayScore,
-            ],
+            periodScores: scoreData.awayPeriodScores ?? [],
           }
-        : {
-            name: "AWAY",
-            score: 0,
-            quarters: [null, null, null, null],
-          },
+        : { name: "AWAY", score: 0, periodScores: [] },
     [scoreData],
   );
 
-  const sumThroughQuarter = (
-    quarters: (number | null | undefined)[],
-    throughQuarter: number,
-  ) =>
-    quarters
-      .slice(0, throughQuarter)
-      .reduce((sum: number, q) => sum + (q ?? 0), 0);
+  const sumThrough = (scores: (number | null | undefined)[], through: number) =>
+    scores.slice(0, through).reduce((sum: number, s) => sum + (s ?? 0), 0);
 
-  const getScoreAtQuarter = (
-    quarters: (number | null | undefined)[],
-    quarter: number,
-    currentQuarter: number,
+  const getScoreAt = (
+    scores: (number | null | undefined)[],
+    period: number,
+    currentPeriod: number,
   ) => {
-    if (quarter > currentQuarter) return null;
-
-    return sumThroughQuarter(quarters, quarter);
+    if (period > currentPeriod) return null;
+    return sumThrough(scores, period);
   };
 
-  const buildTotalsByQuarter = (
-    quarters: (number | null | undefined)[],
-    currentQuarter: number,
-  ) =>
-    quarters.map((_, i) => getScoreAtQuarter(quarters, i + 1, currentQuarter));
-
   const team1Totals = useMemo(
-    () => buildTotalsByQuarter(team1.quarters, currentQuarter),
-    [team1.quarters, currentQuarter],
+    () => Array.from({ length: periodCount }, (_, i) => getScoreAt(team1.periodScores, i + 1, currentPeriod)),
+    [team1.periodScores, currentPeriod, periodCount],
   );
 
   const team2Totals = useMemo(
-    () => buildTotalsByQuarter(team2.quarters, currentQuarter),
-    [team2.quarters, currentQuarter],
+    () => Array.from({ length: periodCount }, (_, i) => getScoreAt(team2.periodScores, i + 1, currentPeriod)),
+    [team2.periodScores, currentPeriod, periodCount],
   );
 
   if (!isVisible) return null;
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="w-full max-w-4xl mx-auto mb-8 bg-black border-4 border-red-900 p-8 text-center">
@@ -208,13 +190,11 @@ export function Scoreboard({
 
       {/* Main Score Area */}
       <div className="grid grid-cols-3 border-b-4 border-red-900">
-        {/* Team 1 */}
         <div className="p-4 flex flex-col items-center justify-center border-r-4 border-red-900 bg-black">
           <span className="text-red-500 text-lg mb-2">{team1.name}</span>
           <span className="text-red-600 text-5xl font-mono">{team1.score}</span>
         </div>
 
-        {/* Center Info */}
         <div className="p-4 flex flex-col items-center justify-center bg-red-900/5">
           <span className="text-red-500 text-2xl mb-2">
             {scoreData?.status}
@@ -239,24 +219,24 @@ export function Scoreboard({
           )}
         </div>
 
-        {/* Team 2 */}
         <div className="p-4 flex flex-col items-center justify-center border-l-4 border-red-900 bg-black">
           <span className="text-red-500 text-lg mb-2">{team2.name}</span>
           <span className="text-red-600 text-5xl font-mono">{team2.score}</span>
         </div>
       </div>
 
-      {/* Quarters Grid */}
-      <div className="grid grid-cols-4 bg-black">
-        {[1, 2, 3, 4].map((q, idx) => {
-          const winner = quarterWinners[q];
+      {/* Periods Grid — renders N columns based on sport */}
+      <div className={`grid bg-black`} style={{ gridTemplateColumns: `repeat(${periodCount}, minmax(0, 1fr))` }}>
+        {Array.from({ length: periodCount }, (_, idx) => {
+          const periodNum = idx + 1;
+          const winner = periodWinners[periodNum];
           return (
             <div
-              key={q}
-              className={`p-4 flex flex-col items-center justify-center ${idx < 3 ? "border-r-4 border-red-900" : ""}`}
+              key={periodNum}
+              className={`p-4 flex flex-col items-center justify-center ${idx < periodCount - 1 ? "border-r-4 border-red-900" : ""}`}
             >
               <span className="text-red-900 text-[10px] mb-2 uppercase">
-                Q{q}
+                {getPeriodLabel(sportType, periodNum)}
               </span>
               <div className="flex flex-col items-center gap-2">
                 <span className="text-red-500 text-xs">
@@ -264,7 +244,6 @@ export function Scoreboard({
                 </span>
                 {winner ? (
                   <div className="flex items-center gap-1">
-                    
                     <span className="text-yellow-600 text-[10px]">{winner}</span>
                   </div>
                 ) : (
