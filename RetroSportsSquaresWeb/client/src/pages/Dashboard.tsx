@@ -2,13 +2,14 @@ import { useGames } from "@/hooks/use-games";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
-import { Loader2, Calendar, User, Trophy, X } from "lucide-react";
+import { Loader2, Calendar, User, Trophy, X, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useJoinGame } from "@/hooks/use-gameplay";
 import { useDeleteGame } from "@/hooks/use-games";
+import Fuse from "fuse.js";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -56,7 +57,22 @@ export default function Dashboard() {
   
     
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const games = allGames?.filter(game => !type || game.gameType === type) || [];
+
+  const fuse = useMemo(() => new Fuse(games, {
+    keys: [
+      { name: "gameName", weight: 2 },
+      { name: "homeTeam", weight: 1 },
+      { name: "awayTeam", weight: 1 },
+    ],
+    threshold: 0.35,
+  }), [games]);
+
+  const displayedGames = searchQuery.trim()
+    ? fuse.search(searchQuery).map(r => r.item)
+    : games;
 
   function formatId(fullGameId: string) {
     var splitId = fullGameId.split('-')[0]
@@ -92,18 +108,31 @@ if (user) {
           </h1>
           <p className="text-gray-400 font-['VT323'] text-xl">SELECT A CHALLENGE TO BEGIN</p>
         </div>
-        <CreateGameDialog />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="SEARCH GAMES..."
+              className="w-full sm:w-64 bg-black border-2 border-primary pl-9 pr-3 py-2 text-white font-['VT323'] text-lg focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-600"
+            />
+          </div>
+          <CreateGameDialog />
+        </div>
       </div>
 
-      {games?.length === 0 ? (
+      {displayedGames.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/30">
           <Trophy className="w-16 h-16 text-primary/20 mb-4" />
-          <p className="font-['Press_Start_2P'] text-gray-500 mb-6 text-center uppercase">NO {type ? type : ''} GAMES FOUND</p>
-          <CreateGameDialog />
+          <p className="font-['Press_Start_2P'] text-gray-500 mb-6 text-center uppercase">
+            {searchQuery.trim() ? 'NO MATCHES FOUND' : `NO ${type ? type : ''} GAMES FOUND`}
+          </p>
+          {!searchQuery.trim() && <CreateGameDialog />}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {games?.map((game, i) => (
+          {displayedGames.map((game, i) => (
             <motion.div
               key={game.gameId}
               initial={{ opacity: 0, y: 20 }}
