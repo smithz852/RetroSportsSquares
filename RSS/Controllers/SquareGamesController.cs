@@ -239,6 +239,8 @@ namespace RSS.Controllers
 
                 if (game.IsTurnBased && game.SelectionPhaseActive)
                     await _gamePlayerServices.AdvanceTurn(gameId);
+                else
+                    await _hubNotifier.NotifySquareSelected(gameId);
 
                 var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);

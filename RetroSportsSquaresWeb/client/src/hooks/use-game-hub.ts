@@ -36,6 +36,11 @@ export function useGameHub(gameId: string) {
       queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
     });
 
+    // A square was claimed in open mode — refresh the board
+    connection.on("SquareSelected", () => {
+      queryClient.invalidateQueries({ queryKey: ["boardSquares", gameId] });
+    });
+
     // Host cancelled the game before it started
     connection.on("GameDeleted", () => {
       setLocation("/");
