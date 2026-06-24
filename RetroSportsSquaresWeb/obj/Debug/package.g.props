@@ -53,6 +53,7 @@
     <PackageJsonDependenciesExpress Condition="$(PackageJsonDependenciesExpress) == ''">^4.21.2</PackageJsonDependenciesExpress>
     <PackageJsonDependenciesExpressSession Condition="$(PackageJsonDependenciesExpressSession) == ''">^1.18.2</PackageJsonDependenciesExpressSession>
     <PackageJsonDependenciesFramerMotion Condition="$(PackageJsonDependenciesFramerMotion) == ''">^11.13.1</PackageJsonDependenciesFramerMotion>
+    <PackageJsonDependenciesFuseJs Condition="$(PackageJsonDependenciesFuseJs) == ''">^7.4.2</PackageJsonDependenciesFuseJs>
     <PackageJsonDependenciesInputOtp Condition="$(PackageJsonDependenciesInputOtp) == ''">^1.4.2</PackageJsonDependenciesInputOtp>
     <PackageJsonDependenciesLucideReact Condition="$(PackageJsonDependenciesLucideReact) == ''">^0.453.0</PackageJsonDependenciesLucideReact>
     <PackageJsonDependenciesMemoizee Condition="$(PackageJsonDependenciesMemoizee) == ''">^0.4.17</PackageJsonDependenciesMemoizee>

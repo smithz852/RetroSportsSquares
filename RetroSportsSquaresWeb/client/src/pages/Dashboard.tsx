@@ -2,13 +2,14 @@ import { useGames } from "@/hooks/use-games";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
-import { Loader2, Calendar, User, Trophy, X } from "lucide-react";
+import { Loader2, Calendar, User, Trophy, X, Search, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useJoinGame } from "@/hooks/use-gameplay";
 import { useDeleteGame } from "@/hooks/use-games";
+import Fuse from "fuse.js";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +30,9 @@ export default function Dashboard() {
   const [joiningGameId, setJoiningGameId] = useState<string | null>(null);
   const [showFullModal, setShowFullModal] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinIdInput, setJoinIdInput] = useState("");
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   function handleDeleteClick(e: React.MouseEvent, gameId: string) {
     e.stopPropagation();
@@ -56,12 +60,46 @@ export default function Dashboard() {
   
     
 
+  function formatId(fullGameId: string) {
+    return fullGameId.split('-')[0];
+  }
+
+  function handleJoinById(e: React.FormEvent) {
+    e.preventDefault();
+    const input = joinIdInput.trim().toLowerCase();
+    const match = allGames?.find(g => formatId(g.gameId).toLowerCase() === input);
+    if (!match) {
+      setJoinError("GAME NOT FOUND");
+      return;
+    }
+    joinGame(match.gameId, {
+      onSuccess: () => {
+        setShowJoinModal(false);
+        setJoinIdInput("");
+        setJoinError(null);
+        setLocation(`/game/${match.gameId}`);
+      },
+      onError: () => setJoinError("GAME IS FULL"),
+    });
+  }
+
+  const [searchQuery, setSearchQuery] = useState("");
+
   const games = allGames?.filter(game => !type || game.gameType === type) || [];
 
-  function formatId(fullGameId: string) {
-    var splitId = fullGameId.split('-')[0]
-    return splitId;
-  }
+  const fuse = useMemo(() => new Fuse(games, {
+    keys: [
+      { name: "gameName", weight: 2 },
+      { name: "homeTeam", weight: 1 },
+      { name: "awayTeam", weight: 1 },
+    ],
+    threshold: 0.35,
+  }), [games]);
+
+  const displayedGames = searchQuery.trim()
+    ? fuse.search(searchQuery).map(r => r.item)
+    : games;
+
 if (user) {
       if (isLoading) {
     return (
@@ -92,18 +130,38 @@ if (user) {
           </h1>
           <p className="text-gray-400 font-['VT323'] text-xl">SELECT A CHALLENGE TO BEGIN</p>
         </div>
-        <CreateGameDialog />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="SEARCH GAMES..."
+              className="w-full sm:w-64 bg-black border-2 border-primary pl-9 pr-3 py-2 text-white font-['VT323'] text-lg focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-600"
+            />
+          </div>
+          <button
+            onClick={() => { setShowJoinModal(true); setJoinError(null); setJoinIdInput(""); }}
+            className="flex items-center gap-2 border-2 border-primary px-3 py-2 text-primary font-['Press_Start_2P'] text-xs hover:bg-primary hover:text-black transition-colors"
+          >
+            <LogIn className="w-4 h-4" />
+            ENTER CODE
+          </button>
+          <CreateGameDialog />
+        </div>
       </div>
 
-      {games?.length === 0 ? (
+      {displayedGames.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/30">
           <Trophy className="w-16 h-16 text-primary/20 mb-4" />
-          <p className="font-['Press_Start_2P'] text-gray-500 mb-6 text-center uppercase">NO {type ? type : ''} GAMES FOUND</p>
-          <CreateGameDialog />
+          <p className="font-['Press_Start_2P'] text-gray-500 mb-6 text-center uppercase">
+            {searchQuery.trim() ? 'NO MATCHES FOUND' : `NO ${type ? type : ''} GAMES FOUND`}
+          </p>
+          {!searchQuery.trim() && <CreateGameDialog />}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {games?.map((game, i) => (
+          {displayedGames.map((game, i) => (
             <motion.div
               key={game.gameId}
               initial={{ opacity: 0, y: 20 }}
@@ -155,6 +213,40 @@ if (user) {
           ))}
         </div>
       )}
+
+      <Dialog open={showJoinModal} onOpenChange={(open) => { setShowJoinModal(open); if (!open) { setJoinIdInput(""); setJoinError(null); } }}>
+        <DialogContent className="bg-black border-4 border-primary rounded-none font-pixel max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-primary font-['Press_Start_2P'] text-sm uppercase tracking-widest">
+              ENTER GAME CODE
+            </DialogTitle>
+            <DialogDescription className="text-gray-400 font-['VT323'] text-xl pt-2">
+              Enter the game ID shared by your host.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleJoinById} className="space-y-4 pt-2">
+            <input
+              value={joinIdInput}
+              onChange={(e) => { setJoinIdInput(e.target.value); setJoinError(null); }}
+              placeholder="ENTER CODE..."
+              className="w-full bg-black border-2 border-primary p-3 text-white font-['VT323'] text-xl focus:outline-none focus:ring-2 focus:ring-white placeholder:text-gray-600 uppercase"
+              autoFocus
+            />
+            {joinError && (
+              <p className="text-red-500 font-['Press_Start_2P'] text-xs">{joinError}</p>
+            )}
+            <DialogFooter className="pt-2">
+              <Button
+                type="submit"
+                disabled={!joinIdInput.trim() || isJoining}
+                className="bg-primary text-black font-['Press_Start_2P'] text-xs rounded-none hover:bg-primary/80 border-b-4 border-primary/60 active:border-b-0 active:translate-y-1 transition-all uppercase w-full"
+              >
+                {isJoining ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />JOINING...</> : "JOIN GAME"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
         <DialogContent className="bg-black border-4 border-red-600 rounded-none text-red-500 font-pixel max-w-sm">
