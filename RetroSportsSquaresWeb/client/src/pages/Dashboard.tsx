@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
 import { useState, useMemo } from "react";
+import { API_BASE_URL, endpoints } from "@shared/routes";
 import { useJoinGame } from "@/hooks/use-gameplay";
 import { useDeleteGame } from "@/hooks/use-games";
 import Fuse from "fuse.js";
@@ -64,20 +65,33 @@ export default function Dashboard() {
     return fullGameId.split('-')[0];
   }
 
-  function handleJoinById(e: React.FormEvent) {
+  async function handleJoinById(e: React.FormEvent) {
     e.preventDefault();
     const input = joinIdInput.trim().toLowerCase();
-    const match = allGames?.find(g => formatId(g.gameId).toLowerCase() === input);
-    if (!match) {
+    const token = localStorage.getItem("token");
+
+    let fullGameId: string;
+    try {
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.findByShortId(input)}`, {
+        headers: { Authorization: `Bearer ${token ?? ""}` },
+      });
+      if (!res.ok) {
+        setJoinError("GAME NOT FOUND");
+        return;
+      }
+      const data = await res.json();
+      fullGameId = data.gameId;
+    } catch {
       setJoinError("GAME NOT FOUND");
       return;
     }
-    joinGame(match.gameId, {
+
+    joinGame(fullGameId, {
       onSuccess: () => {
         setShowJoinModal(false);
         setJoinIdInput("");
         setJoinError(null);
-        setLocation(`/game/${match.gameId}`);
+        setLocation(`/game/${fullGameId}`);
       },
       onError: () => setJoinError("GAME IS FULL"),
     });

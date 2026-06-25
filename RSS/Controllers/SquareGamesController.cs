@@ -69,7 +69,7 @@ namespace RSS.Controllers
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();
@@ -113,6 +113,19 @@ namespace RSS.Controllers
             }
 
             return Ok();
+        }
+
+        [HttpGet("find/{shortId}")]
+        [Authorize]
+        public async Task<IActionResult> FindGameByShortId(string shortId)
+        {
+            var match = _appDbContext.SquareGames
+                .Where(g => g.Id.ToString().StartsWith(shortId.ToLower()))
+                .Select(g => new { gameId = g.Id.ToString() })
+                .FirstOrDefault();
+
+            if (match == null) return NotFound();
+            return Ok(match);
         }
 
         [HttpGet("{id}")]

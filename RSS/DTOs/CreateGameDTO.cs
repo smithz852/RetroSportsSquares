@@ -10,6 +10,7 @@ namespace RSS.DTOs
         public int SquareSelectionLimit { get; set; }
         public bool IsTurnBased { get; set; }
         public int TurnTimeoutSeconds { get; set; } = 60;
+        public bool IsPublic { get; set; } = true;
         public string DailySportsGameId { get; set; }
     }
 }

@@ -193,6 +193,11 @@ export default function PlayerDashboard() {
                             <p className="font-['VT323'] text-gray-400 text-lg">
                               {game.gameType.toUpperCase()} · {game.squaresClaimed} SQ · {game.pricePerSquare}¢/SQ
                             </p>
+                            {game.isHost && (
+                              <p className="font-['VT323'] text-primary/50 text-base tracking-widest">
+                                CODE: {game.gameId.split('-')[0].toUpperCase()}
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
                             {game.isHost && (

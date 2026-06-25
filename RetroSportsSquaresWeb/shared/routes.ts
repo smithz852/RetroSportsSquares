@@ -14,7 +14,8 @@ export const endpoints = {
     delete: (gameId: string) => `/SquareGames/${gameId}`,
     beginSelections: (gameId: string) => `/SquareGames/begin-selections/${gameId}`,
     skipPlayer: (gameId: string) => `/SquareGames/skip-player/${gameId}`,
-    turnStatus: (gameId: string) => `/SquareGames/turn-status/${gameId}`
+    turnStatus: (gameId: string) => `/SquareGames/turn-status/${gameId}`,
+    findByShortId: (shortId: string) => `/SquareGames/find/${shortId}`
   },
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,

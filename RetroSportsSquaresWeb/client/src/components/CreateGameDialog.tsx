@@ -60,6 +60,7 @@ export function CreateGameDialog() {
         squareSelectionLimit: parseInt(squareSelectionLimit) || 0,
         isTurnBased,
         turnTimeoutSeconds,
+        isPublic,
       },
       {
         onSuccess: (createdGame) => {

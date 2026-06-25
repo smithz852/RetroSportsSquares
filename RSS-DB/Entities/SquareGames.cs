@@ -28,6 +28,7 @@ namespace RSS_DB.Entities
         public int PlayerCount { get; set; }
         public int PricePerSquare { get; set; } = 0;
         public int SquareSelectionLimit { get; set; } = 0;
+        public bool IsPublic { get; set; } = true;
         public bool IsTurnBased { get; set; } = false;
         public bool SelectionPhaseActive { get; set; } = false;
         public string? CurrentTurnUserId { get; set; }
