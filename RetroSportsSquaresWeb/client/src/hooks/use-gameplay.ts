@@ -27,6 +27,23 @@ export function useJoinGame() {
   });
 }
 
+export function useLeaveGame() {
+  return useMutation({
+    mutationFn: async (gameId: string): Promise<void> => {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Please login to leave a game");
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.leave(gameId)}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || "Failed to leave game");
+      }
+    },
+  });
+}
+
 export function usePostSquareSelection(gameId: string) {
   const queryClient = useQueryClient();
 

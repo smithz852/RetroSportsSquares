@@ -139,6 +139,32 @@ namespace RSS_Services
             await _hubNotifier.NotifyTurnAdvanced(gameId);
         }
 
+        public async Task LeaveGame(string userId, string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                throw new ArgumentException($"Invalid game ID: {gameId}");
+
+            var gamePlayer = await _appDbContext.GamePlayers
+                .FirstOrDefaultAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
+
+            if (gamePlayer == null)
+                throw new ArgumentException("Player is not in this game.");
+
+            if (gamePlayer.IsHost)
+                throw new InvalidOperationException("The host cannot leave. Delete the game instead.");
+
+            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
+            if (game == null)
+                throw new ArgumentException("Game not found.");
+
+            if (!game.isOpen || game.SelectionPhaseActive || game.IsCompleted)
+                throw new InvalidOperationException("Cannot leave after the game has started.");
+
+            _appDbContext.GamePlayers.Remove(gamePlayer);
+            await _appDbContext.SaveChangesAsync();
+            await _hubNotifier.NotifyPlayerLeft(gameId);
+        }
+
         public async Task<TurnStatusDTO> GetTurnStatus(string gameId)
         {
             if (!Guid.TryParse(gameId, out var gameGuid))

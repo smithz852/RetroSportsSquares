@@ -9,7 +9,7 @@ import { Coins } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { GetGameScoreData, getSquareGameById, useStartGame, useDeleteGame, useGetTurnStatus, useBeginSelections, useSkipPlayer } from "@/hooks/use-games";
-import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame } from "@/hooks/use-gameplay";
+import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJoinGame, useLeaveGame } from "@/hooks/use-gameplay";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 import { useGameHub } from "@/hooks/use-game-hub";
@@ -41,6 +41,7 @@ export default function GameBoard() {
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
   const { mutate: joinGame } = useJoinGame();
+  const { mutate: leaveGame, isPending: isLeavePending } = useLeaveGame();
   const { mutate: deleteGame } = useDeleteGame();
   const { mutate: startGame } = useStartGame(id);
   const { mutate: beginSelections, isPending: isBeginPending } = useBeginSelections(id);
@@ -273,6 +274,19 @@ useEffect(() => {
   };
 
 
+  const handleLeaveGame = () => {
+    if (!confirm("Leave this game?")) return;
+    leaveGame(id, {
+      onSuccess: () => setLocation("/"),
+      onError: (err) => toast({
+        title: "ERROR",
+        description: err.message || "Failed to leave game.",
+        variant: "destructive",
+        className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+      }),
+    });
+  };
+
   const handleSubmit = () => {
     const selectionArray = Object.keys(selections).map((key) => ({
       squareId: key
@@ -460,15 +474,19 @@ useEffect(() => {
               {/* Game Grid */}
               <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
                 <div
-                  onClick={isHost && !gameStarted ? handleDeleteGame : undefined}
+                  onClick={
+                    isHost && !gameStarted ? handleDeleteGame
+                    : !isHost && !gameStarted ? handleLeaveGame
+                    : undefined
+                  }
                   className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900 flex items-center justify-center transition-colors ${
-                    isHost && !gameStarted
+                    (isHost && !gameStarted) || (!isHost && !gameStarted)
                       ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500"
                       : "bg-red-900/20 cursor-default"
                   }`}
                 >
                   <span className="text-black font-pixel text-[8px] md:text-[10px]">
-                    {isHost && !gameStarted ? "DEL" : ""}
+                    {isHost && !gameStarted ? "DEL" : !isHost && !gameStarted ? "EXIT" : ""}
                   </span>
                 </div>
 
