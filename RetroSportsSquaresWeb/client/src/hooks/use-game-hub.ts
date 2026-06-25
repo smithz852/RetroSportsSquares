@@ -46,6 +46,11 @@ export function useGameHub(gameId: string) {
       setLocation("/");
     });
 
+    // A player left — refresh the player list for remaining players
+    connection.on("PlayerLeft", () => {
+      queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
+    });
+
     connection
       .start()
       .then(() => connection.invoke("JoinGame", gameId))

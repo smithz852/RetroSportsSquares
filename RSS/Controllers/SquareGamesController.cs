@@ -176,6 +176,29 @@ namespace RSS.Controllers
             }
         }
 
+        [HttpPost("leave/{gameId}")]
+        [Authorize]
+        public async Task<IActionResult> LeaveGame(string gameId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            try
+            {
+                await _gamePlayerServices.LeaveGame(userId, gameId);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("begin-selections/{gameId}")]
         [Authorize]
         public async Task<IActionResult> BeginSelections(string gameId)
