@@ -370,6 +370,9 @@ namespace RSS_DB.Migrations
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsTurnBased")
                         .HasColumnType("tinyint(1)");
 

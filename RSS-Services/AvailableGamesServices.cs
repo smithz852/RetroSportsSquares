@@ -21,10 +21,11 @@ namespace RSS_Services
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
                 .Include(g => g.GamePlayers)
+                .Where(g => g.IsPublic && g.isOpen)
                 .ToList();
         }
 
-        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, int squareSelectionLimit, bool isTurnBased, int turnTimeoutSeconds, string dailySportsGameId)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, int squareSelectionLimit, bool isTurnBased, int turnTimeoutSeconds, string dailySportsGameId, bool isPublic = true)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = DateTimeOffset.UtcNow;
@@ -49,6 +50,7 @@ namespace RSS_Services
                 TurnTimeoutSeconds = turnTimeoutSeconds,
                 DailySportGame = dailySportGame,
                 PeriodCount = periodCount,
+                IsPublic = isPublic,
             };
 
             return game;

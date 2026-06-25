@@ -52,6 +52,7 @@ export interface CreateSquareGameRequest {
   isTurnBased: boolean;
   turnTimeoutSeconds: number;
   dailySportsGameId: string;
+  isPublic: boolean;
 }
 
 export interface BoardSquare {
