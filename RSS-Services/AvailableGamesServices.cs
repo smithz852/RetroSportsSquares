@@ -21,7 +21,7 @@ namespace RSS_Services
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
                 .Include(g => g.GamePlayers)
-                .Where(g => g.IsPublic)
+                .Where(g => g.IsPublic && g.isOpen)
                 .ToList();
         }
 
