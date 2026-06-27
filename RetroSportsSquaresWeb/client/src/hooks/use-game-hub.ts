@@ -51,6 +51,16 @@ export function useGameHub(gameId: string) {
       queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
     });
 
+    // Host started the game — trigger outside squares fetch for all players
+    connection.on("GameStarted", () => {
+      queryClient.invalidateQueries({ queryKey: ["OutsideSquares", gameId] });
+    });
+
+    // Score data updated by background service — refresh scoreboard for all players
+    connection.on("ScoreUpdated", () => {
+      queryClient.invalidateQueries({ queryKey: ["gameScoreData", gameId] });
+    });
+
     connection
       .start()
       .then(() => connection.invoke("JoinGame", gameId))

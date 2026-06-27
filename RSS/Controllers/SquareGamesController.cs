@@ -112,6 +112,7 @@ namespace RSS.Controllers
                 return BadRequest("Failed to close game.");
             }
 
+            await _hubNotifier.NotifyGameStarted(gameId);
             return Ok();
         }
 

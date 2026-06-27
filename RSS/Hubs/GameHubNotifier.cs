@@ -29,4 +29,10 @@ public class GameHubNotifier : IGameHubNotifier
 
     public Task NotifyPlayerLeft(string gameId) =>
         _hubContext.Clients.Group($"game-{gameId}").SendAsync("PlayerLeft");
+
+    public Task NotifyGameStarted(string gameId) =>
+        _hubContext.Clients.Group($"game-{gameId}").SendAsync("GameStarted");
+
+    public Task NotifyScoreUpdated(string gameId) =>
+        _hubContext.Clients.Group($"game-{gameId}").SendAsync("ScoreUpdated");
 }
