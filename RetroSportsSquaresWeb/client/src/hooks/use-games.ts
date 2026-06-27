@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
-import { type SquareGame, type CreateSquareGameRequest, type AvailableGameOptions, SquareGameScoreData, TurnStatus } from "@shared/schema";
+import { type SquareGame, type CreateSquareGameRequest, type AvailableGameOptions, type AvailableSportLeague, SquareGameScoreData, TurnStatus } from "@shared/schema";
 
 export function useGames() {
   return useQuery({
@@ -37,6 +37,17 @@ export function useCreateGame() {
       return res.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['games'] }),
+  });
+}
+
+export function useAvailableSportsAndLeagues() {
+  return useQuery({
+    queryKey: ['availableSportsAndLeagues'],
+    queryFn: async (): Promise<AvailableSportLeague[]> => {
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.availableSportsAndLeagues}`);
+      if (!res.ok) throw new Error('Failed to fetch available sports and leagues');
+      return res.json();
+    },
   });
 }
 

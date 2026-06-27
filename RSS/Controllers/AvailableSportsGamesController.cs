@@ -39,5 +39,20 @@ namespace RSS.Controllers
             return Ok(availableSportsGamesOptionsDTO);
         }
 
+        [HttpGet("GetAvailableSportsAndLeagues")]
+        public IActionResult GetAvailableSportsAndLeagues()
+        {
+            var results = _sportsGameServices.GetAvailableSportLeaguesToday();
+
+            var dto = results.Select(r => new AvailableSportLeagueDTO
+            {
+                SportType = r.SportType == "american-football" ? "football" : r.SportType,
+                League = r.League,
+                LeagueId = r.LeagueId,
+            }).ToList();
+
+            return Ok(dto);
+        }
+
     }
 }

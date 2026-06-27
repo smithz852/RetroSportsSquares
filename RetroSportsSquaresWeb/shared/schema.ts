@@ -100,6 +100,12 @@ export interface AvailableGameOptions {
   status: string;
 }
 
+export interface AvailableSportLeague {
+  sportType: string;
+  league: string;
+  leagueId: number;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
