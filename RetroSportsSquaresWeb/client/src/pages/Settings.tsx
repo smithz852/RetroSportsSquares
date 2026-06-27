@@ -1,29 +1,36 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { RetroButton } from "@/components/RetroButton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { PasswordChangeModal } from "@/components/PasswordChangeModal";
 import { Pencil, Check, Loader2, ArrowLeft } from "lucide-react";
+import { API_BASE_URL, endpoints } from "@shared/routes";
 
 type EditableFieldProps = {
   label: string;
   value: string;
   inputType?: string;
+  maxLength?: number;
   onSave: (value: string) => Promise<void>;
 };
 
-function EditableField({ label, value, inputType = "text", onSave }: EditableFieldProps) {
+function EditableField({ label, value, inputType = "text", maxLength, onSave }: EditableFieldProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = async () => {
+    setError(null);
     setSaving(true);
     try {
       await onSave(draft);
       setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "SAVE FAILED");
     } finally {
       setSaving(false);
     }
@@ -31,6 +38,7 @@ function EditableField({ label, value, inputType = "text", onSave }: EditableFie
 
   const handleCancel = () => {
     setDraft(value);
+    setError(null);
     setEditing(false);
   };
 
@@ -42,10 +50,11 @@ function EditableField({ label, value, inputType = "text", onSave }: EditableFie
           type={inputType}
           value={draft}
           disabled={!editing}
+          maxLength={maxLength}
           onChange={e => setDraft(e.target.value)}
           className="flex-1 border-2 border-primary/30 bg-black text-white font-['VT323'] text-xl rounded-none
             focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0
-            disabled:opacity-60 disabled:cursor-default placeholder:text-gray-600"
+            disabled:opacity-60 disabled:cursor-default placeholder:text-gray-600 uppercase"
         />
         {editing ? (
           <div className="flex gap-1 shrink-0">
@@ -77,24 +86,52 @@ function EditableField({ label, value, inputType = "text", onSave }: EditableFie
           </button>
         )}
       </div>
+      {error && (
+        <p className="font-['Press_Start_2P'] text-red-500 text-[8px] leading-4 mt-1">{error}</p>
+      )}
     </div>
   );
 }
 
+async function patchUserField(endpoint: string, body: object): Promise<void> {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message ?? "SAVE FAILED");
+  }
+}
 
 export default function Settings() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [pwModalOpen, setPwModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   if (!user) {
     setLocation("/login");
     return null;
   }
 
-  // TODO: replace with real API calls
-  const handleSave = async (_field: string, _value: string) => {
-    await new Promise(res => setTimeout(res, 800));
+  const saveDisplayName = async (value: string) => {
+    await patchUserField(endpoints.user.updateDisplayName, { displayName: value });
+    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+  };
+
+  const saveGamerTag = async (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed.length < 2 || trimmed.length > 5)
+      throw new Error("GAMER TAG MUST BE 2-5 CHARACTERS");
+    await patchUserField(endpoints.user.updateGamerTag, { gamerTag: trimmed });
+    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
   };
 
   return (
@@ -134,14 +171,15 @@ export default function Settings() {
           <TabsContent value="account" className="p-6 mt-0">
             <div className="max-w-lg space-y-1">
               <EditableField
-                label="NAME"
-                value={user.displayName ?? ""}
-                onSave={val => handleSave("name", val)}
-              />
-              <EditableField
                 label="DISPLAY NAME"
                 value={user.displayName ?? ""}
-                onSave={val => handleSave("displayName", val)}
+                onSave={saveDisplayName}
+              />
+              <EditableField
+                label="GAMER TAG"
+                value={user.gamerTag ?? ""}
+                maxLength={5}
+                onSave={saveGamerTag}
               />
             </div>
           </TabsContent>
@@ -154,7 +192,7 @@ export default function Settings() {
                   label="EMAIL"
                   value={user.email ?? ""}
                   inputType="email"
-                  onSave={val => handleSave("email", val)}
+                  onSave={async () => { /* TODO: wire email change endpoint */ }}
                 />
               </div>
 

@@ -522,7 +522,7 @@ useEffect(() => {
                           } ${colIndex === winningCol ? 'winning-column' : ''} ${rowIndex === winningRow ? 'winning-row' : ''} ${isWinningSquare ? 'winning-square' : ''}`}
                         >
                           <span
-                            className={`font-pixel text-[6px] md:text-[8px] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
+                            className={`font-pixel text-[6px] md:text-[20px] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
                           >
                             {displayName}
                           </span>

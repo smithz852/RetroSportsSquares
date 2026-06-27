@@ -36,7 +36,7 @@ namespace RSS.Controllers
                 return Unauthorized();
 
             var token = GenerateJwtToken(user);
-            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName } });
+            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag } });
         }
 
         [HttpGet("me")]
@@ -49,7 +49,7 @@ namespace RSS.Controllers
             if (user == null)
                 return NotFound();
 
-            return Ok(new { user.Id, user.Email, user.DisplayName });
+            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag });
         }
 
         [HttpPost("signup")]
@@ -63,7 +63,8 @@ namespace RSS.Controllers
             {
                 UserName = dto.Email,
                 Email = dto.Email,
-                DisplayName = dto.Name
+                DisplayName = dto.Name,
+                GamerTag = dto.GamerTag?.Trim().ToUpper()
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -95,6 +96,6 @@ namespace RSS.Controllers
         }
     }
 
-    public record RegisterDto(string Email, string Password, string Name);
+    public record RegisterDto(string Email, string Password, string Name, string? GamerTag);
     public record LoginDto(string Email, string Password);
 }

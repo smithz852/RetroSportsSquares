@@ -115,6 +115,7 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
+  gamerTag: string | null;
 }
 
 export interface LoginResponse {
@@ -126,6 +127,7 @@ export interface SignupRequest {
   name: string;
   email: string;
   password: string;
+  gamerTag: string;
 }
 
 export interface TurnPlayer {
