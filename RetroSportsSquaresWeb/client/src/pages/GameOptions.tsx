@@ -1,27 +1,33 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-import Landing from "./Landing";
-import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Trophy, Circle, Globe } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 
 export default function GameOptions() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (user) {
-return (
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, isLoading]);
+
+  if (isLoading || !user) return null;
+
+  return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] gap-12 p-4">
-      <motion.h1 
+      <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-4xl md:text-6xl text-red-600 font-pixel text-center leading-tight uppercase tracking-tighter"
       >
         Select Your Arena
       </motion.h1>
-      
+
       <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl">
         <Link href="/leagues/football" asChild>
           <motion.div
@@ -77,14 +83,8 @@ return (
           </motion.div>
         </Link>
 
-        
+
       </div>
     </div>
   );
-  } 
-  else
-  {
-    setLocation("/login")
-  }
-  
 }

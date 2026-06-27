@@ -1,10 +1,15 @@
 import { RetroButton } from "@/components/RetroButton";
 import { motion } from "framer-motion";
 import { Trophy, Users, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 export default function Landing() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
   const handleLogin = () => {
-    window.location.href = "/login";
+    setLocation(user ? "/options" : "/login");
   };
 
   return (
