@@ -25,7 +25,7 @@ namespace RSS_Services
                 .ToList();
         }
 
-        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, int pricePerSquare, int squareSelectionLimit, bool isTurnBased, int turnTimeoutSeconds, string dailySportsGameId, bool isPublic = true)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, decimal pricePerSquare, int squareSelectionLimit, bool isTurnBased, int turnTimeoutSeconds, string dailySportsGameId, bool isPublic = true)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = DateTimeOffset.UtcNow;

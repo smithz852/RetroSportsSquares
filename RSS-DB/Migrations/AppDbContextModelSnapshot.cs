@@ -390,8 +390,8 @@ namespace RSS_DB.Migrations
                     b.Property<int>("PlayerCount")
                         .HasColumnType("int");
 
-                    b.Property<int>("PricePerSquare")
-                        .HasColumnType("int");
+                    b.Property<decimal>("PricePerSquare")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("SelectionPhaseActive")
                         .HasColumnType("tinyint(1)");

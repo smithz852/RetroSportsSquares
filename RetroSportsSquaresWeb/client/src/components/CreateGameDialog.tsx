@@ -56,7 +56,7 @@ export function CreateGameDialog() {
         playerCount: parseInt(playerCount),
         isOpen: true,
         dailySportsGameId,
-        pricePerSquare: parseInt(wagerAmount) || 0,
+        pricePerSquare: parseFloat(wagerAmount) || 0,
         squareSelectionLimit: parseInt(squareSelectionLimit) || 0,
         isTurnBased,
         turnTimeoutSeconds,
