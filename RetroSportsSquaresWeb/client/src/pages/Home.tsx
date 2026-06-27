@@ -15,9 +15,9 @@ export default function Home() {
     );
   }
 
-  if (user) {
-    return <GameOptions />;
-  }
+  // if (user) {
+  //   return <GameOptions />;
+  // }
 
   return <Landing />;
 }
