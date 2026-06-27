@@ -128,6 +128,19 @@ namespace RSS_Services
             return availbleGameOptions;
         }
 
+        public List<(string SportType, string League, int LeagueId)> GetAvailableSportLeaguesToday()
+        {
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
+
+            return _appDbContext.DailySportsGames
+                .AsEnumerable()
+                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst)
+                .Select(g => (g.SportType, g.League, g.LeagueId))
+                .Distinct()
+                .ToList();
+        }
+
         public void SetGameInUse(string dailySportsGameId)
         {
             var game = GetDailySportGameById(dailySportsGameId);
