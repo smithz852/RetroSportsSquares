@@ -5,11 +5,11 @@ namespace RSS_Services.DTOs
         public Guid GameId { get; set; }
         public string GameName { get; set; }
         public string GameType { get; set; }
-        public int PricePerSquare { get; set; }
+        public decimal PricePerSquare { get; set; }
         public int SquaresClaimed { get; set; }
         public int PeriodsWon { get; set; }
-        public int TotalWagered { get; set; }
-        public int TotalWon { get; set; }
+        public decimal TotalWagered { get; set; }
+        public decimal TotalWon { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
     }
 

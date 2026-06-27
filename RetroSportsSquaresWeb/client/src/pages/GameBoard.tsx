@@ -671,7 +671,7 @@ useEffect(() => {
                           <span className="text-center">{count}</span>
                           <span className="text-right flex items-center justify-end gap-1">
                             <Coins size={10} className="text-yellow-600" />
-                            {count * multiplier}
+                            {(count * multiplier).toFixed(2)}
                           </span>
                         </motion.div>
                       ))
@@ -685,8 +685,7 @@ useEffect(() => {
                   </span>
                   <span className="text-sm text-red-600 font-pixel flex items-center gap-1">
                     <Coins size={14} className="text-yellow-600" />
-                    {Object.values(playerStats).reduce((a, b) => a + b, 0) *
-                      multiplier}
+                    {(Object.values(playerStats).reduce((a, b) => a + b, 0) * multiplier).toFixed(2)}
                   </span>
                 </div>
               </CardContent>

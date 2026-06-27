@@ -191,7 +191,7 @@ export default function PlayerDashboard() {
                               {game.gameName}
                             </p>
                             <p className="font-['VT323'] text-gray-400 text-lg">
-                              {game.gameType.toUpperCase()} · {game.squaresClaimed} SQ · {game.pricePerSquare}¢/SQ
+                              {game.gameType.toUpperCase()} · {game.squaresClaimed} SQ · ${game.pricePerSquare.toFixed(2)}/SQ
                             </p>
                             {game.isHost && (
                               <p className="font-['VT323'] text-primary/50 text-base tracking-widest">
@@ -256,12 +256,12 @@ export default function PlayerDashboard() {
                           </div>
                           <div className="text-center">
                             <p className="font-['VT323'] text-gray-500 text-sm">WAGERED</p>
-                            <p className="font-['Press_Start_2P'] text-primary text-[10px]">{game.totalWagered}</p>
+                            <p className="font-['Press_Start_2P'] text-primary text-[10px]">{game.totalWagered.toFixed(2)}</p>
                           </div>
                           <div className="text-center">
                             <p className="font-['VT323'] text-gray-500 text-sm">WON</p>
                             <p className={`font-['Press_Start_2P'] text-[10px] ${game.totalWon > 0 ? 'text-green-400' : 'text-gray-600'}`}>
-                              {game.totalWon}
+                              {game.totalWon.toFixed(2)}
                             </p>
                           </div>
                         </div>

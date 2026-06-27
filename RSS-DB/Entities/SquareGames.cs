@@ -26,7 +26,8 @@ namespace RSS_DB.Entities
         public DateTimeOffset CreatedAt { get; set; }
         [Required]
         public int PlayerCount { get; set; }
-        public int PricePerSquare { get; set; } = 0;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PricePerSquare { get; set; } = 0;
         public int SquareSelectionLimit { get; set; } = 0;
         public bool IsPublic { get; set; } = true;
         public bool IsTurnBased { get; set; } = false;
