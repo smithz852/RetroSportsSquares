@@ -6,7 +6,7 @@ import { Loader2, Calendar, User, Trophy, X, Search, LogIn } from "lucide-react"
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import { useJoinGame } from "@/hooks/use-gameplay";
 import { useDeleteGame } from "@/hooks/use-games";
@@ -23,9 +23,16 @@ import {
 
 export default function Dashboard() {
   const { type } = useParams<{ type: string }>();
-  const { data: allGames, isLoading, error } = useGames();
+  const { data: allGames, isLoading: gamesLoading, error } = useGames();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, authLoading]);
+
   const { mutate: joinGame, isPending: isJoining } = useJoinGame();
   const { mutate: deleteGame } = useDeleteGame();
   const [joiningGameId, setJoiningGameId] = useState<string | null>(null);
@@ -114,8 +121,9 @@ export default function Dashboard() {
     ? fuse.search(searchQuery).map(r => r.item)
     : games;
 
-if (user) {
-      if (isLoading) {
+  if (authLoading || !user) return null;
+
+  if (gamesLoading) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-16 w-16 text-primary animate-spin" />
@@ -311,9 +319,4 @@ if (user) {
       </Dialog>
     </div>
   );
-    }
-   else
-    {
-      setLocation("/login")
-    }
 }

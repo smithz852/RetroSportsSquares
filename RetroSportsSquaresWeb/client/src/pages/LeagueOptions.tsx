@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { Trophy, Circle, GraduationCap, Globe } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
 
 type LeagueConfig = {
@@ -43,12 +44,15 @@ const SPORT_LEAGUES: Record<string, SportConfig> = {
 export default function LeagueOptions() {
   const [, setLocation] = useLocation();
   const { sport } = useParams<{ sport: string }>();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, isLoading]);
+
+  if (isLoading || !user) return null;
 
   const sportConfig = sport ? SPORT_LEAGUES[sport.toLowerCase()] : undefined;
 
