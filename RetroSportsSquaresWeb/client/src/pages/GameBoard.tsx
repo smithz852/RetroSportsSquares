@@ -404,9 +404,8 @@ useEffect(() => {
       <div className="flex flex-col items-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 w-full">
           <div className="flex items-center gap-4 w-full max-w-xl">
-            {!gameStarted ? (
-              <>
-                  {isHost && isTurnBased && !selectionPhaseActive && (
+            <>
+                  {isHost && isTurnBased && !selectionPhaseActive && (!gameStarted) && (
                     <Button
                       onClick={() => beginSelections()}
                       disabled={isBeginPending}
@@ -416,7 +415,7 @@ useEffect(() => {
                     </Button>
                   )}
 
-                  {isHost && (
+                  {isHost && !gameStarted && (
                     <Button
                       onClick={handleStartGame}
                       className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
@@ -425,7 +424,7 @@ useEffect(() => {
                     </Button>
                   )}
 
-                  {isHost && isTurnBased && selectionPhaseActive && (
+                  {isHost && isTurnBased && selectionPhaseActive && !gameStarted && (
                     <Button
                       onClick={() => skipPlayer()}
                       disabled={isSkipPending}
@@ -435,7 +434,7 @@ useEffect(() => {
                     </Button>
                   )}
 
-                  {!hasSubmittedSelections && (!isTurnBased || selectionPhaseActive) && isMyTurn && (
+                  {!hasSubmittedSelections && (!isTurnBased || selectionPhaseActive) && isMyTurn && !gameStarted && (
                     <Button
                       onClick={handleSubmit}
                       disabled={isPending}
@@ -444,13 +443,7 @@ useEffect(() => {
                       {countdown !== null ? `SUBMIT (${countdown}s)` : "Submit"}
                     </Button>
                   )}
-
-              </>
-            ) : (
-              <div className="w-full bg-red-900/20 border-2 border-red-600 p-4 font-pixel text-red-500 animate-pulse text-center uppercase">
-                {(game as any)?.name} - IN PROGRESS
-              </div>
-            )}
+            </>
           </div>
 
           {/* Game Board with Team Labels */}
