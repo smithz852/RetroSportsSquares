@@ -58,6 +58,10 @@ export default function GameBoard() {
     ? turnStatus?.currentTurnUserId === user?.id
     : true;
 
+  const allSelectionsComplete =
+    (turnStatus?.players.length ?? 0) > 0 &&
+    (turnStatus?.players.every(p => p.hasHadTurn) ?? false);
+
   const [countdown, setCountdown] = useState<number | null>(null);
   const autoSubmitRef = useRef(false);
 
@@ -405,7 +409,7 @@ useEffect(() => {
         <div className="flex flex-col items-center gap-8 w-full">
           <div className="flex items-center gap-4 w-full max-w-xl">
             <>
-                  {isHost && isTurnBased && !selectionPhaseActive && (!gameStarted) && (
+                  {isHost && isTurnBased && !selectionPhaseActive && !gameStarted && !allSelectionsComplete && (
                     <Button
                       onClick={() => beginSelections()}
                       disabled={isBeginPending}
