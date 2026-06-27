@@ -8,4 +8,5 @@ public interface IGameHubNotifier
     Task NotifyGameDeleted(string gameId);
     Task NotifySquareSelected(string gameId);
     Task NotifyPlayerLeft(string gameId);
+    Task NotifyGameStarted(string gameId);
 }
