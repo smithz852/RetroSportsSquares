@@ -172,6 +172,9 @@ namespace RSS_DB.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("GamerTag")
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
 

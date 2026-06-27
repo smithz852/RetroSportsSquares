@@ -13,6 +13,7 @@ import Dashboard from "@/pages/Dashboard";
 import PlayerDashboard from "@/pages/PlayerDashboard";
 import LeagueOptions from "@/pages/LeagueOptions";
 import Signup from "@/pages/SignUp";
+import Settings from "@/pages/Settings";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
           <Route path="/arena/:type/:leagueId" component={Dashboard} />
           <Route path="/game/:id" component={GameBoard} />
           <Route path="/player-dashboard" component={PlayerDashboard} />
+          <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
       </main>

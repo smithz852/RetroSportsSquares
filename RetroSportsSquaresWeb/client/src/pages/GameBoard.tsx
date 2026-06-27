@@ -72,7 +72,7 @@ export default function GameBoard() {
 
   const hasSubmittedSelections = useMemo(() => {
     if (!boardSquares || !user) return false;
-    const mySquareCount = boardSquares.filter(s => s.displayName === user.displayName).length;
+    const mySquareCount = boardSquares.filter(s => s.displayName === (user.gamerTag ?? user.displayName)).length;
     const limit = game?.squareSelectionLimit;
     if (limit && limit > 0) return mySquareCount >= limit;
     return mySquareCount > 0;
@@ -353,7 +353,7 @@ useEffect(() => {
       return;
     }
 
-    const playerName = user?.displayName || activePlayer;
+    const playerName = user?.gamerTag ?? user?.displayName ?? activePlayer;
 
     if (selections[squareId]) {
       const { [squareId]: _, ...rest } = selections;
@@ -454,7 +454,7 @@ useEffect(() => {
           <div className="flex items-center gap-4">
             {/* Away Team Label (Rotated) */}
             <div className="flex items-center justify-center">
-              <span className="-rotate-90 text-red-600 font-pixel text-sm whitespace-nowrap">
+              <span className="-rotate-90 text-red-600 font-pixel text-s whitespace-nowrap">
                 {awayTeam}
               </span>
             </div>
@@ -463,7 +463,7 @@ useEffect(() => {
             <div className="flex flex-col">
               {/* Home Team Label */}
               <div className="text-center mb-7 pl-10 md:pl-14">
-                <span className="text-red-600 font-pixel text-sm">
+                <span className="text-red-600 font-pixel text-s">
                   {homeTeam}
                 </span>
               </div>
@@ -522,7 +522,7 @@ useEffect(() => {
                           } ${colIndex === winningCol ? 'winning-column' : ''} ${rowIndex === winningRow ? 'winning-row' : ''} ${isWinningSquare ? 'winning-square' : ''}`}
                         >
                           <span
-                            className={`font-pixel text-[6px] md:text-[8px] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
+                            className={`font-pixel text-[6px] md:text-[20px] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
                           >
                             {displayName}
                           </span>
@@ -544,13 +544,13 @@ useEffect(() => {
             <div className="flex-1 min-w-[280px] max-w-md">
               <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
                 <CardHeader className="border-b-2 border-red-900 p-4">
-                  <CardTitle className="text-xl text-red-600 font-pixel text-center uppercase tracking-tighter">
+                  <CardTitle className="text-2xl text-red-600 font-pixel text-center uppercase tracking-tighter">
                     {selectionPhaseActive ? "TURN ORDER" : "PLAYERS"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-2">
                   {turnStatus.players.length === 0 ? (
-                    <p className="text-red-900/60 font-pixel text-[8px] text-center uppercase pt-2">
+                    <p className="text-red-900/60 font-pixel text-s text-center uppercase pt-2">
                       Waiting for players to join...
                     </p>
                   ) : selectionPhaseActive ? (
@@ -569,14 +569,14 @@ useEffect(() => {
                               : "border-red-900/40"
                           }`}
                         >
-                          <span className="font-pixel text-[8px] text-red-900/60 w-4">{p.turnOrder}</span>
-                          <span className={`font-pixel text-[10px] flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
+                          <span className="font-pixel text-s text-red-900/60 w-4">{p.turnOrder}</span>
+                          <span className={`font-pixel text-s flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
                             {p.displayName}
                             {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
                             {p.hasHadTurn && " ✓"}
                           </span>
                           {isCurrent && countdown !== null && countdown > 0 && (
-                            <span className="font-pixel text-[8px] text-red-500">{countdown}s</span>
+                            <span className="font-pixel text-s text-red-500">{countdown}s</span>
                           )}
                         </motion.div>
                       );
@@ -590,7 +590,7 @@ useEffect(() => {
                             p.hasHadTurn ? "border-red-900/20 opacity-40" : "border-red-900/40"
                           }`}
                         >
-                          <span className={`font-pixel text-[10px] flex-1 truncate ${p.hasHadTurn ? "text-red-700" : "text-red-500"}`}>
+                          <span className={`font-pixel text-s flex-1 truncate ${p.hasHadTurn ? "text-red-700" : "text-red-500"}`}>
                             {p.displayName}
                             {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
                             {p.hasHadTurn && " ✓"}
@@ -598,7 +598,7 @@ useEffect(() => {
                         </div>
                       ))}
                       {isTurnBased && (
-                        <p className="text-red-900/40 font-pixel text-[8px] text-center uppercase pt-2">
+                        <p className="text-red-900/40 font-pixel text-s text-center uppercase pt-2">
                           {turnStatus.players.every(p => p.hasHadTurn)
                             ? "All players have selected"
                             : "Waiting for host to begin selections..."}
@@ -615,37 +615,21 @@ useEffect(() => {
           <div className="flex-1 min-w-[280px] max-w-md">
             <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
               <CardHeader className="border-b-2 border-red-900 p-4">
-                <CardTitle className="text-xl text-red-600 font-pixel text-center uppercase tracking-tighter">
+                <CardTitle className="text-2xl text-red-600 font-pixel text-center uppercase tracking-tighter">
                   THE ODDS
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-red-900 font-pixel uppercase">
-                    Multiplier
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      readOnly
-                      value={tempMultiplier}
-                      onChange={(e) =>
-                        setTempMultiplier(parseInt(e.target.value))
-                      }
-                      className="bg-black border-2 border-red-900 text-red-500 font-mono text-center rounded-none h-9 focus-visible:ring-0 focus-visible:border-red-600"
-                    />
-                    {/* May make this button only visible to the host and build in rules for changing wager amount when players have already joined */}
-                    {/* <Button
-                      size="sm"
-                      onClick={handleSetMultiplier}
-                      className="bg-green-700 text-white font-pixel text-[10px] rounded-none hover:bg-green-600 h-9"
-                    >
-                      SET
-                    </Button> */}
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-s text-red-900 font-pixel uppercase">Multiplier</span>
+                  <span className="font-pixel text-ss text-red-500 flex items-center gap-1">
+                    <Coins size={16} className="text-yellow-600" />
+                    {multiplier.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 text-[8px] text-red-900 font-pixel uppercase border-b border-red-900/30 pb-2">
+                  <div className="grid grid-cols-3 text-s text-red-900 font-pixel uppercase border-b border-red-900/30 pb-2">
                     <span>User</span>
                     <span className="text-center">Squares</span>
                     <span className="text-right">Wager</span>
@@ -653,7 +637,7 @@ useEffect(() => {
 
                   <div className="max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
                     {Object.entries(playerStats).length === 0 ? (
-                      <div className="text-center py-4 text-red-900/40 font-pixel text-[8px] uppercase">
+                      <div className="text-center py-4 text-red-900/40 font-pixel text-s uppercase">
                         No Selections
                       </div>
                     ) : (
@@ -662,12 +646,12 @@ useEffect(() => {
                           key={name}
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="grid grid-cols-3 text-[10px] font-pixel text-red-500 items-center"
+                          className="grid grid-cols-3 text-s font-pixel text-red-500 items-center"
                         >
                           <span className="truncate pr-1">{name}</span>
                           <span className="text-center">{count}</span>
                           <span className="text-right flex items-center justify-end gap-1">
-                            <Coins size={10} className="text-yellow-600" />
+                            <Coins size={16} className="text-yellow-600" />
                             {(count * multiplier).toFixed(2)}
                           </span>
                         </motion.div>
@@ -677,11 +661,11 @@ useEffect(() => {
                 </div>
 
                 <div className="pt-4 border-t-2 border-red-900 flex justify-between items-center">
-                  <span className="text-[8px] text-red-900 font-pixel uppercase">
+                  <span className="text-s text-red-900 font-pixel uppercase">
                     Total Pool
                   </span>
-                  <span className="text-sm text-red-600 font-pixel flex items-center gap-1">
-                    <Coins size={14} className="text-yellow-600" />
+                  <span className="text-s text-red-600 font-pixel flex items-center gap-1">
+                    <Coins size={16} className="text-yellow-600" />
                     {(Object.values(playerStats).reduce((a, b) => a + b, 0) * multiplier).toFixed(2)}
                   </span>
                 </div>

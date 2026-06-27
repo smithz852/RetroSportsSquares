@@ -13,6 +13,7 @@ export default function Signup() {
   const { mutate: signup, isPending } = useSignup();
   const [formData, setFormData] = useState({
     name: "",
+    gamerTag: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -56,6 +57,7 @@ export default function Signup() {
 
     signup({
       name: formData.name,
+      gamerTag: formData.gamerTag.trim().toUpperCase(),
       email: formData.email,
       password: formData.password,
     }, {
@@ -102,6 +104,17 @@ export default function Signup() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-primary font-pixel text-[10px] uppercase">Gamer Tag</label>
+                <p className="text-gray-500 font-pixel text-[8px]">TAG DISPLAYED ON SQUARES · 2-5 CHARS</p>
+                <Input
+                  required
+                  value={formData.gamerTag}
+                  maxLength={5}
+                  onChange={(e) => setFormData({ ...formData, gamerTag: e.target.value })}
+                  className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white uppercase"
                 />
               </div>
               <div className="space-y-2">

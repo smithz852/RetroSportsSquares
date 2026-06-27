@@ -77,11 +77,11 @@ namespace RSS.Helpers
 
         public SelectedSquaresByGameDTO SelectedSquaresByGameMapper(GameSquares squares)
         {
-            var playerSquare = squares.GamePlayer.User.DisplayName;
-            if (playerSquare == null) return null;
+            var tag = squares.GamePlayer.User.GamerTag ?? squares.GamePlayer.User.DisplayName;
+            if (tag == null) return null;
             return new SelectedSquaresByGameDTO()
             {
-                displayName = squares.GamePlayer.User.DisplayName,
+                displayName = tag,
             };
         }
 
