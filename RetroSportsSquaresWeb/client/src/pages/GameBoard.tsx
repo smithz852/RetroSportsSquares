@@ -46,7 +46,7 @@ export default function GameBoard() {
   const { mutate: startGame } = useStartGame(id);
   const { mutate: beginSelections, isPending: isBeginPending } = useBeginSelections(id);
   const { mutate: skipPlayer, isPending: isSkipPending } = useSkipPlayer(id);
-  const { data: scoreData, isLoading } = GetGameScoreData(id, 1 * 60 * 1000);
+  const { data: scoreData, isLoading } = GetGameScoreData(id);
 
   useGameHub(id);
 

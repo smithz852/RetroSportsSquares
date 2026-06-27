@@ -56,6 +56,11 @@ export function useGameHub(gameId: string) {
       queryClient.invalidateQueries({ queryKey: ["OutsideSquares", gameId] });
     });
 
+    // Score data updated by background service — refresh scoreboard for all players
+    connection.on("ScoreUpdated", () => {
+      queryClient.invalidateQueries({ queryKey: ["gameScoreData", gameId] });
+    });
+
     connection
       .start()
       .then(() => connection.invoke("JoinGame", gameId))

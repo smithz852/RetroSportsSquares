@@ -17,9 +17,12 @@ namespace RSS_Services
     {
         private AppDbContext _appDbContext;
         private readonly Random _random = new();
-        public SquareServices(AppDbContext appDbContext)
+        private readonly IGameHubNotifier _hubNotifier;
+
+        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier)
         {
             _appDbContext = appDbContext;
+            _hubNotifier = hubNotifier;
         }
 
         public async Task<List<GameSquares>> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
@@ -293,6 +296,13 @@ namespace RSS_Services
             return await _appDbContext.SquareGames
                 .Where(g => g.DailySportGameId == sportsGameId)
                 .ToListAsync();
+        }
+
+        public async Task NotifyScoreUpdatedAsync(Guid sportsGameId)
+        {
+            var squareGames = await GetSquareGamesBySportsGameId(sportsGameId);
+            foreach (var squareGame in squareGames)
+                await _hubNotifier.NotifyScoreUpdated(squareGame.Id.ToString());
         }
 
         //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)

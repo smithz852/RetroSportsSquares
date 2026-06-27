@@ -41,6 +41,7 @@ namespace RSS.SportsDataAutomation
                         // that use "FT" as both their final-period trigger and terminal status
                         // still get their last period resolved.
                         await ProcessQuarterlyWinners(squareServices, gameData, game.Id);
+                        await squareServices.NotifyScoreUpdatedAsync(game.Id);
 
                         if (gameData.Status is "FT" or "AOT" or "Final/OT" or "Postponed") continue;
                     }
