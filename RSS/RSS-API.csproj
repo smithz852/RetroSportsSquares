@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Resend" Version="0.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
@@ -17,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RSS-DB\RSS-DB.csproj" />
     <ProjectReference Include="..\RSS-Services\RSS-Services.csproj" />
+	<ProjectReference Include="..\..\ZlEmailProvider\ZlEmailProvider\ZlEmailProvider.csproj" />
   </ItemGroup>
 
   <ItemGroup>
