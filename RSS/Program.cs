@@ -33,6 +33,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(1);
+});
+
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -109,6 +114,7 @@ builder.Services.AddHostedService<SoccerRefetchAutomation>();
 builder.Services.AddResend(o => o.ApiToken = builder.Configuration["Resend:ApiKey"]);
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection("Resend"));
 builder.Services.AddSingleton<IEmailService, ResendEmailService>();
+builder.Services.AddScoped<TokenService>();
 
 var app = builder.Build();
 
