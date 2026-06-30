@@ -116,7 +116,7 @@ builder.Services.AddHostedService<SoccerRefetchAutomation>();
 //email services
 builder.Services.AddResend(o => o.ApiToken = builder.Configuration["Resend:ApiKey"]);
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection("Resend"));
-builder.Services.AddSingleton<IEmailService, ResendEmailService>();
+builder.Services.AddScoped<IEmailService, ResendEmailService>();
 builder.Services.AddScoped<TokenService>();
 
 // Rate limiting

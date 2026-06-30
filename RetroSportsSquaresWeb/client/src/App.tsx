@@ -14,6 +14,8 @@ import PlayerDashboard from "@/pages/PlayerDashboard";
 import LeagueOptions from "@/pages/LeagueOptions";
 import Signup from "@/pages/SignUp";
 import Settings from "@/pages/Settings";
+import ConfirmEmailChange from "@/pages/ConfirmEmailChange";
+import ResetPassword from "@/pages/ResetPassword";
 
 function Router() {
   return (
@@ -30,6 +32,8 @@ function Router() {
           <Route path="/game/:id" component={GameBoard} />
           <Route path="/player-dashboard" component={PlayerDashboard} />
           <Route path="/settings" component={Settings} />
+          <Route path="/confirm-email-change" component={ConfirmEmailChange} />
+          <Route path="/reset-password" component={ResetPassword} />
           <Route component={NotFound} />
         </Switch>
       </main>
