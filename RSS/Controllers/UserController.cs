@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using RSS_DB.Entities;
 using RSS_Services;
 using System.Security.Claims;
@@ -15,12 +16,14 @@ namespace RSS.Controllers
         private readonly UserServices _userServices;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly TokenService _tokenService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(UserServices userServices, UserManager<ApplicationUser> userManager, TokenService tokenService)
+        public UserController(UserServices userServices, UserManager<ApplicationUser> userManager, TokenService tokenService, ILogger<UserController> logger)
         {
             _userServices = userServices;
             _userManager = userManager;
             _tokenService = tokenService;
+            _logger = logger;
         }
 
         [HttpPatch("display-name")]
@@ -77,9 +80,9 @@ namespace RSS.Controllers
                 await _tokenService.SendEmailChangeConfirmationAsync(user, dto.NewEmail);
                 return Ok(new { message = "A confirmation link has been sent to your new email address." });
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO (Phase 6): log exception
+                _logger.LogError(ex, "Failed to send email change confirmation for user {UserId}", user.Id);
                 return StatusCode(500, new { message = "Failed to send confirmation email. Please try again or contact support." });
             }
         }
