@@ -1,15 +1,20 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 using RSS;
+using RSS.Middleware;
 using RSS.SportsDataAutomation;
 using RSS_DB;
 using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.Helpers;
 using System.Text;
+using System.Threading.RateLimiting;
+using ZlEmailProvider;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +35,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(1);
+});
 
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -103,6 +113,64 @@ builder.Services.AddHostedService<FootballRefetchAutomation>();
 builder.Services.AddHostedService<BasketballRefetchAutomation>();
 builder.Services.AddHostedService<SoccerRefetchAutomation>();
 
+//email services
+builder.Services.AddResend(o => o.ApiToken = builder.Configuration["Resend:ApiKey"]);
+builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection("Resend"));
+builder.Services.AddSingleton<IEmailService, ResendEmailService>();
+builder.Services.AddScoped<TokenService>();
+
+// Rate limiting
+var authPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    "/auth/forgot-password",
+    "/auth/reset-password",
+    "/user/request-email-change"
+};
+
+builder.Services.AddRateLimiter(options =>
+{
+    var ipLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        if (!authPaths.Contains(context.Request.Path.Value ?? ""))
+            return RateLimitPartition.GetNoLimiter("no-limit");
+
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"ip:{ip}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+    var emailLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        if (!authPaths.Contains(context.Request.Path.Value ?? ""))
+            return RateLimitPartition.GetNoLimiter("no-limit");
+
+        var key = context.Items["rate-limit-key"] as string ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"email:{key}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromHours(1),
+                QueueLimit = 0
+            });
+    });
+
+    options.GlobalLimiter = PartitionedRateLimiter.CreateChained(ipLimiter, emailLimiter);
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { message = "Too many requests. Please try again later." }, token);
+    };
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -114,6 +182,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<EmailExtractionMiddleware>(); // must run after auth so JWT claims are available
+app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<RSS.Hubs.GameHub>("/hubs/game");
