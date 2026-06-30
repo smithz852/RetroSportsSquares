@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using RSS_DB.Entities;
 using RSS_Services;
 using System.Security.Claims;
 
@@ -11,10 +13,14 @@ namespace RSS.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserServices _userServices;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly TokenService _tokenService;
 
-        public UserController(UserServices userServices)
+        public UserController(UserServices userServices, UserManager<ApplicationUser> userManager, TokenService tokenService)
         {
             _userServices = userServices;
+            _userManager = userManager;
+            _tokenService = tokenService;
         }
 
         [HttpPatch("display-name")]
@@ -49,8 +55,55 @@ namespace RSS.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("request-email-change")]
+        public async Task<IActionResult> RequestEmailChange([FromBody] RequestEmailChangeDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+
+            var passwordValid = await _userManager.CheckPasswordAsync(user, dto.CurrentPassword);
+            if (!passwordValid) return Unauthorized();
+
+            var existingUser = await _userManager.FindByEmailAsync(dto.NewEmail);
+            if (existingUser != null)
+                return BadRequest(new { message = "That email address is already in use." });
+
+            try
+            {
+                await _tokenService.SendEmailChangeConfirmationAsync(user, dto.NewEmail);
+                return Ok(new { message = "A confirmation link has been sent to your new email address." });
+            }
+            catch
+            {
+                // TODO (Phase 6): log exception
+                return StatusCode(500, new { message = "Failed to send confirmation email. Please try again or contact support." });
+            }
+        }
+
+        [HttpPost("confirm-email-change")]
+        public async Task<IActionResult> ConfirmEmailChange([FromBody] ConfirmEmailChangeDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+
+            var result = await _userManager.ChangeEmailAsync(user, dto.NewEmail, dto.Token);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            await _userManager.SetUserNameAsync(user, dto.NewEmail);
+            return Ok(new { message = "Email address updated successfully." });
+        }
     }
 
     public record UpdateDisplayNameDto(string DisplayName);
     public record UpdateGamerTagDto(string GamerTag);
+    public record RequestEmailChangeDto(string NewEmail, string CurrentPassword);
+    public record ConfirmEmailChangeDto(string NewEmail, string Token);
 }

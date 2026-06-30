@@ -36,6 +36,18 @@ public class TokenService
     {
         var token = await _userManager.GenerateChangeEmailTokenAsync(user, newEmail);
         var encodedToken = Uri.EscapeDataString(token);
-        await _emailService.SendEmailChangeConfirmationAsync(user.Email!, newEmail, encodedToken);
+
+        // Critical — let this throw if it fails so the caller can surface the error
+        await _emailService.SendEmailChangeConfirmationAsync(newEmail, newEmail, encodedToken);
+
+        // Best-effort — don't block the user if the notice fails
+        try
+        {
+            await _emailService.SendEmailChangeNoticeAsync(user.Email!);
+        }
+        catch
+        {
+            // TODO (Phase 6): log failure to send security notice to user.Email
+        }
     }
 }
