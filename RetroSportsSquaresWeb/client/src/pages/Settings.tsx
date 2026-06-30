@@ -6,6 +6,7 @@ import { RetroButton } from "@/components/RetroButton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { PasswordChangeModal } from "@/components/PasswordChangeModal";
+import { EmailChangeModal } from "@/components/EmailChangeModal";
 import { Pencil, Check, Loader2, ArrowLeft } from "lucide-react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 
@@ -114,6 +115,7 @@ export default function Settings() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   if (!user) {
@@ -187,13 +189,14 @@ export default function Settings() {
           {/* Security & Access */}
           <TabsContent value="security" className="p-6 mt-0">
             <div className="max-w-lg space-y-6">
-              <div className="space-y-1">
-                <EditableField
-                  label="EMAIL"
-                  value={user.email ?? ""}
-                  inputType="email"
-                  onSave={async () => { /* TODO: wire email change endpoint */ }}
-                />
+              <div className="flex flex-col gap-2 py-3 border-b border-primary/10">
+                <span className="font-['Press_Start_2P'] text-gray-500 text-[9px] tracking-wider">EMAIL</span>
+                <p className="font-['VT323'] text-white text-xl">{user.email}</p>
+                <div>
+                  <RetroButton variant="outline" size="sm" onClick={() => setEmailModalOpen(true)}>
+                    CHANGE EMAIL
+                  </RetroButton>
+                </div>
               </div>
 
               <div className="flex flex-col gap-2 pt-2 border-t-2 border-primary/20">
@@ -230,6 +233,7 @@ export default function Settings() {
       </div>
 
       <PasswordChangeModal open={pwModalOpen} onClose={() => setPwModalOpen(false)} />
+      <EmailChangeModal open={emailModalOpen} onClose={() => setEmailModalOpen(false)} />
     </div>
   );
 }

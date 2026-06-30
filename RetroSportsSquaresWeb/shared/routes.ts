@@ -37,10 +37,14 @@ export const endpoints = {
     logout: '/Auth/logout',
     getUser: '/Auth/me',
     signup: '/Auth/signup',
+    forgotPassword: '/Auth/forgot-password',
+    resetPassword: '/Auth/reset-password',
   },
   user: {
     updateDisplayName: '/User/display-name',
     updateGamerTag: '/User/gamer-tag',
+    requestEmailChange: '/User/request-email-change',
+    confirmEmailChange: '/User/confirm-email-change',
   }
 };
 
