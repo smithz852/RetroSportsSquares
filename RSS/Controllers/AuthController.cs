@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using RSS_DB.Entities;
+using RSS_Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,12 +17,14 @@ namespace RSS.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _config;
+        private readonly TokenService _tokenService;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
+            _tokenService = tokenService;
         }
 
         [HttpPost("login")]
@@ -74,6 +77,28 @@ namespace RSS.Controllers
             return Ok(new { message = "User created successfully" });
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            // TODO: rate limit to 3 requests per email per hour (Phase 6)
+            await _tokenService.SendPasswordResetEmailAsync(dto.Email);
+            return Ok(new { message = "If that email is registered, a reset link has been sent." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+                return BadRequest(new { message = "Invalid request." });
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Password reset successfully." });
+        }
+
         private string GenerateJwtToken(ApplicationUser user)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -98,4 +123,6 @@ namespace RSS.Controllers
 
     public record RegisterDto(string Email, string Password, string Name, string? GamerTag);
     public record LoginDto(string Email, string Password);
+    public record ForgotPasswordDto(string Email);
+    public record ResetPasswordDto(string Email, string Token, string NewPassword);
 }
