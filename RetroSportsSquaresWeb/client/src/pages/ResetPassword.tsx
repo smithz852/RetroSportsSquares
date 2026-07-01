@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { RetroButton } from "@/components/RetroButton";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 
 export default function ResetPassword() {
+  const queryClient = useQueryClient();
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token") ?? "";
   const email = params.get("email") ?? "";
@@ -51,6 +53,7 @@ export default function ResetPassword() {
         throw new Error(data.message ?? "RESET FAILED. THE LINK MAY HAVE EXPIRED.");
       }
       localStorage.removeItem("token");
+      queryClient.setQueryData(["currentUser"], null);
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "SOMETHING WENT WRONG");

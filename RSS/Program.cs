@@ -12,8 +12,10 @@ using RSS_DB;
 using RSS_DB.Entities;
 using RSS_Services;
 using RSS_Services.Helpers;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 using ZlEmailProvider;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddMemoryCache();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -69,6 +72,38 @@ builder.Services.AddAuthentication(options =>
                 ctx.Request.Path.StartsWithSegments("/hubs"))
                 ctx.Token = token;
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async ctx =>
+        {
+            var userId = ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stampClaim = ctx.Principal?.FindFirstValue("security_stamp");
+
+            if (userId == null || stampClaim == null)
+            {
+                ctx.Fail("Missing required claims");
+                return;
+            }
+
+            var cache = ctx.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+            var cacheKey = $"stamp_{userId}";
+
+            if (!cache.TryGetValue(cacheKey, out string? cachedStamp))
+            {
+                var userManager = ctx.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                var user = await userManager.FindByIdAsync(userId);
+
+                if (user == null)
+                {
+                    ctx.Fail("User not found");
+                    return;
+                }
+
+                cachedStamp = user.SecurityStamp;
+                cache.Set(cacheKey, cachedStamp, TimeSpan.FromSeconds(30));
+            }
+
+            if (cachedStamp != stampClaim)
+                ctx.Fail("Security stamp mismatch");
         }
     };
 });

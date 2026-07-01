@@ -11,11 +11,9 @@ export function useGameHub(gameId: string) {
 
   useEffect(() => {
     if (!gameId) return;
-    const token = localStorage.getItem("token");
-
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/hubs/game`, {
-        accessTokenFactory: () => token ?? "",
+        accessTokenFactory: () => localStorage.getItem("token") ?? "",
       })
       .withAutomaticReconnect()
       .build();

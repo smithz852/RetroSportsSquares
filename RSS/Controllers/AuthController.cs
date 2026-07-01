@@ -107,7 +107,8 @@ namespace RSS.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Email, user.Email!)
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim("security_stamp", user.SecurityStamp!)
             };
 
             var token = new JwtSecurityToken(
