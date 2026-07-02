@@ -556,64 +556,66 @@ useEffect(() => {
                     {selectionPhaseActive ? "TURN ORDER" : "PLAYERS"}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 space-y-2">
-                  {turnStatus.players.length === 0 ? (
-                    <p className="text-red-900/60 font-pixel text-s text-center uppercase pt-2">
-                      Waiting for players to join...
-                    </p>
-                  ) : selectionPhaseActive ? (
-                    turnStatus.players.map((p) => {
-                      const isCurrent = p.userId === turnStatus.currentTurnUserId;
-                      return (
-                        <motion.div
-                          key={p.userId}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`flex items-center gap-3 p-2 border ${
-                            isCurrent
-                              ? "border-red-500 bg-red-900/20 animate-pulse"
-                              : p.hasHadTurn
-                              ? "border-red-900/20 opacity-40"
-                              : "border-red-900/40"
-                          }`}
-                        >
-                          <span className="font-pixel text-s text-red-900/60 w-4">{p.turnOrder}</span>
-                          <span className={`font-pixel text-s flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
-                            {p.displayName}
-                            {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
-                            {p.hasHadTurn && " ✓"}
-                          </span>
-                          {isCurrent && countdown !== null && countdown > 0 && (
-                            <span className="font-pixel text-s text-red-500">{countdown}s</span>
-                          )}
-                        </motion.div>
-                      );
-                    })
-                  ) : (
-                    <>
-                      {turnStatus.players.map((p) => (
-                        <div
-                          key={p.userId}
-                          className={`flex items-center gap-3 p-2 border ${
-                            p.hasHadTurn ? "border-red-900/20 opacity-40" : "border-red-900/40"
-                          }`}
-                        >
-                          <span className={`font-pixel text-s flex-1 truncate ${p.hasHadTurn ? "text-red-700" : "text-red-500"}`}>
-                            {p.displayName}
-                            {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
-                            {p.hasHadTurn && " ✓"}
-                          </span>
-                        </div>
-                      ))}
-                      {isTurnBased && (
-                        <p className="text-red-900/40 font-pixel text-s text-center uppercase pt-2">
-                          {turnStatus.players.every(p => p.hasHadTurn)
-                            ? "All players have selected"
-                            : "Waiting for host to begin selections..."}
-                        </p>
-                      )}
-                    </>
-                  )}
+                <CardContent className="p-4">
+                  <div className="max-h-[400px] overflow-y-auto space-y-2 custom-scrollbar">
+                    {turnStatus.players.length === 0 ? (
+                      <p className="text-red-900/60 font-pixel text-s text-center uppercase pt-2">
+                        Waiting for players to join...
+                      </p>
+                    ) : selectionPhaseActive ? (
+                      turnStatus.players.map((p) => {
+                        const isCurrent = p.userId === turnStatus.currentTurnUserId;
+                        return (
+                          <motion.div
+                            key={p.userId}
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`flex items-center gap-3 p-2 border ${
+                              isCurrent
+                                ? "border-red-500 bg-red-900/20 animate-pulse"
+                                : p.hasHadTurn
+                                ? "border-red-900/20 opacity-40"
+                                : "border-red-900/40"
+                            }`}
+                          >
+                            <span className="font-pixel text-s text-red-900/60 w-4">{p.turnOrder}</span>
+                            <span className={`font-pixel text-s flex-1 truncate ${isCurrent ? "text-red-400" : "text-red-700"}`}>
+                              {p.displayName}
+                              {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
+                              {p.hasHadTurn && " ✓"}
+                            </span>
+                            {isCurrent && countdown !== null && countdown > 0 && (
+                              <span className="font-pixel text-s text-red-500">{countdown}s</span>
+                            )}
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <>
+                        {turnStatus.players.map((p) => (
+                          <div
+                            key={p.userId}
+                            className={`flex items-center gap-3 p-2 border ${
+                              p.hasHadTurn ? "border-red-900/20 opacity-40" : "border-red-900/40"
+                            }`}
+                          >
+                            <span className={`font-pixel text-s flex-1 truncate ${p.hasHadTurn ? "text-red-700" : "text-red-500"}`}>
+                              {p.displayName}
+                              {p.isHost && <span className="text-red-900/60"> [HOST]</span>}
+                              {p.hasHadTurn && " ✓"}
+                            </span>
+                          </div>
+                        ))}
+                        {isTurnBased && (
+                          <p className="text-red-900/40 font-pixel text-s text-center uppercase pt-2">
+                            {turnStatus.players.every(p => p.hasHadTurn)
+                              ? "All players have selected"
+                              : "Waiting for host to begin selections..."}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
