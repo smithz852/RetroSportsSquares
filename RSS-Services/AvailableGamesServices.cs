@@ -91,7 +91,15 @@ namespace RSS_Services
             var gameId = Guid.Parse(id);
             return _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)
+                .Include(g => g.GameSquares)
                 .FirstOrDefault(g => g.Id == gameId);
+        }
+
+        public decimal GetPayoutPerPeriod(SquareGames game)
+        {
+            var claimedSquares = game.GameSquares.Count(gs => gs.GamePlayerId != null);
+            var totalPool = game.PricePerSquare * claimedSquares;
+            return game.PeriodCount > 0 ? totalPool / game.PeriodCount : 0;
         }
 
         public async Task<Dictionary<int, string?>> GetPeriodWinnerDisplayNames(Dictionary<int, string?> periodWinners)

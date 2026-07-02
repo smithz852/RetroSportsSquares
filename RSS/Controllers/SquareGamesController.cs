@@ -150,7 +150,8 @@ namespace RSS.Controllers
                 return NotFound();
 
             var winnerNames = await _availableGamesServices.GetPeriodWinnerDisplayNames(scoreData.PeriodWinners);
-            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames);
+            var payoutPerPeriod = _availableGamesServices.GetPayoutPerPeriod(scoreData);
+            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames, payoutPerPeriod);
             return Ok(gameDto);
         }
 

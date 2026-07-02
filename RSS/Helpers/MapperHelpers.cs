@@ -45,7 +45,7 @@ namespace RSS.Helpers
             };
         }
 
-        public SportScoreUpdateDTO ScoreDataMapper(SquareGames squaregame, Dictionary<int, string?> periodWinnerNames)
+        public SportScoreUpdateDTO ScoreDataMapper(SquareGames squaregame, Dictionary<int, string?> periodWinnerNames, decimal payoutPerPeriod)
         {
             return new SportScoreUpdateDTO
             {
@@ -58,6 +58,7 @@ namespace RSS.Helpers
                 HomePeriodScores = squaregame.DailySportGame.HomePeriodScores,
                 AwayPeriodScores = squaregame.DailySportGame.AwayPeriodScores,
                 PeriodWinners = periodWinnerNames,
+                PayoutPerPeriod = payoutPerPeriod,
             };
         }
 
@@ -104,7 +105,7 @@ namespace RSS.Helpers
                 Id = square.Id,
                 RowIndex = square.RowIndex,
                 ColIndex = square.ColumnIndex,
-                DisplayName = square.GamePlayer?.User?.DisplayName,
+                DisplayName = square.GamePlayer?.User?.GamerTag ?? square.GamePlayer?.User?.DisplayName,
             }).ToList();
         }
     }
