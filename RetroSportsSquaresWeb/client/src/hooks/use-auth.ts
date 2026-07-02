@@ -15,14 +15,8 @@ async function fetchUser(): Promise<User | null> {
   return response.json();
 }
 
+// JWT auth is stateless: logout is purely client-side (no /Auth/logout endpoint exists)
 async function logout(): Promise<void> {
-  const token = localStorage.getItem('token');
-  if (token) {
-    await fetch(`${API_BASE_URL}${endpoints.auth.logout}`, { 
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-  }
   localStorage.removeItem('token');
 }
 

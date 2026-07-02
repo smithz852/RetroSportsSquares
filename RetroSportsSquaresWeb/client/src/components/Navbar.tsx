@@ -7,8 +7,12 @@ export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
 
   const handleLogout = () => {
-    logout();
-    window.location.href = "/";
+    // Navigate only after the token is cleared, or the reload races the removal
+    logout(undefined, {
+      onSettled: () => {
+        window.location.href = "/";
+      },
+    });
   };
 
   const handleLogin = () => {
@@ -45,6 +49,13 @@ export function Navbar() {
                     PROFILE
                   </RetroButton>
                 </Link>
+                {user.isAdmin && (
+                  <Link href="/admin">
+                    <RetroButton variant="outline" size="sm">
+                      ADMIN
+                    </RetroButton>
+                  </Link>
+                )}
                 <RetroButton 
                   variant="outline" 
                   size="sm" 

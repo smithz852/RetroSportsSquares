@@ -32,9 +32,15 @@ export const endpoints = {
     currentGames: '/PlayerDashboard/current-games',
     pastGames: (page: number, pageSize: number) => `/PlayerDashboard/past-games?page=${page}&pageSize=${pageSize}`,
   },
+  admin: {
+    summary: '/Admin/summary',
+    currentGames: '/Admin/games/current',
+    pastGames: (page: number, pageSize: number) => `/Admin/games/past?page=${page}&pageSize=${pageSize}`,
+    playerStats: '/Admin/players/stats',
+    users: '/Admin/users',
+  },
   auth: {
     login: '/Auth/login',
-    logout: '/Auth/logout',
     getUser: '/Auth/me',
     signup: '/Auth/signup',
     forgotPassword: '/Auth/forgot-password',

@@ -38,8 +38,9 @@ namespace RSS.Controllers
             if (!result.Succeeded)
                 return Unauthorized();
 
-            var token = GenerateJwtToken(user);
-            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag } });
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = GenerateJwtToken(user, roles);
+            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin") } });
         }
 
         [HttpGet("me")]
@@ -52,7 +53,8 @@ namespace RSS.Controllers
             if (user == null)
                 return NotFound();
 
-            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag });
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin") });
         }
 
         [HttpPost("signup")]
@@ -99,17 +101,18 @@ namespace RSS.Controllers
             return Ok(new { message = "Password reset successfully." });
         }
 
-        private string GenerateJwtToken(ApplicationUser user)
+        private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email!),
                 new Claim("security_stamp", user.SecurityStamp!)
             };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
