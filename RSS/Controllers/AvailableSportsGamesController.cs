@@ -19,8 +19,8 @@ namespace RSS.Controllers
             _mapperHelpers = mapperHelpers;
         }
 
-        [HttpGet("GetAvailable{gameType}League{leagueId}GameOptions")]
-        public IActionResult GetAvailableNflGameOptions(string gameType, string leagueId)
+        [HttpGet("GetAvailable/{gameType}/league/{leagueId}/GameOptions")]
+        public IActionResult GetAvailableSportsGameOptions(string gameType, string leagueId)
         {
             int leagueIdStringToInt = int.Parse(leagueId);
            var availableGameOptions = _sportsGameServices.GetAvailableSportsGameOptions(gameType, leagueIdStringToInt);
