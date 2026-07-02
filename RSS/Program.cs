@@ -118,6 +118,7 @@ builder.Services.AddScoped<TimeHelpers>();
 builder.Services.AddScoped<RSS_Services.SquareServices>();
 builder.Services.AddScoped<RSS_Services.GamePlayerServices>();
 builder.Services.AddScoped<RSS_Services.PlayerDashboardService>();
+builder.Services.AddScoped<RSS_Services.AdminDashboardService>();
 builder.Services.AddScoped<RSS_Services.UserServices>();
 builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
 {
@@ -139,7 +140,32 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Paste the JWT from /auth/login (no 'Bearer ' prefix needed)"
+    });
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddHostedService<BasketballAutomation>();
 builder.Services.AddHostedService<FootballAutomation>();
@@ -228,6 +254,11 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     DevDataSeeder.Seed(db);
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    await AdminRoleSeeder.SeedAsync(scope.ServiceProvider, app.Configuration, app.Logger);
 }
 
 app.Run();

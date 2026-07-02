@@ -117,6 +117,7 @@ export interface User {
   email: string;
   displayName: string;
   gamerTag: string | null;
+  isAdmin: boolean;
 }
 
 export interface LoginResponse {
@@ -183,4 +184,76 @@ export interface PaginatedPastGames {
   totalCount: number;
   page: number;
   pageSize: number;
+}
+
+export interface AdminSummary {
+  totalUsers: number;
+  activeGames: number;
+  completedGames: number;
+  totalCoinsWagered: number;
+}
+
+export interface AdminCurrentGame {
+  gameId: string;
+  gameName: string;
+  gameType: string;
+  league: string;
+  matchup: string;
+  hostDisplayName: string | null;
+  playersJoined: number;
+  maxPlayers: number;
+  pricePerSquare: number;
+  squaresClaimed: number;
+  isOpen: boolean;
+  selectionPhaseActive: boolean;
+  isPublic: boolean;
+  createdAt: string;
+}
+
+export interface AdminPeriodWinner {
+  period: number;
+  winnerDisplayName: string | null;
+}
+
+export interface AdminPastGame {
+  gameId: string;
+  gameName: string;
+  gameType: string;
+  league: string;
+  matchup: string;
+  hostDisplayName: string | null;
+  playersJoined: number;
+  pricePerSquare: number;
+  totalPot: number;
+  periodWinners: AdminPeriodWinner[];
+  createdAt: string;
+}
+
+export interface AdminPaginatedPastGames {
+  games: AdminPastGame[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminPlayerStats {
+  userId: string;
+  displayName: string | null;
+  gamerTag: string | null;
+  gamesPlayed: number;
+  totalSquaresClaimed: number;
+  periodsWon: number;
+  totalWagered: number;
+  wagersWon: number;
+  winRate: number;
+}
+
+export interface AdminUserSummary {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  gamerTag: string | null;
+  createdAt: string;
+  gamesPlayed: number;
+  isAdmin: boolean;
 }

@@ -16,6 +16,8 @@ import Signup from "@/pages/SignUp";
 import Settings from "@/pages/Settings";
 import ConfirmEmailChange from "@/pages/ConfirmEmailChange";
 import ResetPassword from "@/pages/ResetPassword";
+import AdminDashboard from "@/pages/AdminDashboard";
+import { AdminRoute } from "@/components/AdminRoute";
 
 function Router() {
   return (
@@ -31,6 +33,11 @@ function Router() {
           <Route path="/arena/:type/:leagueId" component={Dashboard} />
           <Route path="/game/:id" component={GameBoard} />
           <Route path="/player-dashboard" component={PlayerDashboard} />
+          <Route path="/admin">
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          </Route>
           <Route path="/settings" component={Settings} />
           <Route path="/confirm-email-change" component={ConfirmEmailChange} />
           <Route path="/reset-password" component={ResetPassword} />
