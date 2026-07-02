@@ -1,4 +1,5 @@
 using RSS_Services;
+using RSS_Services.Helpers;
 
 namespace RSS.SportsDataAutomation
 {
@@ -6,6 +7,7 @@ namespace RSS.SportsDataAutomation
     {
         protected readonly IServiceProvider _serviceProvider;
         protected abstract string SportName { get; }
+        protected abstract string SportsType { get; }
         protected abstract int LoadHourPst { get; }
 
         protected BaseSportsAutomation(IServiceProvider serviceProvider)
@@ -22,6 +24,8 @@ namespace RSS.SportsDataAutomation
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                await CloseStaleGames();
+
                 var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
                 var nowUtc = DateTimeOffset.UtcNow;
                 var nowPacific = TimeZoneInfo.ConvertTime(nowUtc, pacific);
@@ -65,5 +69,14 @@ namespace RSS.SportsDataAutomation
 
         protected abstract Task<bool> HasTodaysDataBeenLoaded();
         protected abstract Task TryToLoadAvailableGames();
+
+        private async Task CloseStaleGames()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
+            var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
+            var todayPst = timeHelpers.GetTimeDateTimeTodayInPst();
+            await squareServices.CloseStaleGamesAsync(SportsType, todayPst);
+        }
     }
 }

@@ -6,9 +6,8 @@ namespace RSS.SportsDataAutomation
     public class BasketballAutomation : BaseSportsAutomation
     {
         protected override string SportName => "Basketball";
+        protected override string SportsType => "basketball";
         protected override int LoadHourPst => 1;
-
-        private const string SportsType = "basketball";
 
         // Add league IDs here to expand coverage (e.g. WNBA, EuroLeague)
         private static readonly int[] LeagueIds = { 12 };

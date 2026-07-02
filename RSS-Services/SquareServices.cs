@@ -305,6 +305,43 @@ namespace RSS_Services
                 await _hubNotifier.NotifyScoreUpdated(squareGame.Id.ToString());
         }
 
+        // Fallback for games left dangling by a missed/skipped quarterly-winner check (e.g. server downtime
+        // spanning midnight PST). Closes games the host never started, and force-completes games that started
+        // but never reached IsCompleted, backfilling any unresolved periods as null so past-game stats stay consistent.
+        public async Task CloseStaleGamesAsync(string sportType, DateTime todayPst)
+        {
+            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+
+            var incompleteGames = await _appDbContext.SquareGames
+                .Include(g => g.DailySportGame)
+                .Where(g => g.DailySportGame.SportType == sportType && !g.IsCompleted)
+                .ToListAsync();
+
+            var staleGames = incompleteGames
+                .Where(g => TimeZoneInfo.ConvertTime(g.DailySportGame.GameStartTime, pacific).Date < todayPst)
+                .ToList();
+
+            if (staleGames.Count == 0) return;
+
+            foreach (var game in staleGames)
+            {
+                if (!game.isOpen)
+                {
+                    for (int period = 1; period <= game.PeriodCount; period++)
+                    {
+                        if (!game.PeriodWinners.ContainsKey(period))
+                            game.PeriodWinners[period] = null;
+                    }
+                    _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
+                }
+
+                game.isOpen = false;
+                game.IsCompleted = true;
+            }
+
+            await _appDbContext.SaveChangesAsync();
+        }
+
         //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)
         //{
         //    var game = await _appDbContext.SquareGames

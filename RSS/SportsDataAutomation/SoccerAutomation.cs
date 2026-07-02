@@ -6,9 +6,8 @@ namespace RSS.SportsDataAutomation
     public class SoccerAutomation : BaseSportsAutomation
     {
         protected override string SportName => "Soccer";
+        protected override string SportsType => "soccer";
         protected override int LoadHourPst => 1;
-
-        private const string SportsType = "soccer";
 
         // TODO: Replace with the correct soccer API base URL from the API docs
         private const string ApiBaseUrl = "https://v3.football.api-sports.io";
