@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using RSS_DB.Entities;
 using RSS_Services;
@@ -18,13 +19,15 @@ namespace RSS.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _config;
         private readonly TokenService _tokenService;
+        private readonly IMemoryCache _cache;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
             _tokenService = tokenService;
+            _cache = cache;
         }
 
         [HttpPost("login")]
@@ -55,6 +58,25 @@ namespace RSS.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
             return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin") });
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.FindByIdAsync(userId!);
+
+            if (user == null)
+                return NotFound();
+
+            // Rotating the security stamp invalidates every outstanding JWT for
+            // this user ("log out everywhere"); evict the cached stamp so the
+            // revocation takes effect immediately instead of after the 30s TTL
+            await _userManager.UpdateSecurityStampAsync(user);
+            _cache.Remove($"stamp_{userId}");
+
+            return Ok(new { message = "Logged out." });
         }
 
         [HttpPost("signup")]
@@ -114,11 +136,16 @@ namespace RSS.Controllers
             };
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+            // Admin tokens carry elevated access, so keep their lifetime short
+            var expires = roles.Contains("Admin")
+                ? DateTime.Now.AddHours(24)
+                : DateTime.Now.AddDays(7);
+
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddDays(7),
+                expires: expires,
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

@@ -41,6 +41,7 @@ export const endpoints = {
   },
   auth: {
     login: '/Auth/login',
+    logout: '/Auth/logout',
     getUser: '/Auth/me',
     signup: '/Auth/signup',
     forgotPassword: '/Auth/forgot-password',
