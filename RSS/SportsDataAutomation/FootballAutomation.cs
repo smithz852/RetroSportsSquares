@@ -6,9 +6,8 @@ namespace RSS.SportsDataAutomation
     public class FootballAutomation : BaseSportsAutomation
     {
         protected override string SportName => "Football";
+        protected override string SportsType => "american-football";
         protected override int LoadHourPst => 1;
-
-        private const string SportsType = "american-football";
 
         // TODO: Confirm the correct base URL for a generic american-football data pull
         // The current URL targets api-sports.io — swap if you move to a different provider

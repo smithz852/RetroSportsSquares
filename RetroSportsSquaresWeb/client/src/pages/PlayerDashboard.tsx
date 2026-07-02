@@ -78,7 +78,7 @@ export default function PlayerDashboard() {
       </div>
 
       {/* Main layout: left column + right panel */}
-      <div className="flex gap-3 min-h-[480px]">
+      <div className="flex gap-3 h-[480px]">
 
         {/* ── Left column ── */}
         <div className="flex flex-col gap-3 w-36 shrink-0">
