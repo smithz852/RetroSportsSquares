@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useParams, Link, useLocation } from "wouter";
+import { useParams, Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -21,6 +21,10 @@ export default function GameBoard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Admins can open a board with ?spectate to view it without joining
+  const searchParams = useSearch();
+  const isSpectator = !!user?.isAdmin && new URLSearchParams(searchParams).has("spectate");
 
   const [gameStarted, setGameStarted] = useState(false);
 
@@ -131,12 +135,12 @@ useEffect(() => {
 
   // Register the current user as a game player when they open the board
   useEffect(() => {
-    if (user && id) {
+    if (user && id && !isSpectator) {
       joinGame(id, {
         onSuccess: (data) => setIsHost(data.isHost),
       });
     }
-  }, [user, id]);
+  }, [user, id, isSpectator]);
 
   // Update state when game data loads
   useEffect(() => {
@@ -146,7 +150,7 @@ useEffect(() => {
       setMultiplier(game.pricePerSquare || 0);
       setTempMultiplier(game.pricePerSquare || 0);
 
-      if (user) {
+      if (user && !isSpectator) {
         setActivePlayer(user.displayName);
         toast({
           title: "PLAYER SET",
@@ -340,7 +344,7 @@ useEffect(() => {
   
 
   const handleSquareClick = (squareId: string) => {
-    if (gameStarted) return;
+    if (gameStarted || isSpectator) return;
 
     if (isTurnBased && selectionPhaseActive && !isMyTurn) {
       toast({
@@ -415,6 +419,14 @@ useEffect(() => {
 
       <div className="flex flex-col items-center gap-8 w-full">
         <div className="flex flex-col items-center gap-8 w-full">
+          {isSpectator && (
+            <div className="w-full max-w-xl text-center border-2 border-red-900 bg-red-900/10 py-2">
+              <span className="font-pixel text-red-500 text-sm uppercase tracking-widest">
+                Spectator Mode — Viewing Only
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-4 w-full max-w-xl">
             <>
                   {isHost && isTurnBased && !selectionPhaseActive && !gameStarted && !allSelectionsComplete && (
@@ -446,7 +458,7 @@ useEffect(() => {
                     </Button>
                   )}
 
-                  {!hasSubmittedSelections && (!isTurnBased || selectionPhaseActive) && isMyTurn && !gameStarted && (
+                  {!isSpectator && !hasSubmittedSelections && (!isTurnBased || selectionPhaseActive) && isMyTurn && !gameStarted && (
                     <Button
                       onClick={handleSubmit}
                       disabled={isPending}
@@ -480,18 +492,19 @@ useEffect(() => {
               <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
                 <div
                   onClick={
-                    isHost && !gameStarted ? handleDeleteGame
+                    isSpectator ? undefined
+                    : isHost && !gameStarted ? handleDeleteGame
                     : !isHost && !gameStarted ? handleLeaveGame
                     : undefined
                   }
                   className={`w-10 h-10 md:w-14 md:h-14 border-2 border-red-900 flex items-center justify-center transition-colors ${
-                    (isHost && !gameStarted) || (!isHost && !gameStarted)
+                    !gameStarted && !isSpectator
                       ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500"
                       : "bg-red-900/20 cursor-default"
                   }`}
                 >
                   <span className="text-black font-pixel text-[8px] md:text-[10px]">
-                    {isHost && !gameStarted ? "DEL" : !isHost && !gameStarted ? "EXIT" : ""}
+                    {isSpectator || gameStarted ? "" : isHost ? "DEL" : "EXIT"}
                   </span>
                 </div>
 

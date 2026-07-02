@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import {
   useAdminSummary,
   useAdminCurrentGames,
@@ -82,7 +83,11 @@ function StatusBadge({ isOpen, selectionPhaseActive }: { isOpen: boolean; select
 }
 
 export default function AdminDashboard() {
+  const [, setLocation] = useLocation();
   const [pastPage, setPastPage] = useState(1);
+
+  // Open the board in admin spectator mode (view without joining)
+  const spectateGame = (gameId: string) => setLocation(`/game/${gameId}?spectate=1`);
 
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useAdminSummary();
   const { data: currentGames, isLoading: currentLoading, error: currentError } = useAdminCurrentGames();
@@ -175,7 +180,11 @@ export default function AdminDashboard() {
                 </TableHeader>
                 <TableBody>
                   {currentGames.map(game => (
-                    <TableRow key={game.gameId} className="border-primary/20 hover:bg-primary/5">
+                    <TableRow
+                      key={game.gameId}
+                      onClick={() => spectateGame(game.gameId)}
+                      className="border-primary/20 hover:bg-primary/5 cursor-pointer"
+                    >
                       <TableCell className={`${bodyCell} text-white`}>{game.gameName}</TableCell>
                       <TableCell className={bodyCell}>{game.hostDisplayName ?? '—'}</TableCell>
                       <TableCell className={bodyCell}>{game.gameType.toUpperCase()} / {game.league}</TableCell>
@@ -219,7 +228,11 @@ export default function AdminDashboard() {
                   </TableHeader>
                   <TableBody>
                     {pastGamesData.games.map(game => (
-                      <TableRow key={game.gameId} className="border-primary/20 hover:bg-primary/5">
+                      <TableRow
+                        key={game.gameId}
+                        onClick={() => spectateGame(game.gameId)}
+                        className="border-primary/20 hover:bg-primary/5 cursor-pointer"
+                      >
                         <TableCell className={`${bodyCell} text-white`}>{game.gameName}</TableCell>
                         <TableCell className={bodyCell}>{game.hostDisplayName ?? '—'}</TableCell>
                         <TableCell className={bodyCell}>{game.gameType.toUpperCase()} / {game.league}</TableCell>
