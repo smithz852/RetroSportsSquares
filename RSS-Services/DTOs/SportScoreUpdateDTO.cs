@@ -20,5 +20,6 @@ namespace RSS.DTOs
         public List<int> AwayPeriodScores { get; set; } = new();
         // Populated only for the score endpoint response (display names keyed by period number)
         public Dictionary<int, string?> PeriodWinners { get; set; } = new();
+        public decimal PayoutPerPeriod { get; set; }
     }
 }

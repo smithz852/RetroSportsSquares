@@ -78,6 +78,14 @@ export default function GameBoard() {
     return mySquareCount > 0;
   }, [boardSquares, user, game?.squareSelectionLimit]);
 
+    const periodsWonByPlayer = useMemo(() => {
+    const map: Record<string, number> = {};
+    Object.values(scoreData?.periodWinners ?? {}).forEach((name) => {
+      if (name) map[name] = (map[name] ?? 0) + 1;
+    });
+    return map;
+  }, [scoreData?.periodWinners]);
+
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
   });
@@ -629,10 +637,11 @@ useEffect(() => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 text-s text-red-900 font-pixel uppercase border-b border-red-900/30 pb-2">
+                  <div className="grid grid-cols-4 text-s text-red-900 font-pixel uppercase border-b border-red-900/30 pb-2">
                     <span>User</span>
                     <span className="text-center">Squares</span>
                     <span className="text-right">Wager</span>
+                    <span className="text-right">Won</span>
                   </div>
 
                   <div className="max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
@@ -646,13 +655,17 @@ useEffect(() => {
                           key={name}
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="grid grid-cols-3 text-s font-pixel text-red-500 items-center"
+                          className="grid grid-cols-4 text-s font-pixel text-red-500 items-center"
                         >
                           <span className="truncate pr-1">{name}</span>
                           <span className="text-center">{count}</span>
                           <span className="text-right flex items-center justify-end gap-1">
                             <Coins size={16} className="text-yellow-600" />
                             {(count * multiplier).toFixed(2)}
+                          </span>
+                          <span className="text-right flex items-center justify-end gap-1">
+                            <Coins size={16} className="text-yellow-600" />
+                            {((periodsWonByPlayer[name] ?? 0) * (scoreData?.payoutPerPeriod ?? 0)).toFixed(2)}
                           </span>
                         </motion.div>
                       ))
