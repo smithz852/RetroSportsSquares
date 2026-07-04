@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -112,16 +112,19 @@ async function patchUserField(endpoint: string, body: object): Promise<void> {
 }
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [pwModalOpen, setPwModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, authLoading]);
+
+  if (authLoading || !user) return null;
 
   const saveDisplayName = async (value: string) => {
     await patchUserField(endpoints.user.updateDisplayName, { displayName: value });

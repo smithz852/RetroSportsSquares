@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlayerStats, useCurrentGames, usePastGames } from "@/hooks/use-dashboard";
 import { RetroButton } from "@/components/RetroButton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Trophy, User, Settings, Shield } from "lucide-react";
+import { Loader2, Trophy, User, Settings, Shield, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 function LoadingRow() {
   return (
@@ -25,6 +26,30 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
+function CopyCodeButton({ code }: { code: string }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    toast({ title: "COPIED!", description: `Code ${code} copied to clipboard.` });
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center text-primary/50 hover:text-primary transition-colors ml-1.5 align-middle"
+      aria-label="Copy game code"
+    >
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-center py-2 border-b border-primary/10 last:border-0">
@@ -37,7 +62,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
 const PAGE_SIZE = 10;
 
 export default function PlayerDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [loaded, setLoaded] = useState({ current: false, past: false });
@@ -46,10 +71,13 @@ export default function PlayerDashboard() {
   const { data: currentGames, isLoading: currentLoading } = useCurrentGames(loaded.current);
   const { data: pastGamesData, isLoading: pastLoading } = usePastGames(page, PAGE_SIZE, loaded.past);
 
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, authLoading]);
+
+  if (authLoading || !user) return null;
 
   const handleTabChange = (value: string) => {
     const key = value as 'current' | 'past';
@@ -196,6 +224,7 @@ export default function PlayerDashboard() {
                             {game.isHost && (
                               <p className="font-['VT323'] text-primary/50 text-base tracking-widest">
                                 CODE: {game.gameId.split('-')[0].toUpperCase()}
+                                <CopyCodeButton code={game.gameId.split('-')[0].toUpperCase()} />
                               </p>
                             )}
                           </div>

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj": {}
+    "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj": {}
   },
   "projects": {
-    "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj": {
+    "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj",
+        "projectUniqueName": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj",
         "projectName": "RSS-DB",
-        "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj",
-        "packagesPath": "C:\\Users\\surff\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\obj\\",
+        "projectPath": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj",
+        "packagesPath": "C:\\Users\\zach\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-DB\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\surff\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\zach\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -84,24 +83,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj": {
+    "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj",
+        "projectUniqueName": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj",
         "projectName": "RSS-Services",
-        "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj",
-        "packagesPath": "C:\\Users\\surff\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-Services\\obj\\",
+        "projectPath": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-Services\\RSS-Services.csproj",
+        "packagesPath": "C:\\Users\\zach\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-Services\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\surff\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\zach\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -110,18 +109,17 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj": {
-                "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj"
+              "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj": {
+                "projectPath": "C:\\Users\\zach\\repos\\zachs-repos\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj"
               },
-              "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj": {
-                "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj"
+              "C:\\Users\\zach\\repos\\zachs-repos\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj": {
+                "projectPath": "C:\\Users\\zach\\repos\\zachs-repos\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj"
               }
             }
           }
@@ -157,24 +155,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj": {
+    "C:\\Users\\zach\\repos\\zachs-repos\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj",
+        "projectUniqueName": "C:\\Users\\zach\\repos\\zachs-repos\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj",
         "projectName": "ZlEmailProvider",
-        "projectPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj",
-        "packagesPath": "C:\\Users\\surff\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\ZlEmailProvider\\ZlEmailProvider\\obj\\",
+        "projectPath": "C:\\Users\\zach\\repos\\zachs-repos\\ZlEmailProvider\\ZlEmailProvider\\ZlEmailProvider.csproj",
+        "packagesPath": "C:\\Users\\zach\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\zach\\repos\\zachs-repos\\ZlEmailProvider\\ZlEmailProvider\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\surff\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\zach\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -183,7 +181,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -229,7 +226,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
