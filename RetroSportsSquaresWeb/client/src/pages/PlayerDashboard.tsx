@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlayerStats, useCurrentGames, usePastGames } from "@/hooks/use-dashboard";
 import { RetroButton } from "@/components/RetroButton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Trophy, User, Settings, Shield } from "lucide-react";
+import { Loader2, Trophy, User, Settings, Shield, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 function LoadingRow() {
   return (
@@ -22,6 +23,30 @@ function EmptyState({ message }: { message: string }) {
       <Trophy className="w-10 h-10 text-primary/20 mx-auto mb-3" />
       <p className="font-['Press_Start_2P'] text-gray-600 text-xs">{message}</p>
     </div>
+  );
+}
+
+function CopyCodeButton({ code }: { code: string }) {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    toast({ title: "COPIED!", description: `Code ${code} copied to clipboard.` });
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center text-primary/50 hover:text-primary transition-colors ml-1.5 align-middle"
+      aria-label="Copy game code"
+    >
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
   );
 }
 
@@ -196,6 +221,7 @@ export default function PlayerDashboard() {
                             {game.isHost && (
                               <p className="font-['VT323'] text-primary/50 text-base tracking-widest">
                                 CODE: {game.gameId.split('-')[0].toUpperCase()}
+                                <CopyCodeButton code={game.gameId.split('-')[0].toUpperCase()} />
                               </p>
                             )}
                           </div>
