@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { usePlayerStats, useCurrentGames, usePastGames } from "@/hooks/use-dashboard";
@@ -62,7 +62,7 @@ function StatRow({ label, value }: { label: string; value: string }) {
 const PAGE_SIZE = 10;
 
 export default function PlayerDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [loaded, setLoaded] = useState({ current: false, past: false });
@@ -71,10 +71,13 @@ export default function PlayerDashboard() {
   const { data: currentGames, isLoading: currentLoading } = useCurrentGames(loaded.current);
   const { data: pastGamesData, isLoading: pastLoading } = usePastGames(page, PAGE_SIZE, loaded.past);
 
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setLocation("/login");
+    }
+  }, [user, authLoading]);
+
+  if (authLoading || !user) return null;
 
   const handleTabChange = (value: string) => {
     const key = value as 'current' | 'past';
