@@ -429,6 +429,9 @@ namespace RSS_DB.Migrations
                     b.Property<decimal>("PricePerSquare")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("RecapEmailSent")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("SelectionPhaseActive")
                         .HasColumnType("tinyint(1)");
 

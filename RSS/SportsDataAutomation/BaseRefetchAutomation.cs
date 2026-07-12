@@ -22,6 +22,7 @@ namespace RSS.SportsDataAutomation
                 using var scope = _serviceProvider.CreateScope();
                 var sportsServices = scope.ServiceProvider.GetRequiredService<SportsGameServices>();
                 var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
+                var resultProcessor = scope.ServiceProvider.GetRequiredService<GameResultProcessor>();
 
                 var getAllGames = await GetAllGames();
 
@@ -32,18 +33,25 @@ namespace RSS.SportsDataAutomation
 
                     foreach (var game in getAllGames)
                     {
-                        if (!sportsServices.HasGameStarted(game.Id)) continue;
+                        try
+                        {
+                            if (!sportsServices.HasGameStarted(game.Id)) continue;
 
-                        var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
-                        if (gameData == null) continue;
+                            var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
+                            if (gameData == null) continue;
 
-                        // Process winners before the terminal-status check so sports like soccer
-                        // that use "FT" as both their final-period trigger and terminal status
-                        // still get their last period resolved.
-                        await ProcessQuarterlyWinners(squareServices, gameData, game.Id);
-                        await squareServices.NotifyScoreUpdatedAsync(game.Id);
-
-                        if (gameData.Status is "FT" or "AOT" or "Final/OT" or "Postponed") continue;
+                            // Process winners before the terminal-status check so sports like soccer
+                            // that use "FT" as both their final-period trigger and terminal status
+                            // still get their last period resolved.
+                            await resultProcessor.ProcessQuarterlyWinnersAsync(gameData, game.Id);
+                            await squareServices.NotifyScoreUpdatedAsync(game.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            // One bad game must not kill the whole BackgroundService loop
+                            var logger = scope.ServiceProvider.GetRequiredService<ILogger<BaseRefetchAutomation>>();
+                            logger.LogError(ex, "Refetch processing failed for sports game {SportsGameId}", game.Id);
+                        }
                     }
                 }
 
@@ -55,17 +63,6 @@ namespace RSS.SportsDataAutomation
                 {
                     break;
                 }
-            }
-        }
-
-        private async Task ProcessQuarterlyWinners(SquareServices squareServices, SportScoreUpdateDTO newSportsData, Guid sportGameId)
-        {
-            var squareGames = await squareServices.GetSquareGamesBySportsGameId(sportGameId);
-            foreach (var squareGame in squareGames)
-            {
-                var winner = await squareServices.DetermineQuarterlyWinner(newSportsData, squareGame.Id);
-                if (winner?.UserId != null)
-                    await squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
             }
         }
 

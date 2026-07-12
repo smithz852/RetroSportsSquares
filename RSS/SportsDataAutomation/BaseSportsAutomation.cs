@@ -75,8 +75,14 @@ namespace RSS.SportsDataAutomation
             using var scope = _serviceProvider.CreateScope();
             var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
+            var notifications = scope.ServiceProvider.GetRequiredService<GameNotificationService>();
             var todayPst = timeHelpers.GetTimeDateTimeTodayInPst();
-            await squareServices.CloseStaleGamesAsync(SportsType, todayPst);
+            var completedGameIds = await squareServices.CloseStaleGamesAsync(SportsType, todayPst);
+
+            // Recaps for games force-completed here; the RecapEmailSent flag keeps this
+            // idempotent against the refetch flow's own recap sends.
+            foreach (var gameId in completedGameIds)
+                await notifications.SendGameRecapEmailsAsync(gameId);
         }
     }
 }
