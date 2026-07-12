@@ -101,8 +101,7 @@ namespace RSS_Services
         public decimal GetPayoutPerPeriod(SquareGames game)
         {
             var claimedSquares = game.GameSquares.Count(gs => gs.GamePlayerId != null);
-            var totalPool = game.PricePerSquare * claimedSquares;
-            return game.PeriodCount > 0 ? totalPool / game.PeriodCount : 0;
+            return PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
         }
 
         public async Task<Dictionary<int, string?>> GetPeriodWinnerDisplayNames(Dictionary<int, string?> periodWinners)

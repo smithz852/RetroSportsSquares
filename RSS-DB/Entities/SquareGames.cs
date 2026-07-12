@@ -39,6 +39,7 @@ namespace RSS_DB.Entities
         public List<int> LeftNumbers { get; set; } = new List<int>();
         public int PeriodCount { get; set; } = 4;
         public bool IsCompleted { get; set; } = false;
+        public bool RecapEmailSent { get; set; } = false;
         public Dictionary<int, string?> PeriodWinners { get; set; } = new();
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
         public ICollection<GameSquares> GameSquares { get; set; } = new List<GameSquares>();

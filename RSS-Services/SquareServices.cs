@@ -214,7 +214,7 @@ namespace RSS_Services
             };
         }
 
-        public async Task SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
+        public async Task<QuarterlyWinnerSaveResult?> SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
         {
             var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
             if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
@@ -223,7 +223,7 @@ namespace RSS_Services
             if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
 
             // Already resolved — skip
-            if (game.PeriodWinners.ContainsKey(winner.Period)) return;
+            if (game.PeriodWinners.ContainsKey(winner.Period)) return null;
 
             // Backfill any periods that were skipped (no winning square)
             for (int p = 1; p < winner.Period; p++)
@@ -242,6 +242,14 @@ namespace RSS_Services
 
             var saved = await _appDbContext.SaveChangesAsync();
             if (saved <= 0) throw new InvalidOperationException("Could not save winner");
+
+            return new QuarterlyWinnerSaveResult
+            {
+                SquareGameId = game.Id,
+                Period = winner.Period,
+                WinnerApplicationUserId = player.ApplicationUserId,
+                GameCompleted = game.IsCompleted
+            };
         }
 
         private static readonly Dictionary<string, Dictionary<string, int>> SportPeriodMaps = new()
@@ -308,7 +316,7 @@ namespace RSS_Services
         // Fallback for games left dangling by a missed/skipped quarterly-winner check (e.g. server downtime
         // spanning midnight PST). Closes games the host never started, and force-completes games that started
         // but never reached IsCompleted, backfilling any unresolved periods as null so past-game stats stay consistent.
-        public async Task CloseStaleGamesAsync(string sportType, DateTime todayPst)
+        public async Task<List<Guid>> CloseStaleGamesAsync(string sportType, DateTime todayPst)
         {
             var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
 
@@ -321,7 +329,8 @@ namespace RSS_Services
                 .Where(g => TimeZoneInfo.ConvertTime(g.DailySportGame.GameStartTime, pacific).Date < todayPst)
                 .ToList();
 
-            if (staleGames.Count == 0) return;
+            var completedStartedGameIds = new List<Guid>();
+            if (staleGames.Count == 0) return completedStartedGameIds;
 
             foreach (var game in staleGames)
             {
@@ -333,6 +342,10 @@ namespace RSS_Services
                             game.PeriodWinners[period] = null;
                     }
                     _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
+
+                    // Only games that actually ran get a recap email; games the host
+                    // never started are just closed silently.
+                    completedStartedGameIds.Add(game.Id);
                 }
 
                 game.isOpen = false;
@@ -340,6 +353,7 @@ namespace RSS_Services
             }
 
             await _appDbContext.SaveChangesAsync();
+            return completedStartedGameIds;
         }
 
         //public async Task<Dictionary<int, string?>> GetQuarterWinners(Guid gameId)

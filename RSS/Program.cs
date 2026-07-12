@@ -121,6 +121,8 @@ builder.Services.AddScoped<RSS_Services.PlayerDashboardService>();
 builder.Services.AddScoped<RSS_Services.AdminDashboardService>();
 builder.Services.AddScoped<RSS_Services.UserServices>();
 builder.Services.AddScoped<RSS_Services.ChatServices>();
+builder.Services.AddScoped<RSS_Services.GameNotificationService>();
+builder.Services.AddScoped<RSS_Services.GameResultProcessor>();
 builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
 {
     client.DefaultRequestHeaders.Add("x-apisports-key", "2f14287fb764f299801970b51492fe7e");

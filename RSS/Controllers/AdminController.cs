@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RSS.DTOs;
+using RSS_DB;
 using RSS_Services;
 
 namespace RSS.Controllers
@@ -66,5 +69,51 @@ namespace RSS.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // Dev-only: run the production winner/notification pipeline against a sports game's
+        // current DB state. Lets seeded fake games (never present in the live api-sports
+        // response) be iterated through quarters without waiting on the refetch automation.
+        //[HttpPost("dev/process-winners/{apiGameId:int}")]
+        //public async Task<IActionResult> ProcessWinnersFromDb(
+        //    int apiGameId,
+        //    [FromServices] IHostEnvironment env,
+        //    [FromServices] AppDbContext dbContext,
+        //    [FromServices] GameResultProcessor resultProcessor)
+        //{
+        //    if (!env.IsDevelopment()) return NotFound();
+
+        //    var sportsGame = await dbContext.DailySportsGames
+        //        .FirstOrDefaultAsync(g => g.ApiGameId == apiGameId);
+        //    if (sportsGame == null) return NotFound($"No sports game with ApiGameId {apiGameId}");
+
+        //    var scoreData = new SportScoreUpdateDTO
+        //    {
+        //        ApiGameId = sportsGame.ApiGameId,
+        //        HomeTeamName = sportsGame.HomeTeam,
+        //        AwayTeamName = sportsGame.AwayTeam,
+        //        Status = sportsGame.Status,
+        //        SportType = sportsGame.SportType,
+        //        CurrentHomeScore = sportsGame.CurrentHomeScore,
+        //        CurrentAwayScore = sportsGame.CurrentAwayScore,
+        //        HomePeriodScores = sportsGame.HomePeriodScores,
+        //        AwayPeriodScores = sportsGame.AwayPeriodScores
+        //    };
+
+        //    await resultProcessor.ProcessQuarterlyWinnersAsync(scoreData, sportsGame.Id);
+
+        //    var squareGames = await dbContext.SquareGames
+        //        .Where(g => g.DailySportGameId == sportsGame.Id)
+        //        .Select(g => new
+        //        {
+        //            g.Id,
+        //            g.GameName,
+        //            g.PeriodWinners,
+        //            g.IsCompleted,
+        //            g.RecapEmailSent
+        //        })
+        //        .ToListAsync();
+
+        //    return Ok(new { sportsGame.Status, SquareGames = squareGames });
+        //}
     }
 }
