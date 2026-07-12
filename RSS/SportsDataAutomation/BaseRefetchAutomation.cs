@@ -40,9 +40,6 @@ namespace RSS.SportsDataAutomation
                             var gameData = newSportsData.FirstOrDefault(d => d.ApiGameId == game.ApiGameId);
                             if (gameData == null) continue;
 
-                            // Process winners before the terminal-status check so sports like soccer
-                            // that use "FT" as both their final-period trigger and terminal status
-                            // still get their last period resolved.
                             await resultProcessor.ProcessQuarterlyWinnersAsync(gameData, game.Id);
                             await squareServices.NotifyScoreUpdatedAsync(game.Id);
                         }

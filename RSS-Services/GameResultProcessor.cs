@@ -22,18 +22,29 @@ namespace RSS_Services
         public async Task ProcessQuarterlyWinnersAsync(SportScoreUpdateDTO scoreData, Guid sportsGameId)
         {
             var squareGames = await _squareServices.GetSquareGamesBySportsGameId(sportsGameId);
+            var currentPeriod = SquareServices.GetCurrentGamePeriodIndex(scoreData.Status, scoreData.SportType);
+
             foreach (var squareGame in squareGames)
             {
                 var winner = await _squareServices.DetermineQuarterlyWinner(scoreData, squareGame.Id);
-                if (winner?.UserId == null) continue;
+                if (winner?.UserId != null)
+                {
+                    var result = await _squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
+                    if (result != null) // null = period already resolved on a prior tick — no email
+                        await _notifications.SendPeriodWinEmailAsync(squareGame.Id, result.Period, result.WinnerApplicationUserId);
+                }
 
-                var result = await _squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
-                if (result == null) continue; // period already resolved on a prior tick — no emails
-
-                await _notifications.SendPeriodWinEmailAsync(squareGame.Id, result.Period, result.WinnerApplicationUserId);
-
-                if (result.GameCompleted)
+                // Terminal status: the sports game is past this board's final period.
+                // Complete the game even when the final period's square was unclaimed,
+                // then send recaps (RecapEmailSent guard keeps this at-most-once).
+                // Must run AFTER the winner save above: completion backfills missing
+                // periods as null, which would otherwise mark the final period as
+                // already resolved and swallow a legitimately claimed winner.
+                if (currentPeriod > squareGame.PeriodCount)
+                {
+                    await _squareServices.CompleteGameAsync(squareGame.Id);
                     await _notifications.SendGameRecapEmailsAsync(squareGame.Id);
+                }
             }
         }
     }

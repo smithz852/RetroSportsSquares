@@ -234,9 +234,6 @@ namespace RSS_Services
 
             game.PeriodWinners[winner.Period] = player.ApplicationUserId;
 
-            if (winner.Period >= game.PeriodCount)
-                game.IsCompleted = true;
-
             // Notify EF Core the JSON column was mutated
             _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
 
@@ -247,9 +244,29 @@ namespace RSS_Services
             {
                 SquareGameId = game.Id,
                 Period = winner.Period,
-                WinnerApplicationUserId = player.ApplicationUserId,
-                GameCompleted = game.IsCompleted
+                WinnerApplicationUserId = player.ApplicationUserId
             };
+        }
+
+        // Marks a game finished once its sports game has reached a terminal status
+        // (past the board's final period), backfilling unresolved periods as null.
+        // Completion is driven by game status rather than the final winner save, so
+        // an unclaimed final square can't leave the game hanging until the next-day
+        // stale sweep. Unclaimed periods already pay 0 via PayoutCalculator.
+        public async Task CompleteGameAsync(Guid squareGameId)
+        {
+            var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
+            if (game is null || game.IsCompleted) return;
+
+            for (int period = 1; period <= game.PeriodCount; period++)
+            {
+                if (!game.PeriodWinners.ContainsKey(period))
+                    game.PeriodWinners[period] = null;
+            }
+            _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
+
+            game.IsCompleted = true;
+            await _appDbContext.SaveChangesAsync();
         }
 
         private static readonly Dictionary<string, Dictionary<string, int>> SportPeriodMaps = new()
