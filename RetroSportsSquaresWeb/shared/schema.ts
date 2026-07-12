@@ -148,6 +148,15 @@ export interface TurnStatus {
   players: TurnPlayer[];
 }
 
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  displayName: string;
+  message: string;
+  createdAt: string;
+  isDeleted: boolean;
+}
+
 export interface PlayerStats {
   periodsWon: number;
   totalWagered: number;

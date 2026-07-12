@@ -71,6 +71,9 @@ namespace RSS_Services
             var players = _appDbContext.GamePlayers.Where(p => p.GameId == gameGuid);
             _appDbContext.GamePlayers.RemoveRange(players);
 
+            var chatMessages = _appDbContext.ChatMessages.Where(m => m.GameId == gameGuid);
+            _appDbContext.ChatMessages.RemoveRange(chatMessages);
+
             _appDbContext.SquareGames.Remove(game);
             await _appDbContext.SaveChangesAsync();
 

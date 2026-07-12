@@ -3,6 +3,8 @@ import * as signalR from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { API_BASE_URL } from "@shared/routes";
+import { type ChatMessage } from "@shared/schema";
+import { appendChatMessage } from "./use-chat";
 
 export function useGameHub(gameId: string) {
   const queryClient = useQueryClient();
@@ -57,6 +59,13 @@ export function useGameHub(gameId: string) {
     // Score data updated by background service — refresh scoreboard for all players
     connection.on("ScoreUpdated", () => {
       queryClient.invalidateQueries({ queryKey: ["gameScoreData", gameId] });
+    });
+
+    // Chat is an append-only stream — push into the cache instead of refetching
+    connection.on("ChatMessage", (msg: ChatMessage) => {
+      queryClient.setQueryData<ChatMessage[]>(["chat", gameId], (old) =>
+        appendChatMessage(old, msg),
+      );
     });
 
     connection
