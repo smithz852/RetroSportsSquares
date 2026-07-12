@@ -166,7 +166,7 @@ export function Scoreboard({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-4xl mx-auto mb-8 bg-black border-4 border-red-900 p-8 text-center">
+      <div className="w-full max-w-2xl mx-auto bg-black border-4 border-red-900 p-8 text-center">
         <div className="text-red-500 font-pixel">LOADING SCORES...</div>
       </div>
     );
@@ -176,11 +176,11 @@ export function Scoreboard({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-4xl mx-auto mb-8 bg-black border-4 border-red-900 shadow-[0_0_30px_rgba(255,0,0,0.3)] font-pixel"
+      className="w-full max-w-2xl mx-auto bg-black border-4 border-red-900 shadow-[0_0_30px_rgba(255,0,0,0.3)] font-pixel"
     >
       {/* Header */}
       <div className="border-b-4 border-red-900 p-2 text-center bg-red-900/10">
-        <h2 className="text-red-600 text-2xl tracking-tighter uppercase">
+        <h2 className="text-red-600 text-xl tracking-tighter uppercase">
           Score Board
         </h2>
         {gameName && (
@@ -190,19 +190,19 @@ export function Scoreboard({
 
       {/* Main Score Area */}
       <div className="grid grid-cols-3 border-b-4 border-red-900">
-        <div className="p-4 flex flex-col items-center justify-center border-r-4 border-red-900 bg-black">
-          <span className="text-red-500 text-lg mb-2">{team1.name}</span>
-          <span className="text-red-600 text-5xl font-mono">{team1.score}</span>
+        <div className="p-3 flex flex-col items-center justify-center border-r-4 border-red-900 bg-black">
+          <span className="text-red-500 text-base mb-2">{team1.name}</span>
+          <span className="text-red-600 text-4xl font-mono">{team1.score}</span>
         </div>
 
-        <div className="p-4 flex flex-col items-center justify-center bg-red-900/5">
-          <span className="text-red-500 text-2xl mb-2">
+        <div className="p-3 flex flex-col items-center justify-center bg-red-900/5">
+          <span className="text-red-500 text-xl mb-2">
             {scoreData?.status}
           </span>
           {hasGameStarted ? (
             <div className="flex flex-col items-center gap-1">
               <span className="text-red-900 text-[8px] uppercase">Leader</span>
-              <div className="flex items-center gap-2 text-red-500 text-xl">
+              <div className="flex items-center gap-2 text-red-500 text-lg">
                 <span>{currentLeader}</span>
               </div>
             </div>
@@ -211,7 +211,7 @@ export function Scoreboard({
               <span className="text-red-900 text-[8px] uppercase">
                 Game Time
               </span>
-              <div className="flex items-center gap-2 text-red-500 text-xl">
+              <div className="flex items-center gap-2 text-red-500 text-lg">
                 <Clock className="w-4 h-4" />
                 {timeUntilGame()}
               </div>
@@ -219,9 +219,9 @@ export function Scoreboard({
           )}
         </div>
 
-        <div className="p-4 flex flex-col items-center justify-center border-l-4 border-red-900 bg-black">
-          <span className="text-red-500 text-lg mb-2">{team2.name}</span>
-          <span className="text-red-600 text-5xl font-mono">{team2.score}</span>
+        <div className="p-3 flex flex-col items-center justify-center border-l-4 border-red-900 bg-black">
+          <span className="text-red-500 text-base mb-2">{team2.name}</span>
+          <span className="text-red-600 text-4xl font-mono">{team2.score}</span>
         </div>
       </div>
 
@@ -233,7 +233,7 @@ export function Scoreboard({
           return (
             <div
               key={periodNum}
-              className={`p-4 flex flex-col items-center justify-center ${idx < periodCount - 1 ? "border-r-4 border-red-900" : ""}`}
+              className={`p-1.5 sm:p-2 flex flex-col items-center justify-center ${idx < periodCount - 1 ? "border-r-4 border-red-900" : ""}`}
             >
               <span className="text-red-900 text-[10px] mb-2 uppercase">
                 {getPeriodLabel(sportType, periodNum)}

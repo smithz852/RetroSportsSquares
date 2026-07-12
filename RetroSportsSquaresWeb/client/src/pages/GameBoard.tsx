@@ -405,20 +405,37 @@ useEffect(() => {
   }, {} as Record<string, number>);
 
   return (
-    <div className="flex flex-col items-center p-4 max-w-[1400px] mx-auto w-full">
-      <Scoreboard
-        isVisible={gameStarted}
-        gameName={(game as any)?.name}
-        gameStartTime={game?.startTime}
-        scoreData={scoreData}
-        isLoading={isLoading}
-        currentPeriod={currentPeriod}
-        currentLeader={currentLeader}
-        periodWinners={periodWinners}
-      />
+    <div className="p-4 max-w-[1600px] mx-auto w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_240px] gap-6 lg:gap-8">
+        {/* Ad slot — left, aligned with scoreboard row */}
+        <div className="hidden lg:flex lg:col-start-1 lg:row-start-1 border-2 border-dashed border-red-900/40 min-h-[250px] items-center justify-center p-4">
+          <span className="font-pixel text-red-900/40 text-sm uppercase text-center">
+            Ad Space
+          </span>
+        </div>
 
-      <div className="flex flex-col items-center gap-8 w-full">
-        <div className="flex flex-col items-center gap-8 w-full">
+        <div className="lg:col-start-2 lg:row-start-1">
+          <Scoreboard
+            isVisible={gameStarted}
+            gameName={(game as any)?.name}
+            gameStartTime={game?.startTime}
+            scoreData={scoreData}
+            isLoading={isLoading}
+            currentPeriod={currentPeriod}
+            currentLeader={currentLeader}
+            periodWinners={periodWinners}
+          />
+        </div>
+
+        {/* Ad slot — right, aligned with scoreboard row */}
+        <div className="hidden lg:flex lg:col-start-3 lg:row-start-1 border-2 border-dashed border-red-900/40 min-h-[250px] items-center justify-center p-4">
+          <span className="font-pixel text-red-900/40 text-sm uppercase text-center">
+            Ad Space
+          </span>
+        </div>
+
+        {/* Game board + controls — spans the ad-left/scoreboard columns, sits below them */}
+        <div className="lg:col-start-1 lg:col-span-2 lg:row-start-2 flex flex-col items-center gap-8 w-full">
           {isSpectator && (
             <div className="w-full max-w-xl text-center border-2 border-red-900 bg-red-900/10 py-2">
               <span className="font-pixel text-red-500 text-sm uppercase tracking-widest">
@@ -557,8 +574,16 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Panels row — sits below the board */}
-        <div className="flex flex-wrap gap-8 w-full justify-center">
+        {/* Chat slot — inline with the board row */}
+        <div className="hidden lg:flex lg:col-start-3 lg:row-start-2 flex-col border-2 border-dashed border-red-900/40 min-h-[300px] items-center justify-center p-4">
+          <span className="font-pixel text-red-900/40 text-sm uppercase text-center">
+            Chat — Coming Soon
+          </span>
+        </div>
+      </div>
+
+      {/* Panels row — sits below the board */}
+      <div className="flex flex-wrap gap-8 w-full justify-center mt-8">
 
           {/* Players / Turn Order Panel */}
           {!gameStarted && turnStatus && (
@@ -702,7 +727,6 @@ useEffect(() => {
           </div>
 
         </div>
-      </div>
     </div>
   );
 }
