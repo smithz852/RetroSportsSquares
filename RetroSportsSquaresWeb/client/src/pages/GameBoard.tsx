@@ -488,7 +488,7 @@ useEffect(() => {
           </div>
 
           {/* Game Board with Team Labels */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 self-end">
             {/* Away Team Label (Rotated) */}
             <div className="flex items-center justify-center">
               <span className="-rotate-90 text-red-600 font-pixel text-s whitespace-nowrap">
