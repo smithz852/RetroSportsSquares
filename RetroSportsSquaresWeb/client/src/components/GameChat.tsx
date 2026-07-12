@@ -71,7 +71,7 @@ export function GameChat({ gameId, currentUserId, canSend }: GameChatProps) {
                 >
                   <div className="flex items-baseline justify-between gap-2">
                     <span
-                      className={`font-pixel text-[10px] truncate uppercase ${
+                      className={`font-pixel text-[11px] truncate uppercase ${
                         isOwn ? "text-red-400" : "text-red-700"
                       }`}
                     >
@@ -89,7 +89,7 @@ export function GameChat({ gameId, currentUserId, canSend }: GameChatProps) {
             })
           )}
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1 mt-auto">
           <div className="flex gap-2">
             <Input
               value={draft}

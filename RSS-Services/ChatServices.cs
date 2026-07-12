@@ -50,7 +50,7 @@ namespace RSS_Services
             {
                 Id = chatMessage.Id,
                 UserId = userId,
-                DisplayName = user?.GamerTag ?? user?.DisplayName ?? "Unknown",
+                DisplayName = user?.DisplayName ?? user?.GamerTag ?? "Unknown",
                 Message = chatMessage.Message,
                 CreatedAt = chatMessage.CreatedAt,
                 IsDeleted = false,
@@ -74,7 +74,7 @@ namespace RSS_Services
                 {
                     Id = m.Id,
                     UserId = m.ApplicationUserId,
-                    DisplayName = m.User.GamerTag ?? m.User.DisplayName ?? "Unknown",
+                    DisplayName = m.User.DisplayName ?? m.User.GamerTag ?? "Unknown",
                     Message = m.Message,
                     CreatedAt = m.CreatedAt,
                     IsDeleted = false,
@@ -98,7 +98,7 @@ namespace RSS_Services
                 {
                     Id = m.Id,
                     UserId = m.ApplicationUserId,
-                    DisplayName = m.User.GamerTag ?? m.User.DisplayName ?? "Unknown",
+                    DisplayName = m.User.DisplayName ?? m.User.GamerTag ?? "Unknown",
                     Message = m.Message,
                     CreatedAt = m.CreatedAt,
                     IsDeleted = m.IsDeleted,
