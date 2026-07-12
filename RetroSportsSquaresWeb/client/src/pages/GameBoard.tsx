@@ -488,10 +488,10 @@ useEffect(() => {
           </div>
 
           {/* Game Board with Team Labels */}
-          <div className="flex items-center gap-4 self-end">
+          <div className="flex items-center self-end">
             {/* Away Team Label (Rotated) */}
-            <div className="flex items-center justify-center">
-              <span className="-rotate-90 text-red-600 font-pixel text-s whitespace-nowrap">
+            <div className="flex items-center justify-center w-12 shrink-0 mr-3">
+              <span className="-rotate-90 text-red-600 font-pixel text-5xl whitespace-nowrap">
                 {awayTeam}
               </span>
             </div>
@@ -499,8 +499,8 @@ useEffect(() => {
             {/* Grid Container */}
             <div className="flex flex-col">
               {/* Home Team Label */}
-              <div className="text-center mb-7 pl-10 md:pl-14">
-                <span className="text-red-600 font-pixel text-s">
+              <div className="text-center mb-3 pl-10 md:pl-14">
+                <span className="text-red-600 font-pixel text-5xl">
                   {homeTeam}
                 </span>
               </div>
