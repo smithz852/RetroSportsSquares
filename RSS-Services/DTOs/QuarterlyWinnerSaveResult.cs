@@ -9,6 +9,5 @@ namespace RSS_Services.DTOs
         public Guid SquareGameId { get; set; }
         public int Period { get; set; }
         public string WinnerApplicationUserId { get; set; } = string.Empty;
-        public bool GameCompleted { get; set; }
     }
 }
