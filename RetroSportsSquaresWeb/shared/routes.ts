@@ -17,7 +17,8 @@ export const endpoints = {
     beginSelections: (gameId: string) => `/SquareGames/begin-selections/${gameId}`,
     skipPlayer: (gameId: string) => `/SquareGames/skip-player/${gameId}`,
     turnStatus: (gameId: string) => `/SquareGames/turn-status/${gameId}`,
-    findByShortId: (shortId: string) => `/SquareGames/find/${shortId}`
+    findByShortId: (shortId: string) => `/SquareGames/find/${shortId}`,
+    chat: (gameId: string) => `/SquareGames/chat/${gameId}`
   },
   selections: {
     create: (gameId: string) => `/SquareGames/SquareSelections/${gameId}`,
@@ -38,6 +39,7 @@ export const endpoints = {
     pastGames: (page: number, pageSize: number) => `/Admin/games/past?page=${page}&pageSize=${pageSize}`,
     playerStats: '/Admin/players/stats',
     users: '/Admin/users',
+    gameChatLog: (gameId: string) => `/Admin/games/${gameId}/chat`,
   },
   auth: {
     login: '/Auth/login',

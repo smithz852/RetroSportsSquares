@@ -9,6 +9,7 @@ import {
   useRefreshAdminData,
 } from "@/hooks/use-admin-dashboard";
 import { RetroButton } from "@/components/RetroButton";
+import { AdminChatLogDialog } from "@/components/AdminChatLogDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
@@ -85,6 +86,7 @@ function StatusBadge({ isOpen, selectionPhaseActive }: { isOpen: boolean; select
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const [pastPage, setPastPage] = useState(1);
+  const [chatGame, setChatGame] = useState<{ id: string; name: string } | null>(null);
 
   // Open the board in admin spectator mode (view without joining)
   const spectateGame = (gameId: string) => setLocation(`/game/${gameId}?spectate=1`);
@@ -176,6 +178,7 @@ export default function AdminDashboard() {
                     <TableHead className={headCell}>SQ CLAIMED</TableHead>
                     <TableHead className={headCell}>STATUS</TableHead>
                     <TableHead className={headCell}>CREATED</TableHead>
+                    <TableHead className={headCell}>CHAT</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -196,6 +199,18 @@ export default function AdminDashboard() {
                         <StatusBadge isOpen={game.isOpen} selectionPhaseActive={game.selectionPhaseActive} />
                       </TableCell>
                       <TableCell className={bodyCell}>{format(new Date(game.createdAt), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell>
+                        <RetroButton
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChatGame({ id: game.gameId, name: game.gameName });
+                          }}
+                        >
+                          CHAT
+                        </RetroButton>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -224,6 +239,7 @@ export default function AdminDashboard() {
                       <TableHead className={headCell}>POT</TableHead>
                       <TableHead className={headCell}>WINNERS</TableHead>
                       <TableHead className={headCell}>CREATED</TableHead>
+                      <TableHead className={headCell}>CHAT</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -247,6 +263,18 @@ export default function AdminDashboard() {
                           ))}
                         </TableCell>
                         <TableCell className={bodyCell}>{format(new Date(game.createdAt), 'MMM dd, yyyy')}</TableCell>
+                        <TableCell>
+                          <RetroButton
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setChatGame({ id: game.gameId, name: game.gameName });
+                            }}
+                          >
+                            CHAT
+                          </RetroButton>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -364,6 +392,12 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AdminChatLogDialog
+        gameId={chatGame?.id ?? null}
+        gameName={chatGame?.name ?? ""}
+        onClose={() => setChatGame(null)}
+      />
     </div>
   );
 }

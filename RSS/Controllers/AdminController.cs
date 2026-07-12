@@ -10,10 +10,12 @@ namespace RSS.Controllers
     public class AdminController : ControllerBase
     {
         private readonly AdminDashboardService _adminService;
+        private readonly ChatServices _chatServices;
 
-        public AdminController(AdminDashboardService adminService)
+        public AdminController(AdminDashboardService adminService, ChatServices chatServices)
         {
             _adminService = adminService;
+            _chatServices = chatServices;
         }
 
         [HttpGet("summary")]
@@ -49,6 +51,20 @@ namespace RSS.Controllers
         {
             var users = await _adminService.GetUsersAsync();
             return Ok(users);
+        }
+
+        [HttpGet("games/{gameId}/chat")]
+        public async Task<IActionResult> GetGameChatLog(string gameId)
+        {
+            try
+            {
+                var messages = await _chatServices.GetChatLogForGame(gameId);
+                return Ok(messages);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

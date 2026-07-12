@@ -25,6 +25,7 @@ namespace RSS_DB
         public DbSet<DailySportsGames> DailySportsGames { get; set; }
         public DbSet<GamePlayer> GamePlayers { get; set; }
         public DbSet<GameSquares> GameSquares { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
 
 
@@ -46,6 +47,9 @@ namespace RSS_DB
                     v => JsonSerializer.Deserialize<Dictionary<int, string?>>(v, (JsonSerializerOptions?)null) ?? new()
                 )
                 .Metadata.SetValueComparer(periodWinnersComparer);
+
+            builder.Entity<ChatMessage>()
+                .HasIndex(m => new { m.GameId, m.CreatedAt });
         }
     }
 }

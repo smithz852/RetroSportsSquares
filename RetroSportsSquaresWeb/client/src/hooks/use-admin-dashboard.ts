@@ -6,6 +6,7 @@ import {
   type AdminPaginatedPastGames,
   type AdminPlayerStats,
   type AdminUserSummary,
+  type ChatMessage,
 } from "@shared/schema";
 
 // Admin data has no SignalR invalidation, so use a short staleTime
@@ -59,6 +60,15 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ['adminUsers'],
     queryFn: () => adminFetch<AdminUserSummary[]>(endpoints.admin.users),
+    staleTime: ADMIN_STALE_TIME,
+  });
+}
+
+export function useAdminGameChatLog(gameId: string | null) {
+  return useQuery({
+    queryKey: ['adminGameChatLog', gameId],
+    queryFn: () => adminFetch<ChatMessage[]>(endpoints.admin.gameChatLog(gameId!)),
+    enabled: !!gameId,
     staleTime: ADMIN_STALE_TIME,
   });
 }

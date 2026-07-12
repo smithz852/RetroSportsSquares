@@ -1,3 +1,5 @@
+using RSS_Services.DTOs;
+
 namespace RSS_Services;
 
 public interface IGameHubNotifier
@@ -10,4 +12,5 @@ public interface IGameHubNotifier
     Task NotifyPlayerLeft(string gameId);
     Task NotifyGameStarted(string gameId);
     Task NotifyScoreUpdated(string gameId);
+    Task NotifyChatMessage(string gameId, ChatMessageDTO message);
 }

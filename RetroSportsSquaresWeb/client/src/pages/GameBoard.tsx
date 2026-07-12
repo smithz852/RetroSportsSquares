@@ -13,6 +13,7 @@ import { usePostSquareSelection, useGetBoardSquares, useGetOutsideSquares, useJo
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 import { useGameHub } from "@/hooks/use-game-hub";
+import { GameChat } from "@/components/GameChat";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -575,10 +576,8 @@ useEffect(() => {
         </div>
 
         {/* Chat slot — inline with the board row */}
-        <div className="hidden lg:flex lg:col-start-3 lg:row-start-2 flex-col border-2 border-dashed border-red-900/40 min-h-[300px] items-center justify-center p-4">
-          <span className="font-pixel text-red-900/40 text-sm uppercase text-center">
-            Chat — Coming Soon
-          </span>
+        <div className="hidden lg:flex lg:col-start-3 lg:row-start-2 flex-col min-h-[300px]">
+          <GameChat gameId={id} currentUserId={user.id} canSend={!isSpectator} />
         </div>
 
         {/* Panels row — sits below the board, width-matched to the grid above */}

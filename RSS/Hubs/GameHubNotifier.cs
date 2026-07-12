@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using RSS_Services;
+using RSS_Services.DTOs;
 
 namespace RSS.Hubs;
 
@@ -35,4 +36,7 @@ public class GameHubNotifier : IGameHubNotifier
 
     public Task NotifyScoreUpdated(string gameId) =>
         _hubContext.Clients.Group($"game-{gameId}").SendAsync("ScoreUpdated");
+
+    public Task NotifyChatMessage(string gameId, ChatMessageDTO message) =>
+        _hubContext.Clients.Group($"game-{gameId}").SendAsync("ChatMessage", message);
 }
