@@ -580,10 +580,9 @@ useEffect(() => {
             Chat — Coming Soon
           </span>
         </div>
-      </div>
 
-      {/* Panels row — sits below the board */}
-      <div className="flex flex-wrap gap-8 w-full justify-center mt-8">
+        {/* Panels row — sits below the board, width-matched to the grid above */}
+        <div className="lg:col-start-1 lg:col-span-3 lg:row-start-3 flex flex-wrap gap-8 w-full justify-center">
 
           {/* Players / Turn Order Panel */}
           {!gameStarted && turnStatus && (
@@ -727,6 +726,7 @@ useEffect(() => {
           </div>
 
         </div>
+      </div>
     </div>
   );
 }
