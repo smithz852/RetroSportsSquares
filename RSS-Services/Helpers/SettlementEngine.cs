@@ -27,6 +27,8 @@ namespace RSS_Services.Helpers
             var lines = payoutMode switch
             {
                 PayoutModes.Default => ComputeDefault(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                PayoutModes.Fair => ComputeFair(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                PayoutModes.Push => ComputePush(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 _ => throw new NotSupportedException($"Payout mode '{payoutMode}' has no settlement implementation."),
             };
 
@@ -36,6 +38,26 @@ namespace RSS_Services.Helpers
 
         public static decimal GetPool(decimal pricePerSquare, IReadOnlyDictionary<string, int> squareCountsByUser)
             => pricePerSquare * squareCountsByUser.Values.Sum();
+
+        // Dashboard convenience: one player's prize money (period wins + pushes).
+        // Pro-rata refunds are returned stakes, not winnings, so Redistribution
+        // lines are excluded. Only meaningful for completed games.
+        public static decimal GetUserPrizeTotal(
+            string payoutMode,
+            IReadOnlyDictionary<int, string?> periodWinners,
+            int periodCount,
+            decimal pricePerSquare,
+            IEnumerable<string> claimedSquareOwners,
+            string userId)
+        {
+            var squareCounts = claimedSquareOwners
+                .GroupBy(o => o)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return ComputeSettlement(payoutMode, periodWinners, periodCount, pricePerSquare, squareCounts)
+                .Where(l => l.UserId == userId && l.Type != CoinTransactionTypes.Redistribution)
+                .Sum(l => l.Amount);
+        }
 
         // Default: each claimed period pays pool ÷ periodCount to its winner; the
         // unclaimed fraction of the pool is returned to ALL players pro-rata to
@@ -63,18 +85,108 @@ namespace RSS_Services.Helpers
             }
 
             if (unclaimedPeriods > 0)
-            {
-                var unclaimedFraction = (decimal)unclaimedPeriods / periodCount;
-                foreach (var (userId, squares) in squareCountsByUser)
-                {
-                    if (squares <= 0) continue;
-                    var refund = Round2(pricePerSquare * squares * unclaimedFraction);
-                    if (refund > 0)
-                        lines.Add(new SettlementLine(userId, refund, CoinTransactionTypes.Redistribution, null));
-                }
-            }
+                AddProRataRefund(lines, pricePerSquare, squareCountsByUser, (decimal)unclaimedPeriods / periodCount);
 
             return lines;
+        }
+
+        // Fair: the pool splits across the periods that were actually won, so every
+        // unclaimed period raises the payout of every winning period. A player who
+        // won two periods holds two shares. Zero winners → full pro-rata refund.
+        private static List<SettlementLine> ComputeFair(
+            IReadOnlyDictionary<int, string?> periodWinners,
+            int periodCount,
+            decimal pricePerSquare,
+            IReadOnlyDictionary<string, int> squareCountsByUser)
+        {
+            var lines = new List<SettlementLine>();
+            var pool = GetPool(pricePerSquare, squareCountsByUser);
+            if (pool <= 0 || periodCount <= 0) return lines;
+
+            var claimedPeriods = new List<(int Period, string WinnerId)>();
+            for (int period = 1; period <= periodCount; period++)
+            {
+                var winnerId = periodWinners.GetValueOrDefault(period);
+                if (winnerId != null) claimedPeriods.Add((period, winnerId));
+            }
+
+            if (claimedPeriods.Count == 0)
+            {
+                AddProRataRefund(lines, pricePerSquare, squareCountsByUser, 1m);
+                return lines;
+            }
+
+            var perWinningPeriod = pool / claimedPeriods.Count;
+            foreach (var (period, winnerId) in claimedPeriods)
+                lines.Add(new SettlementLine(winnerId, Round2(perWinningPeriod), CoinTransactionTypes.PeriodWin, period));
+
+            return lines;
+        }
+
+        // Push: every period pays the even share, but an unclaimed period's share
+        // carries forward and lands on top of the next winner's payout (stacking
+        // across consecutive unclaimed periods). A carry still riding after the
+        // final period goes to the earliest winner. Zero winners → full refund.
+        private static List<SettlementLine> ComputePush(
+            IReadOnlyDictionary<int, string?> periodWinners,
+            int periodCount,
+            decimal pricePerSquare,
+            IReadOnlyDictionary<string, int> squareCountsByUser)
+        {
+            var lines = new List<SettlementLine>();
+            var pool = GetPool(pricePerSquare, squareCountsByUser);
+            if (pool <= 0 || periodCount <= 0) return lines;
+
+            string? earliestWinner = null;
+            for (int period = 1; period <= periodCount && earliestWinner == null; period++)
+                earliestWinner = periodWinners.GetValueOrDefault(period);
+
+            if (earliestWinner == null)
+            {
+                AddProRataRefund(lines, pricePerSquare, squareCountsByUser, 1m);
+                return lines;
+            }
+
+            var perPeriod = pool / periodCount;
+            var carry = 0m;
+            for (int period = 1; period <= periodCount; period++)
+            {
+                var winnerId = periodWinners.GetValueOrDefault(period);
+                if (winnerId == null)
+                {
+                    carry += perPeriod;
+                    continue;
+                }
+
+                lines.Add(new SettlementLine(winnerId, Round2(perPeriod), CoinTransactionTypes.PeriodWin, period));
+                if (carry > 0)
+                    lines.Add(new SettlementLine(winnerId, Round2(carry), CoinTransactionTypes.Push, period));
+                carry = 0m;
+            }
+
+            // Unclaimed final period(s): the riding pot rewards whoever won first.
+            if (carry > 0)
+                lines.Add(new SettlementLine(earliestWinner, Round2(carry), CoinTransactionTypes.Push, null));
+
+            return lines;
+        }
+
+        // The zero-winner game in every mode, and Default's consolation, are the
+        // same operation: return `fraction` of each player's wager (winners
+        // included — they funded the unclaimed periods too).
+        private static void AddProRataRefund(
+            List<SettlementLine> lines,
+            decimal pricePerSquare,
+            IReadOnlyDictionary<string, int> squareCountsByUser,
+            decimal fraction)
+        {
+            foreach (var (userId, squares) in squareCountsByUser)
+            {
+                if (squares <= 0) continue;
+                var refund = Round2(pricePerSquare * squares * fraction);
+                if (refund > 0)
+                    lines.Add(new SettlementLine(userId, refund, CoinTransactionTypes.Redistribution, null));
+            }
         }
 
         private static decimal Round2(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);

@@ -242,13 +242,15 @@ namespace RSS_Services
             };
         }
 
+        // Persists a resolved period — claimed OR unclaimed. Null-square periods are
+        // recorded as null the moment they resolve (not just backfilled at completion)
+        // so mode mechanics that react to nulls live (Push pot, future arrow/bomb
+        // states) can read them mid-game. Returns null for unclaimed or
+        // already-resolved periods — i.e. exactly when no winner email should fire.
         public async Task<QuarterlyWinnerSaveResult?> SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
         {
             var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
             if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
-
-            var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
-            if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
 
             // Already resolved — skip
             if (game.PeriodWinners.ContainsKey(winner.Period)) return null;
@@ -260,7 +262,15 @@ namespace RSS_Services
                     game.PeriodWinners[p] = null;
             }
 
-            game.PeriodWinners[winner.Period] = player.ApplicationUserId;
+            string? winnerApplicationUserId = null;
+            if (winner.UserId != null)
+            {
+                var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
+                if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
+                winnerApplicationUserId = player.ApplicationUserId;
+            }
+
+            game.PeriodWinners[winner.Period] = winnerApplicationUserId;
 
             // Notify EF Core the JSON column was mutated
             _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
@@ -268,11 +278,13 @@ namespace RSS_Services
             var saved = await _appDbContext.SaveChangesAsync();
             if (saved <= 0) throw new InvalidOperationException("Could not save winner");
 
+            if (winnerApplicationUserId == null) return null;
+
             return new QuarterlyWinnerSaveResult
             {
                 SquareGameId = game.Id,
                 Period = winner.Period,
-                WinnerApplicationUserId = player.ApplicationUserId
+                WinnerApplicationUserId = winnerApplicationUserId
             };
         }
 

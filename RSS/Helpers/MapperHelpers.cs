@@ -60,6 +60,8 @@ namespace RSS.Helpers
                 AwayPeriodScores = squaregame.DailySportGame.AwayPeriodScores,
                 PeriodWinners = periodWinnerNames,
                 PayoutPerPeriod = payoutPerPeriod,
+                PayoutMode = squaregame.PayoutMode,
+                PeriodCount = squaregame.PeriodCount,
             };
         }
 

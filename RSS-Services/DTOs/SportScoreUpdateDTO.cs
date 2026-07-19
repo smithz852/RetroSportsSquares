@@ -21,5 +21,8 @@ namespace RSS.DTOs
         // Populated only for the score endpoint response (display names keyed by period number)
         public Dictionary<int, string?> PeriodWinners { get; set; } = new();
         public decimal PayoutPerPeriod { get; set; }
+        // Score-endpoint only: lets the board render mode mechanics (e.g. Push pot)
+        public string? PayoutMode { get; set; }
+        public int PeriodCount { get; set; }
     }
 }

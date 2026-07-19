@@ -91,6 +91,23 @@ export default function GameBoard() {
     return map;
   }, [scoreData?.periodWinners]);
 
+  // Push mode: unclaimed periods ride their coins onto the next period's prize.
+  // Walk resolved periods in order — nulls stack the carry, a winner resets it.
+  // Zero once every period is resolved (a trailing pot has already been paid out).
+  const pushCarry = useMemo(() => {
+    if (scoreData?.payoutMode !== "Push") return 0;
+    const winners = scoreData.periodWinners ?? {};
+    const periodCount = scoreData.periodCount ?? 0;
+    if (Object.keys(winners).length >= periodCount) return 0;
+    const perPeriod = scoreData.payoutPerPeriod ?? 0;
+    let carry = 0;
+    for (let p = 1; p <= periodCount; p++) {
+      if (!(p in winners)) break;
+      carry = winners[p] === null ? carry + perPeriod : 0;
+    }
+    return carry;
+  }, [scoreData]);
+
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
   });
@@ -426,6 +443,19 @@ useEffect(() => {
             currentLeader={currentLeader}
             periodWinners={periodWinners}
           />
+          {scoreData?.payoutMode && scoreData.payoutMode !== "Default" && (
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+              <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
+                {scoreData.payoutMode.toUpperCase()} MODE
+              </span>
+              {scoreData.payoutMode === "Push" && pushCarry > 0 && (
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
+                  <Coins size={16} />
+                  POT: {(pushCarry + (scoreData.payoutPerPeriod ?? 0)).toFixed(2)} ON THE NEXT PERIOD!
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Ad slot — right, aligned with scoreboard row */}

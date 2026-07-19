@@ -12,6 +12,8 @@ namespace RSS_DB.Entities
         // Settlement credits (game completion)
         public const string PeriodWin = "PeriodWin";
         public const string Redistribution = "Redistribution";
+        // Push mode: an unclaimed period's share carried onto a later winner
+        public const string Push = "Push";
     }
 
     public class CoinTransaction

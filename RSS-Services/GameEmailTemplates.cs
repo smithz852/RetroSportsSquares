@@ -32,22 +32,32 @@ namespace RSS_Services
         // Amounts are coins, not currency — never format with a culture-dependent currency string
         public static string FormatCoins(decimal amount) => $"{amount:0.##} coins";
 
+        // coinsWon is null in modes where the amount isn't final until settlement
+        // (Fair/Push/…): the email announces the win, the recap states the coins.
         public static (string Subject, string Text, string Html) BuildPeriodWin(
-            string gameName, string periodLabel, decimal coinsWon)
+            string gameName, string periodLabel, decimal? coinsWon)
         {
             var subject = $"You won {periodLabel} in {gameName}!";
+
+            var winningsText = coinsWon.HasValue
+                ? $"Winnings: {FormatCoins(coinsWon.Value)}\n\n"
+                : "Your final winnings will be tallied when the game ends.\n\n";
 
             var text =
                 $"Congratulations!\n\n" +
                 $"Your square won {periodLabel} in \"{gameName}\".\n" +
-                $"Winnings: {FormatCoins(coinsWon)}\n\n" +
+                winningsText +
                 $"Good luck the rest of the game!";
+
+            var winningsHtml = coinsWon.HasValue
+                ? $"<p style=\"font-size:18px\">Winnings: <strong>{FormatCoins(coinsWon.Value)}</strong></p>"
+                : $"<p style=\"color:#666\">Your final winnings will be tallied when the game ends.</p>";
 
             var html =
                 $"<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#222\">" +
                 $"<h2 style=\"color:#c62828\">You won {Escape(periodLabel)}!</h2>" +
                 $"<p>Your square won <strong>{Escape(periodLabel)}</strong> in <strong>{Escape(gameName)}</strong>.</p>" +
-                $"<p style=\"font-size:18px\">Winnings: <strong>{FormatCoins(coinsWon)}</strong></p>" +
+                winningsHtml +
                 $"<p style=\"color:#666\">Good luck the rest of the game!</p>" +
                 $"</div>";
 

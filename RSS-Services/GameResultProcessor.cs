@@ -28,11 +28,13 @@ namespace RSS_Services
 
             foreach (var squareGame in squareGames)
             {
+                // Save every resolved period, including unclaimed (null) ones, so
+                // null-reactive modes (Push pot, arrows, bombs) see them live.
                 var winner = await _squareServices.DetermineQuarterlyWinner(scoreData, squareGame.Id);
-                if (winner?.UserId != null)
+                if (winner != null)
                 {
                     var result = await _squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
-                    if (result != null) // null = period already resolved on a prior tick — no email
+                    if (result != null) // null = unclaimed period or already resolved — no email
                         await _notifications.SendPeriodWinEmailAsync(squareGame.Id, result.Period, result.WinnerApplicationUserId);
                 }
 

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RSS_DB;
+using RSS_DB.Entities;
 using RSS_Services.DTOs;
 using RSS_Services.Helpers;
 
@@ -23,8 +24,14 @@ namespace RSS_Services
                     gp.Game.PricePerSquare,
                     gp.Game.PeriodWinners,
                     gp.Game.PeriodCount,
+                    gp.Game.PayoutMode,
+                    gp.Game.IsCompleted,
                     PlayerSquaresCount = gp.GamePlayerSquares.Count(),
-                    TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null)
+                    TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null),
+                    ClaimedSquareOwners = gp.Game.GameSquares
+                        .Where(gs => gs.GamePlayerId != null)
+                        .Select(gs => gs.GamePlayer.ApplicationUserId)
+                        .ToList()
                 })
                 .ToListAsync();
 
@@ -34,8 +41,14 @@ namespace RSS_Services
             var totalSquaresClaimed = gameData.Sum(g => g.PlayerSquaresCount);
             var totalWagered = gameData.Sum(g => g.PricePerSquare * g.PlayerSquaresCount);
 
+            // Completed games settle through the engine (mode-correct: Fair boosts,
+            // Push carries). In-progress games use the flat per-period share as a
+            // conservative floor — their real amounts aren't final until settlement.
             var wagersWon = gameData.Sum(g =>
             {
+                if (g.IsCompleted)
+                    return SettlementEngine.GetUserPrizeTotal(g.PayoutMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
+
                 var won = g.PeriodWinners.Values.Count(v => v == userId);
                 return won * PayoutCalculator.GetPayoutPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
             });
@@ -91,15 +104,20 @@ namespace RSS_Services
                     gp.Game.CreatedAt,
                     gp.Game.PeriodWinners,
                     gp.Game.PeriodCount,
+                    gp.Game.PayoutMode,
                     PlayerSquaresCount = gp.GamePlayerSquares.Count(),
-                    TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null)
+                    ClaimedSquareOwners = gp.Game.GameSquares
+                        .Where(gs => gs.GamePlayerId != null)
+                        .Select(gs => gs.GamePlayer.ApplicationUserId)
+                        .ToList()
                 })
                 .ToListAsync();
 
             var summaries = rawGames.Select(g =>
             {
                 var periodsWon = g.PeriodWinners.Values.Count(v => v == userId);
-                var totalWon = periodsWon * PayoutCalculator.GetPayoutPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
+                // Past games are completed, so the engine gives exact, mode-correct amounts.
+                var totalWon = SettlementEngine.GetUserPrizeTotal(g.PayoutMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
 
                 return new PastGameSummaryDTO
                 {

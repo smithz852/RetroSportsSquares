@@ -31,13 +31,13 @@ const PAYOUT_MODES: {
     value: "Fair",
     label: "FAIR",
     description: "Missed periods raise the payout of every winning period.",
-    available: false,
+    available: true,
   },
   {
     value: "Push",
     label: "PUSH",
     description: "Missed periods push their coins onto the next period's prize.",
-    available: false,
+    available: true,
   },
   {
     value: "Thief",

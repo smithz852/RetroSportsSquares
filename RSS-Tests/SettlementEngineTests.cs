@@ -114,13 +114,112 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 1 };
             Assert.Throws<NotSupportedException>(() => SettlementEngine.ComputeSettlement(
-                PayoutModes.Fair, Periods(A), 1, 1m, squares));
+                PayoutModes.Thief, Periods(A), 1, 1m, squares));
+        }
+
+        [Fact]
+        public void Fair_UnclaimedPeriods_RaiseWinningPeriodPayouts()
+        {
+            var squares = new Dictionary<string, int> { [A] = 6, [B] = 6 };
+            // pool = 12, one null of 4 -> 3 winning periods pay 12/3 = 4 (not 3)
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Fair, Periods(A, B, null, A), 4, 1m, squares);
+
+            Assert.Equal(3, lines.Count);
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.PeriodWin, l.Type));
+            Assert.All(lines, l => Assert.Equal(4m, l.Amount));
+            Assert.Equal(8m, Total(lines, A));
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Fair_AllClaimed_MatchesDefaultPerPeriod()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Fair, Periods(A, B, A, B), 4, 1m, squares);
+
+            Assert.All(lines, l => Assert.Equal(2m, l.Amount));
+        }
+
+        [Fact]
+        public void Fair_AllNull_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 3, [B] = 5 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Fair, Periods(null, null), 2, 2m, squares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(6m, Total(lines, A));
+            Assert.Equal(10m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Push_NullPeriod_CarriesOntoNextWinner()
+        {
+            var squares = new Dictionary<string, int> { [A] = 5, [B] = 5 };
+            // pool = 10, per period 2.5; P2 null -> P3 winner gets 2.5 + 2.5 push
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(A, null, B, A), 4, 1m, squares);
+
+            var pushLines = lines.Where(l => l.Type == CoinTransactionTypes.Push).ToList();
+            Assert.Single(pushLines);
+            Assert.Equal(B, pushLines[0].UserId);
+            Assert.Equal(2.5m, pushLines[0].Amount);
+            Assert.Equal(3, pushLines[0].Period);
+            Assert.Equal(5m, Total(lines, B));   // 2.5 win + 2.5 push
+            Assert.Equal(5m, Total(lines, A));   // two 2.5 wins
+        }
+
+        [Fact]
+        public void Push_ConsecutiveNulls_StackTheCarry()
+        {
+            var squares = new Dictionary<string, int> { [A] = 8 };
+            // pool = 8, per period 2; P1+P2 null -> P3 winner gets 2 + 4 push
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(null, null, A, A), 4, 1m, squares);
+
+            var push = lines.Single(l => l.Type == CoinTransactionTypes.Push);
+            Assert.Equal(4m, push.Amount);
+            Assert.Equal(3, push.Period);
+            Assert.Equal(8m, Total(lines, A));
+        }
+
+        [Fact]
+        public void Push_TrailingNull_PaysEarliestWinner()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per period 2; P4 null -> trailing 2 goes to A (earliest winner)
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(A, B, B, null), 4, 1m, squares);
+
+            var push = lines.Single(l => l.Type == CoinTransactionTypes.Push);
+            Assert.Equal(A, push.UserId);
+            Assert.Null(push.Period);
+            Assert.Equal(2m, push.Amount);
+            Assert.Equal(4m, Total(lines, A));
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Push_AllNull_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 2, [B] = 6 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(null, null, null, null), 4, 1m, squares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(2m, Total(lines, A));
+            Assert.Equal(6m, Total(lines, B));
         }
 
         // Pool conservation is the core invariant of every mode: whatever the
         // period sequence, the settlement lines redistribute exactly the pool.
-        [Fact]
-        public void Default_RandomizedGames_AlwaysConserveThePool()
+        [Theory]
+        [InlineData(PayoutModes.Default)]
+        [InlineData(PayoutModes.Fair)]
+        [InlineData(PayoutModes.Push)]
+        public void RandomizedGames_AlwaysConserveThePool(string mode)
         {
             var rng = new Random(20260718);
             var users = new[] { A, B, C, "user-d", "user-e" };
@@ -140,7 +239,7 @@ namespace RSS_Tests
                     winners[p] = rng.Next(3) == 0 ? null : playersWithSquares[rng.Next(playersWithSquares.Length)];
 
                 var lines = SettlementEngine.ComputeSettlement(
-                    PayoutModes.Default, Periods(winners), periodCount, price, squares);
+                    mode, Periods(winners), periodCount, price, squares);
 
                 var pool = SettlementEngine.GetPool(price, squares);
                 Assert.Equal(pool, lines.Sum(l => l.Amount));
