@@ -23,8 +23,9 @@ namespace RSS.Controllers
         private readonly AppDbContext _appDbContext;
         private readonly GamePlayerServices _gamePlayerServices;
         private readonly IGameHubNotifier _hubNotifier;
+        private readonly WalletService _walletService;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, WalletService walletService)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -34,6 +35,7 @@ namespace RSS.Controllers
             _appDbContext = appDbContext;
             _gamePlayerServices = gamePlayerServices;
             _hubNotifier = hubNotifier;
+            _walletService = walletService;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -269,7 +271,14 @@ namespace RSS.Controllers
                     return BadRequest(new { message = $"You have exceeded the square selection limit for this game (Limit: {squareLimit})" });
                 }
 
-
+                // Friendly pre-check; the atomic conditional decrement inside
+                // CreateSquareSelections is the real double-spend guard.
+                if (game.IsPublic)
+                {
+                    var wagerCost = game.PricePerSquare * squareSelections.Selections.Count;
+                    if (!await _walletService.HasSufficientCoinsAsync(userId, wagerCost))
+                        return BadRequest(new { message = $"Not enough coins — you need {wagerCost:0.##} coins for this selection." });
+                }
 
                 var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
                 if (selectedSquares == null || !selectedSquares.Any())

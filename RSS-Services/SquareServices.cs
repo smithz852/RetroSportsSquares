@@ -18,11 +18,13 @@ namespace RSS_Services
         private AppDbContext _appDbContext;
         private readonly Random _random = new();
         private readonly IGameHubNotifier _hubNotifier;
+        private readonly WalletService _walletService;
 
-        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier)
+        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier, WalletService walletService)
         {
             _appDbContext = appDbContext;
             _hubNotifier = hubNotifier;
+            _walletService = walletService;
         }
 
         public async Task<List<GameSquares>> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
@@ -32,22 +34,48 @@ namespace RSS_Services
             var createdAt = DateTimeOffset.UtcNow;
 
            var gamePlayer = _appDbContext.GamePlayers.FirstOrDefault(g => g.GameId == gameIdGuid && g.ApplicationUserId == userId);
+            var game = await _appDbContext.SquareGames.FindAsync(gameIdGuid);
 
             var availableSquares = CheckIfSquaresAreSelected(gameId, squareSelections);
-            
-            foreach (var square in availableSquares)
-            {
-                var squareId = Guid.Parse(square);
-                var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
-                selectedSquare.GamePlayerId = gamePlayer.Id;
-
-                gameSquares.Add(selectedSquare);
-            }
-            var savedSquares = await _appDbContext.SaveChangesAsync();
-
-            if (savedSquares <= 0)
+            if (availableSquares.Count == 0)
             {
                 return null;
+            }
+
+            // Squares in public games are bought from the coin wallet; the wager,
+            // its ledger row, and the square assignments must commit or roll back
+            // together (the conditional decrement in WagerAsync runs immediately).
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var square in availableSquares)
+                {
+                    var squareId = Guid.Parse(square);
+                    var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
+                    selectedSquare.GamePlayerId = gamePlayer.Id;
+
+                    gameSquares.Add(selectedSquare);
+                }
+
+                // Charge only for the squares actually assigned — partial selections
+                // throw below and the player re-picks the remainder.
+                if (game != null && game.IsPublic)
+                    await _walletService.WagerAsync(userId, gameIdGuid, game.PricePerSquare * availableSquares.Count);
+
+                var savedSquares = await _appDbContext.SaveChangesAsync();
+
+                if (savedSquares <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return null;
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
 
             if (availableSquares.Count < squareSelections.Count)

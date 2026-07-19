@@ -155,6 +155,9 @@ namespace RSS_DB.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CoinBalance")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
@@ -251,6 +254,43 @@ namespace RSS_DB.Migrations
                     b.HasIndex("GameId", "CreatedAt");
 
                     b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.CoinTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("GrantDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("SquareGameId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId", "GrantDate")
+                        .IsUnique();
+
+                    b.HasIndex("SquareGameId", "ApplicationUserId");
+
+                    b.ToTable("CoinTransactions");
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.DailySportsGames", b =>
@@ -524,6 +564,17 @@ namespace RSS_DB.Migrations
                         .IsRequired();
 
                     b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.CoinTransaction", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

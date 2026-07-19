@@ -9,11 +9,13 @@ namespace RSS_Services
     {
         private readonly AppDbContext _appDbContext;
         private readonly TimeHelpers _timeHelpers;
+        private readonly WalletService _walletService;
 
-        public AvailableGamesServices(AppDbContext appDbContext, TimeHelpers timeHelpers)
+        public AvailableGamesServices(AppDbContext appDbContext, TimeHelpers timeHelpers, WalletService walletService)
         {
             _appDbContext = appDbContext;
             _timeHelpers = timeHelpers;
+            _walletService = walletService;
         }
 
         public List<SquareGames> GetAllAvailableGames()
@@ -65,17 +67,32 @@ namespace RSS_Services
 
             if (game == null) return false;
 
-            var squares = _appDbContext.GameSquares.Where(s => s.SquareGamesId == gameGuid);
-            _appDbContext.GameSquares.RemoveRange(squares);
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                // Deletion is only reachable while the game is open (pre-start), so a
+                // refund here can never collide with end-of-game settlement.
+                if (game.IsPublic)
+                    await _walletService.RefundGameWagersAsync(gameGuid);
 
-            var players = _appDbContext.GamePlayers.Where(p => p.GameId == gameGuid);
-            _appDbContext.GamePlayers.RemoveRange(players);
+                var squares = _appDbContext.GameSquares.Where(s => s.SquareGamesId == gameGuid);
+                _appDbContext.GameSquares.RemoveRange(squares);
 
-            var chatMessages = _appDbContext.ChatMessages.Where(m => m.GameId == gameGuid);
-            _appDbContext.ChatMessages.RemoveRange(chatMessages);
+                var players = _appDbContext.GamePlayers.Where(p => p.GameId == gameGuid);
+                _appDbContext.GamePlayers.RemoveRange(players);
 
-            _appDbContext.SquareGames.Remove(game);
-            await _appDbContext.SaveChangesAsync();
+                var chatMessages = _appDbContext.ChatMessages.Where(m => m.GameId == gameGuid);
+                _appDbContext.ChatMessages.RemoveRange(chatMessages);
+
+                _appDbContext.SquareGames.Remove(game);
+                await _appDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             return true;
         }

@@ -118,6 +118,7 @@ export interface User {
   displayName: string;
   gamerTag: string | null;
   isAdmin: boolean;
+  coinBalance: number;
 }
 
 export interface LoginResponse {
