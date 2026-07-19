@@ -23,8 +23,9 @@ namespace RSS.Controllers
         private readonly AppDbContext _appDbContext;
         private readonly GamePlayerServices _gamePlayerServices;
         private readonly IGameHubNotifier _hubNotifier;
+        private readonly WalletService _walletService;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, WalletService walletService)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -34,6 +35,7 @@ namespace RSS.Controllers
             _appDbContext = appDbContext;
             _gamePlayerServices = gamePlayerServices;
             _hubNotifier = hubNotifier;
+            _walletService = walletService;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -66,10 +68,28 @@ namespace RSS.Controllers
                 return Unauthorized();
             }
 
+            var payoutMode = string.IsNullOrWhiteSpace(gameData.PayoutMode)
+                ? RSS_DB.Entities.PayoutModes.Default
+                : gameData.PayoutMode;
+            if (!RSS_DB.Entities.PayoutModes.All.Contains(payoutMode))
+                return BadRequest(new { message = $"Unknown payout mode '{payoutMode}'." });
+            if (!RSS_DB.Entities.PayoutModes.Implemented.Contains(payoutMode))
+                return BadRequest(new { message = $"Payout mode '{payoutMode}' is coming soon." });
+
+            // Thief/Destruction need winner→null→winner room to breathe (3+ periods),
+            // so 2-period sports like soccer can't host them.
+            if (Guid.TryParse(gameData.DailySportsGameId, out var sportsGameGuid))
+            {
+                var sportsGame = await _appDbContext.DailySportsGames.FindAsync(sportsGameGuid);
+                var periodCount = AvailableGamesServices.GetPeriodCountForSport(sportsGame?.SportType);
+                if (periodCount < RSS_DB.Entities.PayoutModes.MinimumPeriods(payoutMode))
+                    return BadRequest(new { message = $"{payoutMode} mode needs games with at least {RSS_DB.Entities.PayoutModes.MinimumPeriods(payoutMode)} periods — this sport only has {periodCount}." });
+            }
+
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic, payoutMode);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();
@@ -269,7 +289,14 @@ namespace RSS.Controllers
                     return BadRequest(new { message = $"You have exceeded the square selection limit for this game (Limit: {squareLimit})" });
                 }
 
-
+                // Friendly pre-check; the atomic conditional decrement inside
+                // CreateSquareSelections is the real double-spend guard.
+                if (game.IsPublic)
+                {
+                    var wagerCost = game.PricePerSquare * squareSelections.Selections.Count;
+                    if (!await _walletService.HasSufficientCoinsAsync(userId, wagerCost))
+                        return BadRequest(new { message = $"Not enough coins — you need {wagerCost:0.##} coins for this selection." });
+                }
 
                 var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
                 if (selectedSquares == null || !selectedSquares.Any())

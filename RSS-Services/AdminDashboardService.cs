@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RSS_DB;
 using RSS_Services.DTOs;
+using RSS_Services.Helpers;
 
 namespace RSS_Services
 {
@@ -139,8 +140,15 @@ namespace RSS_Services
                     gp.User.GamerTag,
                     gp.Game.PricePerSquare,
                     gp.Game.PeriodWinners,
-                    PlayerSquaresCount = gp.GamePlayerSquares.Count(),
-                    TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null)
+                    gp.Game.PeriodCount,
+                    gp.Game.PayoutMode,
+                    gp.Game.IsCompleted,
+                    PlayerSquaresCount = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
+                    TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null),
+                    ClaimedSquareOwners = gp.Game.GameSquares
+                        .Where(gs => gs.GamePlayerId != null)
+                        .Select(gs => gs.GamePlayer.ApplicationUserId)
+                        .ToList()
                 })
                 .ToListAsync();
 
@@ -152,16 +160,16 @@ namespace RSS_Services
                     var periodsWon = group.Sum(g => g.PeriodWinners.Values.Count(v => v == userId));
                     var totalPeriodsPlayed = group.Sum(g => g.PeriodWinners.Values.Count(v => v != null));
 
+                    // Same convention as the player dashboard: completed games settle
+                    // through the engine (mode-correct), in-progress games count the
+                    // flat per-period share as a floor estimate.
                     var wagersWon = group.Sum(g =>
                     {
+                        if (g.IsCompleted)
+                            return SettlementEngine.GetUserPrizeTotal(g.PayoutMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
+
                         var won = g.PeriodWinners.Values.Count(v => v == userId);
-                        if (won == 0) return 0;
-
-                        var totalPeriods = g.PeriodWinners.Values.Count(v => v != null);
-                        if (totalPeriods == 0) return 0;
-
-                        var totalPool = g.PricePerSquare * g.TotalGameSquaresCount;
-                        return (totalPool / totalPeriods) * won;
+                        return won * PayoutCalculator.GetPayoutPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
                     });
 
                     return new AdminPlayerStatsDTO

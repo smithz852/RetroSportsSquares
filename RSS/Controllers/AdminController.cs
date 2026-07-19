@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RSS.DTOs;
@@ -109,7 +109,8 @@ namespace RSS.Controllers
         //            g.GameName,
         //            g.PeriodWinners,
         //            g.IsCompleted,
-        //            g.RecapEmailSent
+        //            g.RecapEmailSent,
+        //            g.SettlementCompleted
         //        })
         //        .ToListAsync();
 
@@ -117,3 +118,4 @@ namespace RSS.Controllers
         //}
     }
 }
+

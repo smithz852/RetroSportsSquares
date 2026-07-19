@@ -89,8 +89,11 @@ export function usePostSquareSelection(gameId: string) {
       // Backend returns array directly, wrap it in expected format
       return { selections: selectionData };
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["createSelections"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["createSelections"] });
+      // Public-game squares are bought with coins — refresh the navbar balance
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    },
   });
 }
 

@@ -20,14 +20,16 @@ namespace RSS.Controllers
         private readonly IConfiguration _config;
         private readonly TokenService _tokenService;
         private readonly IMemoryCache _cache;
+        private readonly WalletService _walletService;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, WalletService walletService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
             _tokenService = tokenService;
             _cache = cache;
+            _walletService = walletService;
         }
 
         [HttpPost("login")]
@@ -43,7 +45,8 @@ namespace RSS.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
-            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin") } });
+            var coinBalance = await _walletService.EnsureDailyGrantAsync(user.Id);
+            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance } });
         }
 
         [HttpGet("me")]
@@ -57,7 +60,10 @@ namespace RSS.Controllers
                 return NotFound();
 
             var roles = await _userManager.GetRolesAsync(user);
-            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin") });
+            // The daily coin grant rides on /me since it runs on every app load;
+            // idempotent per PST day, so repeated calls are cheap no-ops.
+            var coinBalance = await _walletService.EnsureDailyGrantAsync(user.Id);
+            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance });
         }
 
         [HttpPost("logout")]

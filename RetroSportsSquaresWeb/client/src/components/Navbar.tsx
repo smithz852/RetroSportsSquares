@@ -1,7 +1,12 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroButton } from "./RetroButton";
-import { Gamepad2, LogOut, User } from "lucide-react";
+import { Coins, Gamepad2, LogOut, User } from "lucide-react";
+
+// Whole coins render bare ("45"), fractional balances keep two decimals ("45.50")
+function formatCoins(balance: number): string {
+  return Number.isInteger(balance) ? balance.toString() : balance.toFixed(2);
+}
 
 export function Navbar() {
   const { user, logout, isLoggingOut } = useAuth();
@@ -38,6 +43,13 @@ export function Navbar() {
                 <div className="hidden md:flex items-center gap-2 text-primary font-['VT323'] text-xl border-2 border-primary/30 px-3 py-1 bg-primary/5">
                   <User className="h-4 w-4" />
                   <span>PLAYER: {user.displayName || 'UNKNOWN'}</span>
+                </div>
+                <div
+                  className="flex items-center gap-2 text-yellow-400 font-['VT323'] text-xl border-2 border-yellow-400/30 px-3 py-1 bg-yellow-400/5"
+                  title="Coin balance — 15 free coins per active day"
+                >
+                  <Coins className="h-4 w-4" />
+                  <span>{formatCoins(user.coinBalance ?? 0)}</span>
                 </div>
                 <Link href="/options">
                   <RetroButton variant="outline" size="sm">

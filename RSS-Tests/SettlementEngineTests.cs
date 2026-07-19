@@ -1,0 +1,481 @@
+using RSS_DB.Entities;
+using RSS_Services.Helpers;
+
+namespace RSS_Tests
+{
+    public class SettlementEngineTests
+    {
+        private const string A = "user-a";
+        private const string B = "user-b";
+        private const string C = "user-c";
+
+        private static Dictionary<int, string?> Periods(params string?[] winners)
+        {
+            var dict = new Dictionary<int, string?>();
+            for (int i = 0; i < winners.Length; i++)
+                dict[i + 1] = winners[i];
+            return dict;
+        }
+
+        private static decimal Total(IEnumerable<SettlementLine> lines, string userId)
+            => lines.Where(l => l.UserId == userId).Sum(l => l.Amount);
+
+        [Fact]
+        public void Default_AllPeriodsClaimed_PaysPerPeriodWithNoRedistribution()
+        {
+            var squares = new Dictionary<string, int> { [A] = 5, [B] = 5 };
+            // pool = 2 * 10 = 20, per period = 5
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(A, B, A, B), 4, 2m, squares);
+
+            Assert.Equal(4, lines.Count);
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.PeriodWin, l.Type));
+            Assert.Equal(10m, Total(lines, A));
+            Assert.Equal(10m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Default_OneNullPeriod_RefundsProRataIncludingWinners()
+        {
+            var squares = new Dictionary<string, int> { [A] = 6, [B] = 2 };
+            // pool = 8 * 1 = 8, per period = 2, one null period -> 2 coins refunded pro-rata
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(A, B, null, A), 4, 1m, squares);
+
+            // A: two period wins (4) + refund 0.25 * 6 = 1.50
+            Assert.Equal(5.50m, Total(lines, A));
+            // B: one period win (2) + refund 0.25 * 2 = 0.50
+            Assert.Equal(2.50m, Total(lines, B));
+            Assert.Contains(lines, l => l.UserId == A && l.Type == CoinTransactionTypes.Redistribution);
+            Assert.Contains(lines, l => l.UserId == B && l.Type == CoinTransactionTypes.Redistribution);
+        }
+
+        [Fact]
+        public void Default_AllPeriodsNull_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 7, [B] = 1, [C] = 2 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(null, null, null, null), 4, 3m, squares);
+
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.PeriodWin);
+            Assert.Equal(21m, Total(lines, A));
+            Assert.Equal(3m, Total(lines, B));
+            Assert.Equal(6m, Total(lines, C));
+        }
+
+        [Fact]
+        public void Default_PeriodWinLinesCarryTheirPeriod()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(A, null, A, null), 4, 1m, squares);
+
+            var winPeriods = lines.Where(l => l.Type == CoinTransactionTypes.PeriodWin)
+                .Select(l => l.Period).ToList();
+            Assert.Equal(new int?[] { 1, 3 }, winPeriods);
+            Assert.All(lines.Where(l => l.Type == CoinTransactionTypes.Redistribution),
+                l => Assert.Null(l.Period));
+        }
+
+        [Fact]
+        public void Default_UnevenDivision_StillSumsExactlyToPool()
+        {
+            // pool = 10, 3 periods -> per period 3.333...
+            var squares = new Dictionary<string, int> { [A] = 6, [B] = 4 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(A, B, null), 3, 1m, squares);
+
+            Assert.Equal(10m, lines.Sum(l => l.Amount));
+            Assert.All(lines, l => Assert.True(l.Amount > 0));
+        }
+
+        [Fact]
+        public void Default_PlayerWithNoSquares_GetsNoRefund()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 0 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(null, null), 2, 1m, squares);
+
+            Assert.DoesNotContain(lines, l => l.UserId == B);
+        }
+
+        [Fact]
+        public void ZeroPricePool_ProducesNoLines()
+        {
+            var squares = new Dictionary<string, int> { [A] = 5 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Default, Periods(A, null), 2, 0m, squares);
+
+            Assert.Empty(lines);
+        }
+
+        [Fact]
+        public void UnimplementedMode_Throws()
+        {
+            var squares = new Dictionary<string, int> { [A] = 1 };
+            Assert.Throws<NotSupportedException>(() => SettlementEngine.ComputeSettlement(
+                "NotARealMode", Periods(A), 1, 1m, squares));
+        }
+
+        [Fact]
+        public void Fair_UnclaimedPeriods_RaiseWinningPeriodPayouts()
+        {
+            var squares = new Dictionary<string, int> { [A] = 6, [B] = 6 };
+            // pool = 12, one null of 4 -> 3 winning periods pay 12/3 = 4 (not 3)
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Fair, Periods(A, B, null, A), 4, 1m, squares);
+
+            Assert.Equal(3, lines.Count);
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.PeriodWin, l.Type));
+            Assert.All(lines, l => Assert.Equal(4m, l.Amount));
+            Assert.Equal(8m, Total(lines, A));
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Fair_AllClaimed_MatchesDefaultPerPeriod()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Fair, Periods(A, B, A, B), 4, 1m, squares);
+
+            Assert.All(lines, l => Assert.Equal(2m, l.Amount));
+        }
+
+        [Fact]
+        public void Fair_AllNull_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 3, [B] = 5 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Fair, Periods(null, null), 2, 2m, squares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(6m, Total(lines, A));
+            Assert.Equal(10m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Push_NullPeriod_CarriesOntoNextWinner()
+        {
+            var squares = new Dictionary<string, int> { [A] = 5, [B] = 5 };
+            // pool = 10, per period 2.5; P2 null -> P3 winner gets 2.5 + 2.5 push
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(A, null, B, A), 4, 1m, squares);
+
+            var pushLines = lines.Where(l => l.Type == CoinTransactionTypes.Push).ToList();
+            Assert.Single(pushLines);
+            Assert.Equal(B, pushLines[0].UserId);
+            Assert.Equal(2.5m, pushLines[0].Amount);
+            Assert.Equal(3, pushLines[0].Period);
+            Assert.Equal(5m, Total(lines, B));   // 2.5 win + 2.5 push
+            Assert.Equal(5m, Total(lines, A));   // two 2.5 wins
+        }
+
+        [Fact]
+        public void Push_ConsecutiveNulls_StackTheCarry()
+        {
+            var squares = new Dictionary<string, int> { [A] = 8 };
+            // pool = 8, per period 2; P1+P2 null -> P3 winner gets 2 + 4 push
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(null, null, A, A), 4, 1m, squares);
+
+            var push = lines.Single(l => l.Type == CoinTransactionTypes.Push);
+            Assert.Equal(4m, push.Amount);
+            Assert.Equal(3, push.Period);
+            Assert.Equal(8m, Total(lines, A));
+        }
+
+        [Fact]
+        public void Push_TrailingNull_PaysEarliestWinner()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per period 2; P4 null -> trailing 2 goes to A (earliest winner)
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(A, B, B, null), 4, 1m, squares);
+
+            var push = lines.Single(l => l.Type == CoinTransactionTypes.Push);
+            Assert.Equal(A, push.UserId);
+            Assert.Null(push.Period);
+            Assert.Equal(2m, push.Amount);
+            Assert.Equal(4m, Total(lines, A));
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Push_AllNull_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 2, [B] = 6 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Push, Periods(null, null, null, null), 4, 1m, squares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(2m, Total(lines, A));
+            Assert.Equal(6m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Destruction_BombLootsPreviousWinner_NextWinnerCollects()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per period 2. P2 bomb loots A's 2 -> B collects at P3.
+            // Bomb share (2) salvages to first winner A.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, null, B, A), 4, 1m, squares);
+
+            var negDestroy = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount < 0);
+            Assert.Equal(A, negDestroy.UserId);
+            Assert.Equal(-2m, negDestroy.Amount);
+            Assert.Equal(2, negDestroy.Period);
+
+            var posDestroy = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount > 0);
+            Assert.Equal(B, posDestroy.UserId);
+            Assert.Equal(2m, posDestroy.Amount);
+            Assert.Equal(3, posDestroy.Period);
+
+            var salvage = lines.Single(l => l.Type == CoinTransactionTypes.Salvage);
+            Assert.Equal(A, salvage.UserId);
+            Assert.Equal(2m, salvage.Amount);
+
+            Assert.Equal(4m, Total(lines, A)); // 2 - 2 + 2 (P4 win) + 2 salvage
+            Assert.Equal(4m, Total(lines, B)); // 2 win + 2 loot
+        }
+
+        [Fact]
+        public void Destruction_BombBeforeAnyWinner_IsADud()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8; P1 bomb has no previous winner -> no loot, share salvages to A.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(null, A, B, B), 4, 1m, squares);
+
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
+            var salvage = lines.Single(l => l.Type == CoinTransactionTypes.Salvage);
+            Assert.Equal(A, salvage.UserId);
+            Assert.Equal(4m, Total(lines, A)); // 2 win + 2 salvage
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Destruction_LastPeriodBomb_LootGoesToFirstWinner()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per 2. P4 bomb loots B's 4 -> no later winner -> first winner A.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, B, B, null), 4, 1m, squares);
+
+            var fallback = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount > 0);
+            Assert.Equal(A, fallback.UserId);
+            Assert.Equal(4m, fallback.Amount);
+            Assert.Null(fallback.Period);
+            Assert.Equal(8m, Total(lines, A)); // 2 win + 4 loot + 2 salvage
+            Assert.Equal(0m, Total(lines, B)); // won 4, lost 4
+        }
+
+        [Fact]
+        public void Destruction_SecondBombOnEmptyPot_Fizzles()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per 2. P2 bomb loots A; P3 bomb finds A's pot empty -> nothing.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, null, null, B), 4, 1m, squares);
+
+            Assert.Single(lines.Where(l => l.Type == CoinTransactionTypes.Destroy && l.Amount < 0));
+            Assert.Equal(4m, Total(lines, B)); // 2 win + 2 loot
+            Assert.Equal(4m, Total(lines, A)); // 2 - 2 + 4 salvage (two bomb shares)
+        }
+
+        [Fact]
+        public void Destruction_SelfHit_CollectsOwnCoinsBack()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // P2 bomb loots A, then A wins P3 and collects their own loot.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, null, A, B), 4, 1m, squares);
+
+            Assert.Equal(6m, Total(lines, A)); // 2 - 2 + 2 + 2(own loot) + 2 salvage
+            Assert.Equal(2m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Destruction_AllBombs_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 3, [B] = 5 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(null, null, null, null), 4, 1m, squares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(3m, Total(lines, A));
+            Assert.Equal(5m, Total(lines, B));
+        }
+
+        // ---- Thief: pool 9 (A=5 squares, B=4, price 1) unless noted ----
+        private static readonly Dictionary<string, int> ThiefSquares = new() { [A] = 5, [B] = 4 };
+
+        [Fact]
+        public void Thief_OriginalSpecExample_VictimEliminatedByShooter()
+        {
+            // The example from the original design: A wins P1, B wins P2, arrow at
+            // P3 (armed by B), A wins P4 -> A is eliminated, B takes A's coins.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, B, null, A), 4, 1m, ThiefSquares);
+
+            // perWin = 9 / 3 claimed periods = 3
+            var steals = lines.Where(l => l.Type == CoinTransactionTypes.Steal).ToList();
+            Assert.Equal(2, steals.Count);
+            Assert.Contains(steals, l => l.UserId == A && l.Amount == -6m && l.Period == 4);
+            Assert.Contains(steals, l => l.UserId == B && l.Amount == 6m && l.Period == 4);
+            Assert.Equal(0m, Total(lines, A));
+            Assert.Equal(9m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Thief_SelfHitMidGame_BountyCollectedByNextWinner()
+        {
+            // A arms at P2, wins P3 (self-hit): pot (6) becomes a bounty; B wins P4
+            // and collects it on top of their own win.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, null, A, B), 4, 1m, ThiefSquares);
+
+            var bombs = lines.Where(l => l.Type == CoinTransactionTypes.Destroy).ToList();
+            Assert.Contains(bombs, l => l.UserId == A && l.Amount == -6m && l.Period == 3);
+            Assert.Contains(bombs, l => l.UserId == B && l.Amount == 6m && l.Period == 4);
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
+            Assert.Equal(0m, Total(lines, A));
+            Assert.Equal(9m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Thief_TrailingArrow_EliminatesEarliestSurvivingWinner()
+        {
+            // B is the shooter (most recent winner) when the game ends with an
+            // arrow in flight; earliest survivor A gets eliminated, coins only.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, B, B, null), 4, 1m, ThiefSquares);
+
+            var steals = lines.Where(l => l.Type == CoinTransactionTypes.Steal).ToList();
+            Assert.Contains(steals, l => l.UserId == A && l.Amount == -3m && l.Period == null);
+            Assert.Contains(steals, l => l.UserId == B && l.Amount == 3m && l.Period == null);
+            Assert.Equal(0m, Total(lines, A));
+            Assert.Equal(9m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Thief_TrailingArrow_ShooterIsEarliestSurvivor_NoProgressionToNextWinner()
+        {
+            // A is both the shooter (most recent winner) and the earliest surviving
+            // winner; B also survives. User-confirmed rule: the game-end arrow does
+            // NOT seek the next surviving winner — it's a dud and B is safe.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, B, A, null), 4, 1m, ThiefSquares);
+
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
+            Assert.Equal(6m, Total(lines, A)); // two boosted period wins
+            Assert.Equal(3m, Total(lines, B)); // untouched
+        }
+
+        [Fact]
+        public void Thief_TrailingArrow_SoleSurvivingWinner_IsADud()
+        {
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, null, null, null), 4, 1m, ThiefSquares);
+
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
+            Assert.Equal(9m, Total(lines, A)); // full Fair-folded pool
+        }
+
+        [Fact]
+        public void Thief_FinalPeriodSelfHit_IsADud()
+        {
+            // A arms at P3 and wins the FINAL period: no bounty, no transfer.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(B, A, null, A), 4, 1m, ThiefSquares);
+
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
+            Assert.Equal(6m, Total(lines, A));
+            Assert.Equal(3m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Thief_EliminationThenTrailingArrow_ShooterCannotHitThemselves()
+        {
+            // A eliminates B at P3 (arrow from P2), P4 arrow re-arms for A but A is
+            // the only survivor -> dud. A holds everything.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, null, B, null), 4, 1m, ThiefSquares);
+
+            Assert.Equal(9m, Total(lines, A)); // 4.5 win + 4.5 stolen from B
+            Assert.Equal(0m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Thief_UnclaimedBounty_ReturnsToSoleSurvivingOwner()
+        {
+            // A self-hits at P3 (bounty = 9), nobody wins after; the bounty falls
+            // back to the earliest survivor — A themselves.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(A, null, A, null), 4, 1m, ThiefSquares);
+
+            var bombs = lines.Where(l => l.Type == CoinTransactionTypes.Destroy).ToList();
+            Assert.Equal(2, bombs.Count); // -9 self-hit, +9 return
+            Assert.Equal(9m, Total(lines, A));
+        }
+
+        [Fact]
+        public void Thief_AllNull_RefundsExactWagers()
+        {
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Thief, Periods(null, null, null, null), 4, 1m, ThiefSquares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(5m, Total(lines, A));
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        // Pool conservation is the core invariant of every mode: whatever the
+        // period sequence, the settlement lines redistribute exactly the pool.
+        [Theory]
+        [InlineData(PayoutModes.Default)]
+        [InlineData(PayoutModes.Fair)]
+        [InlineData(PayoutModes.Push)]
+        [InlineData(PayoutModes.Destruction)]
+        [InlineData(PayoutModes.Thief)]
+        public void RandomizedGames_AlwaysConserveThePool(string mode)
+        {
+            var rng = new Random(20260718);
+            var users = new[] { A, B, C, "user-d", "user-e" };
+
+            for (int i = 0; i < 500; i++)
+            {
+                var periodCount = rng.Next(1, 7);
+                var price = Math.Round((decimal)rng.NextDouble() * 10m + 0.25m, 2);
+                var squares = users
+                    .Take(rng.Next(2, users.Length + 1))
+                    .ToDictionary(u => u, _ => rng.Next(0, 12));
+                if (squares.Values.Sum() == 0) squares[A] = 1;
+
+                var winners = new string?[periodCount];
+                var playersWithSquares = squares.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToArray();
+                for (int p = 0; p < periodCount; p++)
+                    winners[p] = rng.Next(3) == 0 ? null : playersWithSquares[rng.Next(playersWithSquares.Length)];
+
+                var lines = SettlementEngine.ComputeSettlement(
+                    mode, Periods(winners), periodCount, price, squares);
+
+                var pool = SettlementEngine.GetPool(price, squares);
+                Assert.Equal(pool, lines.Sum(l => l.Amount));
+                // Only loot/steal transfers may go negative, and no player can
+                // ever leave a game having lost more than they won in it.
+                Assert.All(lines, l => Assert.True(
+                    l.Amount > 0
+                        || (mode == PayoutModes.Destruction && l.Type == CoinTransactionTypes.Destroy)
+                        || (mode == PayoutModes.Thief && (l.Type == CoinTransactionTypes.Destroy || l.Type == CoinTransactionTypes.Steal)),
+                    $"unexpected non-positive line in iteration {i}"));
+                var perUser = lines.GroupBy(l => l.UserId).Select(g => g.Sum(l => l.Amount));
+                Assert.All(perUser, total => Assert.True(total >= 0, $"negative net in iteration {i}"));
+            }
+        }
+    }
+}

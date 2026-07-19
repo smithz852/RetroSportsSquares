@@ -197,6 +197,11 @@ export default function Dashboard() {
                     {game.gameName}
                   </h3>
                   <div className="flex items-center gap-2 shrink-0">
+                    {game.payoutMode && game.payoutMode !== "Default" && (
+                      <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400" title={`${game.payoutMode} payout mode`}>
+                        {game.payoutMode.toUpperCase()}
+                      </span>
+                    )}
                     <span className={`px-2 py-1 text-xs font-['Press_Start_2P'] ${
                       game.isOpen ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
                     }`}>

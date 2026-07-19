@@ -26,6 +26,7 @@ namespace RSS_DB
         public DbSet<GamePlayer> GamePlayers { get; set; }
         public DbSet<GameSquares> GameSquares { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<CoinTransaction> CoinTransactions { get; set; }
 
 
 
@@ -50,6 +51,16 @@ namespace RSS_DB
 
             builder.Entity<ChatMessage>()
                 .HasIndex(m => new { m.GameId, m.CreatedAt });
+
+            // Idempotent daily grant: GrantDate is populated only on DailyGrant rows,
+            // and MySQL unique indexes allow repeated NULLs for every other type.
+            builder.Entity<CoinTransaction>()
+                .HasIndex(t => new { t.ApplicationUserId, t.GrantDate })
+                .IsUnique();
+
+            // Refund/settlement sums per player per game.
+            builder.Entity<CoinTransaction>()
+                .HasIndex(t => new { t.SquareGameId, t.ApplicationUserId });
         }
     }
 }

@@ -43,9 +43,15 @@ namespace RSS_Services
                     return;
                 }
 
-                var claimedSquares = await _appDbContext.GameSquares
-                    .CountAsync(gs => gs.SquareGamesId == squareGameId && gs.GamePlayerId != null);
-                var payout = PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
+                // Only Default's per-period amount is final mid-game; other modes
+                // announce the win and leave exact coins to the settlement recap.
+                decimal? payout = null;
+                if (game.PayoutMode == PayoutModes.Default)
+                {
+                    var claimedSquares = await _appDbContext.GameSquares
+                        .CountAsync(gs => gs.SquareGamesId == squareGameId && gs.GamePlayerId != null);
+                    payout = PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
+                }
                 var periodLabel = GameEmailTemplates.GetPeriodLabel(period, game.PeriodCount);
 
                 var (subject, text, html) = GameEmailTemplates.BuildPeriodWin(game.GameName, periodLabel, payout);
@@ -83,8 +89,19 @@ namespace RSS_Services
 
             try
             {
-                var claimedSquares = game.GameSquares.Count(gs => gs.GamePlayerId != null);
-                var payout = PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
+                // Recap amounts come from the settlement engine (same pure math that
+                // credits wallets), so they're correct per mode — Fair's boosted
+                // periods, Push carries, Default's pro-rata refund all included.
+                var settlementLines = SettlementEngine.ComputeSettlement(
+                    game.PayoutMode, game.PeriodWinners, game.PeriodCount, game.PricePerSquare,
+                    GameSettlementService.GetSquareCountsByUser(game));
+                var settledByUser = settlementLines
+                    .GroupBy(l => l.UserId)
+                    .ToDictionary(g => g.Key, g => g.Sum(l => l.Amount));
+                var payoutByPeriod = settlementLines
+                    .Where(l => l.Period != null)
+                    .GroupBy(l => l.Period!.Value)
+                    .ToDictionary(g => g.Key, g => g.Sum(l => l.Amount));
 
                 var namesByUserId = game.GamePlayers
                     .Where(gp => gp.User != null)
@@ -99,7 +116,7 @@ namespace RSS_Services
                     {
                         PeriodLabel = GameEmailTemplates.GetPeriodLabel(period, game.PeriodCount),
                         WinnerName = hasWinner ? namesByUserId.GetValueOrDefault(winnerId!, "Unknown player") : "No winner",
-                        Payout = hasWinner ? payout : 0
+                        Payout = hasWinner ? payoutByPeriod.GetValueOrDefault(period, 0m) : 0
                     });
                 }
 
@@ -114,8 +131,7 @@ namespace RSS_Services
                         continue;
                     }
 
-                    var squaresClaimed = game.GameSquares.Count(gs => gs.GamePlayerId == player.Id);
-                    var periodsWon = game.PeriodWinners.Values.Count(v => v == player.ApplicationUserId);
+                    var squaresClaimed = game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == player.Id);
 
                     var model = new RecapEmailModel
                     {
@@ -124,7 +140,7 @@ namespace RSS_Services
                         PeriodRows = periodRows,
                         RecipientName = GetDisplayName(player.User),
                         CoinsWagered = game.PricePerSquare * squaresClaimed,
-                        CoinsWon = periodsWon * payout
+                        CoinsWon = settledByUser.GetValueOrDefault(player.ApplicationUserId, 0m)
                     };
 
                     try

@@ -21,6 +21,7 @@ namespace RSS.Helpers
                 CurrentPlayerCount = availableGames.GamePlayers.Count,
                 PricePerSquare = availableGames.PricePerSquare,
                 SquareSelectionLimit = availableGames.SquareSelectionLimit,
+                PayoutMode = availableGames.PayoutMode,
                 HostUserId = availableGames.GamePlayers.FirstOrDefault(p => p.IsHost)?.ApplicationUserId,
                 IsTurnBased = availableGames.IsTurnBased,
                 SelectionPhaseActive = availableGames.SelectionPhaseActive,
@@ -59,6 +60,8 @@ namespace RSS.Helpers
                 AwayPeriodScores = squaregame.DailySportGame.AwayPeriodScores,
                 PeriodWinners = periodWinnerNames,
                 PayoutPerPeriod = payoutPerPeriod,
+                PayoutMode = squaregame.PayoutMode,
+                PeriodCount = squaregame.PeriodCount,
             };
         }
 

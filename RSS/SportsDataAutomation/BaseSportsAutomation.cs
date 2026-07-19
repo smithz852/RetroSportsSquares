@@ -76,13 +76,18 @@ namespace RSS.SportsDataAutomation
             var squareServices = scope.ServiceProvider.GetRequiredService<SquareServices>();
             var timeHelpers = scope.ServiceProvider.GetRequiredService<TimeHelpers>();
             var notifications = scope.ServiceProvider.GetRequiredService<GameNotificationService>();
+            var settlement = scope.ServiceProvider.GetRequiredService<GameSettlementService>();
             var todayPst = timeHelpers.GetTimeDateTimeTodayInPst();
             var completedGameIds = await squareServices.CloseStaleGamesAsync(SportsType, todayPst);
 
-            // Recaps for games force-completed here; the RecapEmailSent flag keeps this
-            // idempotent against the refetch flow's own recap sends.
+            // Settle (coins) then recap for games force-completed here; the
+            // SettlementCompleted/RecapEmailSent flags keep both idempotent
+            // against the refetch flow's own completion path.
             foreach (var gameId in completedGameIds)
+            {
+                await settlement.SettleGameAsync(gameId);
                 await notifications.SendGameRecapEmailsAsync(gameId);
+            }
         }
     }
 }

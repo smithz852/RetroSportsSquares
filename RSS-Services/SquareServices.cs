@@ -18,11 +18,13 @@ namespace RSS_Services
         private AppDbContext _appDbContext;
         private readonly Random _random = new();
         private readonly IGameHubNotifier _hubNotifier;
+        private readonly WalletService _walletService;
 
-        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier)
+        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier, WalletService walletService)
         {
             _appDbContext = appDbContext;
             _hubNotifier = hubNotifier;
+            _walletService = walletService;
         }
 
         public async Task<List<GameSquares>> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
@@ -32,22 +34,49 @@ namespace RSS_Services
             var createdAt = DateTimeOffset.UtcNow;
 
            var gamePlayer = _appDbContext.GamePlayers.FirstOrDefault(g => g.GameId == gameIdGuid && g.ApplicationUserId == userId);
+            var game = await _appDbContext.SquareGames.FindAsync(gameIdGuid);
 
             var availableSquares = CheckIfSquaresAreSelected(gameId, squareSelections);
-            
-            foreach (var square in availableSquares)
-            {
-                var squareId = Guid.Parse(square);
-                var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
-                selectedSquare.GamePlayerId = gamePlayer.Id;
-
-                gameSquares.Add(selectedSquare);
-            }
-            var savedSquares = await _appDbContext.SaveChangesAsync();
-
-            if (savedSquares <= 0)
+            if (availableSquares.Count == 0)
             {
                 return null;
+            }
+
+            // Squares in public games are bought from the coin wallet; the wager,
+            // its ledger row, and the square assignments must commit or roll back
+            // together (the conditional decrement in WagerAsync runs immediately).
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var square in availableSquares)
+                {
+                    var squareId = Guid.Parse(square);
+                    var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
+                    selectedSquare.GamePlayerId = gamePlayer.Id;
+                    selectedSquare.OriginalGamePlayerId = gamePlayer.Id;
+
+                    gameSquares.Add(selectedSquare);
+                }
+
+                // Charge only for the squares actually assigned — partial selections
+                // throw below and the player re-picks the remainder.
+                if (game != null && game.IsPublic)
+                    await _walletService.WagerAsync(userId, gameIdGuid, game.PricePerSquare * availableSquares.Count);
+
+                var savedSquares = await _appDbContext.SaveChangesAsync();
+
+                if (savedSquares <= 0)
+                {
+                    await transaction.RollbackAsync();
+                    return null;
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
 
             if (availableSquares.Count < squareSelections.Count)
@@ -214,13 +243,15 @@ namespace RSS_Services
             };
         }
 
+        // Persists a resolved period — claimed OR unclaimed. Null-square periods are
+        // recorded as null the moment they resolve (not just backfilled at completion)
+        // so mode mechanics that react to nulls live (Push pot, future arrow/bomb
+        // states) can read them mid-game. Returns null for unclaimed or
+        // already-resolved periods — i.e. exactly when no winner email should fire.
         public async Task<QuarterlyWinnerSaveResult?> SaveQuarterlyWinner(QuarterlyWinnerDTO winner, Guid squareGameId)
         {
             var game = await _appDbContext.SquareGames.FindAsync(squareGameId);
             if (game is null) throw new InvalidOperationException($"Game {squareGameId} not found");
-
-            var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
-            if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
 
             // Already resolved — skip
             if (game.PeriodWinners.ContainsKey(winner.Period)) return null;
@@ -232,7 +263,15 @@ namespace RSS_Services
                     game.PeriodWinners[p] = null;
             }
 
-            game.PeriodWinners[winner.Period] = player.ApplicationUserId;
+            string? winnerApplicationUserId = null;
+            if (winner.UserId != null)
+            {
+                var player = await _appDbContext.GamePlayers.FindAsync(winner.UserId);
+                if (player is null) throw new InvalidOperationException($"Player {winner.UserId} not found");
+                winnerApplicationUserId = player.ApplicationUserId;
+            }
+
+            game.PeriodWinners[winner.Period] = winnerApplicationUserId;
 
             // Notify EF Core the JSON column was mutated
             _appDbContext.Entry(game).Property(g => g.PeriodWinners).IsModified = true;
@@ -240,12 +279,51 @@ namespace RSS_Services
             var saved = await _appDbContext.SaveChangesAsync();
             if (saved <= 0) throw new InvalidOperationException("Could not save winner");
 
+            if (winnerApplicationUserId == null) return null;
+
             return new QuarterlyWinnerSaveResult
             {
                 SquareGameId = game.Id,
                 Period = winner.Period,
-                WinnerApplicationUserId = player.ApplicationUserId
+                WinnerApplicationUserId = winnerApplicationUserId
             };
+        }
+
+        // Thief mode: an arrow landed — the victim is knocked out and every square
+        // they own transfers to the shooter, which naturally makes future periods
+        // landing on those squares resolve as the shooter's wins. Coins move at
+        // settlement, not here. Idempotent via the IsEliminated guard (and the
+        // caller only fires once per period save anyway).
+        public async Task EliminateThiefVictimAsync(Guid squareGameId, string victimUserId, string shooterUserId)
+        {
+            var players = await _appDbContext.GamePlayers
+                .Where(gp => gp.GameId == squareGameId &&
+                             (gp.ApplicationUserId == victimUserId || gp.ApplicationUserId == shooterUserId))
+                .ToListAsync();
+
+            var victim = players.FirstOrDefault(p => p.ApplicationUserId == victimUserId);
+            var shooter = players.FirstOrDefault(p => p.ApplicationUserId == shooterUserId);
+            if (victim == null || shooter == null || victim.IsEliminated) return;
+
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                victim.IsEliminated = true;
+                await _appDbContext.GameSquares
+                    .Where(gs => gs.SquareGamesId == squareGameId && gs.GamePlayerId == victim.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(gs => gs.GamePlayerId, shooter.Id));
+
+                await _appDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+
+            // Board ownership changed — poke clients to refetch the gameboard.
+            await _hubNotifier.NotifySquareSelected(squareGameId.ToString());
         }
 
         // Marks a game finished once its sports game has reached a terminal status
