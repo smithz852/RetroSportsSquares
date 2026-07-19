@@ -9,6 +9,9 @@ namespace RSS_DB.Entities
         public const string DailyGrant = "DailyGrant";
         public const string Wager = "Wager";
         public const string Refund = "Refund";
+        // Settlement credits (game completion)
+        public const string PeriodWin = "PeriodWin";
+        public const string Redistribution = "Redistribution";
     }
 
     public class CoinTransaction
@@ -31,6 +34,8 @@ namespace RSS_DB.Entities
         // (MySQL unique indexes permit repeated NULLs).
         [Column(TypeName = "date")]
         public DateTime? GrantDate { get; set; }
+        // Which game period a PeriodWin credit came from; null for other types.
+        public int? Period { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
 
         public CoinTransaction()

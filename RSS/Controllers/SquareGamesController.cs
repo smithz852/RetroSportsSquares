@@ -68,10 +68,18 @@ namespace RSS.Controllers
                 return Unauthorized();
             }
 
+            var payoutMode = string.IsNullOrWhiteSpace(gameData.PayoutMode)
+                ? RSS_DB.Entities.PayoutModes.Default
+                : gameData.PayoutMode;
+            if (!RSS_DB.Entities.PayoutModes.All.Contains(payoutMode))
+                return BadRequest(new { message = $"Unknown payout mode '{payoutMode}'." });
+            if (!RSS_DB.Entities.PayoutModes.Implemented.Contains(payoutMode))
+                return BadRequest(new { message = $"Payout mode '{payoutMode}' is coming soon." });
+
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic, payoutMode);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();

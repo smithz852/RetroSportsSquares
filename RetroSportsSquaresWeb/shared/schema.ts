@@ -1,5 +1,7 @@
 // Frontend TypeScript types for .NET backend integration
 
+export type PayoutMode = "Default" | "Fair" | "Push" | "Thief" | "Destruction";
+
 export interface SquareGame {
   gameId: string;
   gameName: string;
@@ -7,6 +9,7 @@ export interface SquareGame {
   isOpen: boolean;
   pricePerSquare: number;
   squareSelectionLimit: number;
+  payoutMode: PayoutMode;
   hostUserId: string | null;
   isTurnBased: boolean;
   selectionPhaseActive: boolean;
@@ -54,6 +57,7 @@ export interface CreateSquareGameRequest {
   turnTimeoutSeconds: number;
   dailySportsGameId: string;
   isPublic: boolean;
+  payoutMode: PayoutMode;
 }
 
 export interface BoardSquare {

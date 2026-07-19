@@ -11,6 +11,7 @@
         public int CurrentPlayerCount { get; set; }
         public decimal PricePerSquare { get; set; }
         public int SquareSelectionLimit { get; set; }
+        public string PayoutMode { get; set; } = "Default";
         public string? HostUserId { get; set; }
         public bool IsTurnBased { get; set; }
         public bool SelectionPhaseActive { get; set; }

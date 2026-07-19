@@ -21,6 +21,7 @@ namespace RSS.Helpers
                 CurrentPlayerCount = availableGames.GamePlayers.Count,
                 PricePerSquare = availableGames.PricePerSquare,
                 SquareSelectionLimit = availableGames.SquareSelectionLimit,
+                PayoutMode = availableGames.PayoutMode,
                 HostUserId = availableGames.GamePlayers.FirstOrDefault(p => p.IsHost)?.ApplicationUserId,
                 IsTurnBased = availableGames.IsTurnBased,
                 SelectionPhaseActive = availableGames.SelectionPhaseActive,

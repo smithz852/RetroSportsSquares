@@ -86,6 +86,15 @@ namespace RSS_Services
                 var claimedSquares = game.GameSquares.Count(gs => gs.GamePlayerId != null);
                 var payout = PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
 
+                // Recap totals come from the settlement engine (same pure math that
+                // credits wallets), so they include mode-specific redistribution —
+                // e.g. Default's pro-rata refund of unclaimed periods.
+                var settledByUser = SettlementEngine.ComputeSettlement(
+                        game.PayoutMode, game.PeriodWinners, game.PeriodCount, game.PricePerSquare,
+                        GameSettlementService.GetSquareCountsByUser(game))
+                    .GroupBy(l => l.UserId)
+                    .ToDictionary(g => g.Key, g => g.Sum(l => l.Amount));
+
                 var namesByUserId = game.GamePlayers
                     .Where(gp => gp.User != null)
                     .ToDictionary(gp => gp.ApplicationUserId, gp => GetDisplayName(gp.User));
@@ -115,7 +124,6 @@ namespace RSS_Services
                     }
 
                     var squaresClaimed = game.GameSquares.Count(gs => gs.GamePlayerId == player.Id);
-                    var periodsWon = game.PeriodWinners.Values.Count(v => v == player.ApplicationUserId);
 
                     var model = new RecapEmailModel
                     {
@@ -124,7 +132,7 @@ namespace RSS_Services
                         PeriodRows = periodRows,
                         RecipientName = GetDisplayName(player.User),
                         CoinsWagered = game.PricePerSquare * squaresClaimed,
-                        CoinsWon = periodsWon * payout
+                        CoinsWon = settledByUser.GetValueOrDefault(player.ApplicationUserId, 0m)
                     };
 
                     try

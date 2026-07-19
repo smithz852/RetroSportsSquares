@@ -109,7 +109,8 @@ namespace RSS.Controllers
         //            g.GameName,
         //            g.PeriodWinners,
         //            g.IsCompleted,
-        //            g.RecapEmailSent
+        //            g.RecapEmailSent,
+        //            g.SettlementCompleted
         //        })
         //        .ToListAsync();
 

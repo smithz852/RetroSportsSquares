@@ -10,12 +10,14 @@ namespace RSS_Services
     {
         private readonly SquareServices _squareServices;
         private readonly GameNotificationService _notifications;
+        private readonly GameSettlementService _settlement;
         private readonly ILogger<GameResultProcessor> _logger;
 
-        public GameResultProcessor(SquareServices squareServices, GameNotificationService notifications, ILogger<GameResultProcessor> logger)
+        public GameResultProcessor(SquareServices squareServices, GameNotificationService notifications, GameSettlementService settlement, ILogger<GameResultProcessor> logger)
         {
             _squareServices = squareServices;
             _notifications = notifications;
+            _settlement = settlement;
             _logger = logger;
         }
 
@@ -43,6 +45,9 @@ namespace RSS_Services
                 if (currentPeriod > squareGame.PeriodCount)
                 {
                     await _squareServices.CompleteGameAsync(squareGame.Id);
+                    // Settle before the recap so recap emails describe final,
+                    // credited amounts (SettlementCompleted keeps this at-most-once).
+                    await _settlement.SettleGameAsync(squareGame.Id);
                     await _notifications.SendGameRecapEmailsAsync(squareGame.Id);
                 }
             }
