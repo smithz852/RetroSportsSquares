@@ -14,6 +14,11 @@ namespace RSS_DB.Entities
         public const string Redistribution = "Redistribution";
         // Push mode: an unclaimed period's share carried onto a later winner
         public const string Push = "Push";
+        // Destruction mode: a bomb transfer — negative on the looted previous
+        // winner, positive on the collecting next winner
+        public const string Destroy = "Destroy";
+        // Destruction mode: bomb-period shares collected by the first winner
+        public const string Salvage = "Salvage";
     }
 
     public class CoinTransaction

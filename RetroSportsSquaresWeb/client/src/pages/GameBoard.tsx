@@ -108,6 +108,32 @@ export default function GameBoard() {
     return carry;
   }, [scoreData]);
 
+  // Destruction mode: replay resolved periods to find loot a bomb has knocked
+  // loose (the previous winner's pot) that the next winner will collect.
+  const destructionLoot = useMemo(() => {
+    if (scoreData?.payoutMode !== "Destruction") return 0;
+    const winners = scoreData.periodWinners ?? {};
+    const periodCount = scoreData.periodCount ?? 0;
+    if (Object.keys(winners).length >= periodCount) return 0;
+    const perPeriod = scoreData.payoutPerPeriod ?? 0;
+    const pots: Record<string, number> = {};
+    let lastWinner: string | null = null;
+    let loot = 0;
+    for (let p = 1; p <= periodCount; p++) {
+      if (!(p in winners)) break;
+      const w = winners[p];
+      if (w) {
+        pots[w] = (pots[w] ?? 0) + perPeriod + loot;
+        loot = 0;
+        lastWinner = w;
+      } else if (lastWinner && (pots[lastWinner] ?? 0) > 0) {
+        loot += pots[lastWinner];
+        pots[lastWinner] = 0;
+      }
+    }
+    return loot;
+  }, [scoreData]);
+
   const [activePlayer, setActivePlayer] = useState(() => {
     return localStorage.getItem("sports_squares_player") || "";
   });
@@ -452,6 +478,12 @@ useEffect(() => {
                 <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
                   <Coins size={16} />
                   POT: {(pushCarry + (scoreData.payoutPerPeriod ?? 0)).toFixed(2)} ON THE NEXT PERIOD!
+                </span>
+              )}
+              {scoreData.payoutMode === "Destruction" && destructionLoot > 0 && (
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
+                  <Coins size={16} />
+                  LOOT: {destructionLoot.toFixed(2)} TO THE NEXT WINNER!
                 </span>
               )}
             </div>

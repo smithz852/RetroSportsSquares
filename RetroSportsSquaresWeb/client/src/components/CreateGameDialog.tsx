@@ -48,8 +48,8 @@ const PAYOUT_MODES: {
   {
     value: "Destruction",
     label: "DESTRUCTION",
-    description: "A missed period bombs the previous winner's coins.",
-    available: false,
+    description: "A missed period bombs the previous winner's coins — the next winner collects them.",
+    available: true,
   },
 ];
 

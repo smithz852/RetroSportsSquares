@@ -15,7 +15,7 @@ namespace RSS_DB.Entities
         public static readonly IReadOnlyList<string> All = new[] { Default, Fair, Push, Thief, Destruction };
 
         // Modes with a working settlement implementation — game creation rejects the
-        // rest. Grows as each mode ships (Destruction next, then Thief).
-        public static readonly IReadOnlySet<string> Implemented = new HashSet<string> { Default, Fair, Push };
+        // rest. Only Thief remains (deferred pending its design discussion).
+        public static readonly IReadOnlySet<string> Implemented = new HashSet<string> { Default, Fair, Push, Destruction };
     }
 }

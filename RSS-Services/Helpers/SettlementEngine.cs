@@ -29,6 +29,7 @@ namespace RSS_Services.Helpers
                 PayoutModes.Default => ComputeDefault(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 PayoutModes.Fair => ComputeFair(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 PayoutModes.Push => ComputePush(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                PayoutModes.Destruction => ComputeDestruction(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 _ => throw new NotSupportedException($"Payout mode '{payoutMode}' has no settlement implementation."),
             };
 
@@ -171,6 +172,85 @@ namespace RSS_Services.Helpers
             return lines;
         }
 
+        // Destruction: periods pay the even share, but an unclaimed period is a
+        // bomb — the most recent winner loses their accumulated in-game winnings,
+        // which the NEXT winner collects (or the first winner, when the bomb has
+        // no later winner). A second bomb before anyone wins again finds an empty
+        // pot and fizzles; a shooter who "bombs themselves" (wins right after
+        // their own loss) simply collects their own coins back. Bomb-period
+        // shares salvage to the first winner at the end — a positional right they
+        // keep even if they were bombed. Zero winners → full refund.
+        private static List<SettlementLine> ComputeDestruction(
+            IReadOnlyDictionary<int, string?> periodWinners,
+            int periodCount,
+            decimal pricePerSquare,
+            IReadOnlyDictionary<string, int> squareCountsByUser)
+        {
+            var lines = new List<SettlementLine>();
+            var pool = GetPool(pricePerSquare, squareCountsByUser);
+            if (pool <= 0 || periodCount <= 0) return lines;
+
+            string? firstWinner = null;
+            for (int period = 1; period <= periodCount && firstWinner == null; period++)
+                firstWinner = periodWinners.GetValueOrDefault(period);
+
+            if (firstWinner == null)
+            {
+                AddProRataRefund(lines, pricePerSquare, squareCountsByUser, 1m);
+                return lines;
+            }
+
+            var perPeriod = pool / periodCount;
+            // Pots track the ROUNDED amounts actually emitted as lines, so a loot
+            // line always cancels exactly what the victim was credited — otherwise
+            // rounding drift could push a player's net negative by a cent.
+            var pots = new Dictionary<string, decimal>();
+            string? lastWinner = null;
+            decimal pendingLoot = 0m;
+            decimal salvage = 0m;
+
+            for (int period = 1; period <= periodCount; period++)
+            {
+                var winnerId = periodWinners.GetValueOrDefault(period);
+                if (winnerId != null)
+                {
+                    var win = Round2(perPeriod);
+                    lines.Add(new SettlementLine(winnerId, win, CoinTransactionTypes.PeriodWin, period));
+                    pots[winnerId] = pots.GetValueOrDefault(winnerId) + win;
+
+                    if (pendingLoot > 0)
+                    {
+                        lines.Add(new SettlementLine(winnerId, pendingLoot, CoinTransactionTypes.Destroy, period));
+                        pots[winnerId] += pendingLoot;
+                        pendingLoot = 0m;
+                    }
+
+                    lastWinner = winnerId;
+                }
+                else
+                {
+                    salvage += perPeriod;
+
+                    if (lastWinner != null && pots.GetValueOrDefault(lastWinner) > 0)
+                    {
+                        var loot = pots[lastWinner]; // already rounded line-sums
+                        pots[lastWinner] = 0m;
+                        lines.Add(new SettlementLine(lastWinner, -loot, CoinTransactionTypes.Destroy, period));
+                        pendingLoot += loot;
+                    }
+                }
+            }
+
+            // Bomb with no later winner: the loot rewards whoever won first.
+            if (pendingLoot > 0)
+                lines.Add(new SettlementLine(firstWinner, pendingLoot, CoinTransactionTypes.Destroy, null));
+
+            if (salvage > 0)
+                lines.Add(new SettlementLine(firstWinner, Round2(salvage), CoinTransactionTypes.Salvage, null));
+
+            return lines;
+        }
+
         // The zero-winner game in every mode, and Default's consolation, are the
         // same operation: return `fraction` of each player's wager (winners
         // included — they funded the unclaimed periods too).
@@ -193,8 +273,9 @@ namespace RSS_Services.Helpers
 
         // Rounding each line to 2dp can leave a few hundredths of the pool
         // unallocated (or over-allocated). Pin the difference on the largest
-        // line — it can absorb it without going negative — so the pool-conservation
-        // invariant holds to the cent.
+        // line owned by the player with the highest net — that net is always
+        // strictly positive when a pool exists, so a few cents in either
+        // direction can never drive anyone negative.
         private static void ApplyRoundingResidual(List<SettlementLine> lines, decimal pool)
         {
             if (lines.Count == 0) return;
@@ -202,11 +283,19 @@ namespace RSS_Services.Helpers
             var residual = pool - lines.Sum(l => l.Amount);
             if (residual == 0) return;
 
-            var largestIndex = 0;
-            for (int i = 1; i < lines.Count; i++)
-                if (lines[i].Amount > lines[largestIndex].Amount) largestIndex = i;
+            var richestUser = lines
+                .GroupBy(l => l.UserId)
+                .OrderByDescending(g => g.Sum(l => l.Amount))
+                .First().Key;
 
-            lines[largestIndex] = lines[largestIndex] with { Amount = lines[largestIndex].Amount + residual };
+            var targetIndex = -1;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i].UserId != richestUser) continue;
+                if (targetIndex < 0 || lines[i].Amount > lines[targetIndex].Amount) targetIndex = i;
+            }
+
+            lines[targetIndex] = lines[targetIndex] with { Amount = lines[targetIndex].Amount + residual };
         }
     }
 }

@@ -213,12 +213,108 @@ namespace RSS_Tests
             Assert.Equal(6m, Total(lines, B));
         }
 
+        [Fact]
+        public void Destruction_BombLootsPreviousWinner_NextWinnerCollects()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per period 2. P2 bomb loots A's 2 -> B collects at P3.
+            // Bomb share (2) salvages to first winner A.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, null, B, A), 4, 1m, squares);
+
+            var negDestroy = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount < 0);
+            Assert.Equal(A, negDestroy.UserId);
+            Assert.Equal(-2m, negDestroy.Amount);
+            Assert.Equal(2, negDestroy.Period);
+
+            var posDestroy = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount > 0);
+            Assert.Equal(B, posDestroy.UserId);
+            Assert.Equal(2m, posDestroy.Amount);
+            Assert.Equal(3, posDestroy.Period);
+
+            var salvage = lines.Single(l => l.Type == CoinTransactionTypes.Salvage);
+            Assert.Equal(A, salvage.UserId);
+            Assert.Equal(2m, salvage.Amount);
+
+            Assert.Equal(4m, Total(lines, A)); // 2 - 2 + 2 (P4 win) + 2 salvage
+            Assert.Equal(4m, Total(lines, B)); // 2 win + 2 loot
+        }
+
+        [Fact]
+        public void Destruction_BombBeforeAnyWinner_IsADud()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8; P1 bomb has no previous winner -> no loot, share salvages to A.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(null, A, B, B), 4, 1m, squares);
+
+            Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
+            var salvage = lines.Single(l => l.Type == CoinTransactionTypes.Salvage);
+            Assert.Equal(A, salvage.UserId);
+            Assert.Equal(4m, Total(lines, A)); // 2 win + 2 salvage
+            Assert.Equal(4m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Destruction_LastPeriodBomb_LootGoesToFirstWinner()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per 2. P4 bomb loots B's 4 -> no later winner -> first winner A.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, B, B, null), 4, 1m, squares);
+
+            var fallback = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount > 0);
+            Assert.Equal(A, fallback.UserId);
+            Assert.Equal(4m, fallback.Amount);
+            Assert.Null(fallback.Period);
+            Assert.Equal(8m, Total(lines, A)); // 2 win + 4 loot + 2 salvage
+            Assert.Equal(0m, Total(lines, B)); // won 4, lost 4
+        }
+
+        [Fact]
+        public void Destruction_SecondBombOnEmptyPot_Fizzles()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // pool = 8, per 2. P2 bomb loots A; P3 bomb finds A's pot empty -> nothing.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, null, null, B), 4, 1m, squares);
+
+            Assert.Single(lines.Where(l => l.Type == CoinTransactionTypes.Destroy && l.Amount < 0));
+            Assert.Equal(4m, Total(lines, B)); // 2 win + 2 loot
+            Assert.Equal(4m, Total(lines, A)); // 2 - 2 + 4 salvage (two bomb shares)
+        }
+
+        [Fact]
+        public void Destruction_SelfHit_CollectsOwnCoinsBack()
+        {
+            var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
+            // P2 bomb loots A, then A wins P3 and collects their own loot.
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(A, null, A, B), 4, 1m, squares);
+
+            Assert.Equal(6m, Total(lines, A)); // 2 - 2 + 2 + 2(own loot) + 2 salvage
+            Assert.Equal(2m, Total(lines, B));
+        }
+
+        [Fact]
+        public void Destruction_AllBombs_RefundsExactWagers()
+        {
+            var squares = new Dictionary<string, int> { [A] = 3, [B] = 5 };
+            var lines = SettlementEngine.ComputeSettlement(
+                PayoutModes.Destruction, Periods(null, null, null, null), 4, 1m, squares);
+
+            Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
+            Assert.Equal(3m, Total(lines, A));
+            Assert.Equal(5m, Total(lines, B));
+        }
+
         // Pool conservation is the core invariant of every mode: whatever the
         // period sequence, the settlement lines redistribute exactly the pool.
         [Theory]
         [InlineData(PayoutModes.Default)]
         [InlineData(PayoutModes.Fair)]
         [InlineData(PayoutModes.Push)]
+        [InlineData(PayoutModes.Destruction)]
         public void RandomizedGames_AlwaysConserveThePool(string mode)
         {
             var rng = new Random(20260718);
@@ -243,7 +339,13 @@ namespace RSS_Tests
 
                 var pool = SettlementEngine.GetPool(price, squares);
                 Assert.Equal(pool, lines.Sum(l => l.Amount));
-                Assert.All(lines, l => Assert.True(l.Amount > 0, $"non-positive line in iteration {i}"));
+                // Only Destruction's looting side may go negative, and no player
+                // can ever leave a game having lost more than they won in it.
+                Assert.All(lines, l => Assert.True(
+                    l.Amount > 0 || (mode == PayoutModes.Destruction && l.Type == CoinTransactionTypes.Destroy),
+                    $"unexpected non-positive line in iteration {i}"));
+                var perUser = lines.GroupBy(l => l.UserId).Select(g => g.Sum(l => l.Amount));
+                Assert.All(perUser, total => Assert.True(total >= 0, $"negative net in iteration {i}"));
             }
         }
     }
