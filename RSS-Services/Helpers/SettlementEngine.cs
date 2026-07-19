@@ -30,6 +30,7 @@ namespace RSS_Services.Helpers
                 PayoutModes.Fair => ComputeFair(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 PayoutModes.Push => ComputePush(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 PayoutModes.Destruction => ComputeDestruction(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                PayoutModes.Thief => ComputeThief(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
                 _ => throw new NotSupportedException($"Payout mode '{payoutMode}' has no settlement implementation."),
             };
 
@@ -247,6 +248,109 @@ namespace RSS_Services.Helpers
 
             if (salvage > 0)
                 lines.Add(new SettlementLine(firstWinner, Round2(salvage), CoinTransactionTypes.Salvage, null));
+
+            return lines;
+        }
+
+        // Thief: Fair base (pool ÷ claimed winning periods — arrow periods fatten
+        // every win) plus arrow transfers. All decisions come from ThiefWalk; this
+        // method only does the arithmetic. Eliminations move the victim's whole
+        // rounded pot (wins + anything they collected) to the shooter as Steal ±
+        // pairs; self-hit bombs park the shooter's pot as a bounty (Destroy ±)
+        // for the next winner. Zero winners → full refund.
+        private static List<SettlementLine> ComputeThief(
+            IReadOnlyDictionary<int, string?> periodWinners,
+            int periodCount,
+            decimal pricePerSquare,
+            IReadOnlyDictionary<string, int> squareCountsByUser)
+        {
+            var lines = new List<SettlementLine>();
+            var pool = GetPool(pricePerSquare, squareCountsByUser);
+            if (pool <= 0 || periodCount <= 0) return lines;
+
+            var claimedPeriods = 0;
+            for (int period = 1; period <= periodCount; period++)
+                if (periodWinners.GetValueOrDefault(period) != null) claimedPeriods++;
+
+            if (claimedPeriods == 0)
+            {
+                AddProRataRefund(lines, pricePerSquare, squareCountsByUser, 1m);
+                return lines;
+            }
+
+            var perWin = pool / claimedPeriods;
+            var events = ThiefWalk.Analyze(periodWinners, periodCount);
+            var eventsByPeriod = events
+                .Where(e => e.Period != null)
+                .ToLookup(e => e.Period!.Value);
+
+            var pots = new Dictionary<string, decimal>(); // rounded, mirrors emitted lines
+            decimal bounty = 0m;
+
+            for (int period = 1; period <= periodCount; period++)
+            {
+                var winnerId = periodWinners.GetValueOrDefault(period);
+                if (winnerId == null) continue;
+
+                var win = Round2(perWin);
+                lines.Add(new SettlementLine(winnerId, win, CoinTransactionTypes.PeriodWin, period));
+                pots[winnerId] = pots.GetValueOrDefault(winnerId) + win;
+
+                foreach (var evt in eventsByPeriod[period])
+                {
+                    switch (evt.Type)
+                    {
+                        case ThiefEventType.BountyCollect when bounty > 0:
+                            lines.Add(new SettlementLine(evt.ActorId, bounty, CoinTransactionTypes.Destroy, period));
+                            pots[evt.ActorId] = pots.GetValueOrDefault(evt.ActorId) + bounty;
+                            bounty = 0m;
+                            break;
+
+                        case ThiefEventType.SelfHit:
+                            var ownPot = pots.GetValueOrDefault(evt.ActorId);
+                            if (ownPot > 0)
+                            {
+                                lines.Add(new SettlementLine(evt.ActorId, -ownPot, CoinTransactionTypes.Destroy, period));
+                                pots[evt.ActorId] = 0m;
+                                bounty += ownPot;
+                            }
+                            break;
+
+                        case ThiefEventType.Elimination:
+                            var victimPot = pots.GetValueOrDefault(evt.TargetId!);
+                            if (victimPot > 0)
+                            {
+                                lines.Add(new SettlementLine(evt.TargetId!, -victimPot, CoinTransactionTypes.Steal, period));
+                                lines.Add(new SettlementLine(evt.ActorId, victimPot, CoinTransactionTypes.Steal, period));
+                                pots[evt.ActorId] = pots.GetValueOrDefault(evt.ActorId) + victimPot;
+                                pots[evt.TargetId!] = 0m;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            // Game-end events: an arrow still in flight, or an unclaimed bounty.
+            foreach (var evt in events.Where(e => e.Period == null))
+            {
+                if (evt.Type == ThiefEventType.Elimination)
+                {
+                    var victimPot = pots.GetValueOrDefault(evt.TargetId!);
+                    if (victimPot > 0)
+                    {
+                        lines.Add(new SettlementLine(evt.TargetId!, -victimPot, CoinTransactionTypes.Steal, null));
+                        lines.Add(new SettlementLine(evt.ActorId, victimPot, CoinTransactionTypes.Steal, null));
+                        pots[evt.ActorId] = pots.GetValueOrDefault(evt.ActorId) + victimPot;
+                        pots[evt.TargetId!] = 0m;
+                    }
+                }
+                else if (evt.Type == ThiefEventType.BountyCollect && bounty > 0)
+                {
+                    lines.Add(new SettlementLine(evt.ActorId, bounty, CoinTransactionTypes.Destroy, null));
+                    pots[evt.ActorId] = pots.GetValueOrDefault(evt.ActorId) + bounty;
+                    bounty = 0m;
+                }
+            }
 
             return lines;
         }

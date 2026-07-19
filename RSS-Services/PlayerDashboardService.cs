@@ -26,7 +26,9 @@ namespace RSS_Services
                     gp.Game.PeriodCount,
                     gp.Game.PayoutMode,
                     gp.Game.IsCompleted,
-                    PlayerSquaresCount = gp.GamePlayerSquares.Count(),
+                    // Wager stats count the original buyer — Thief eliminations
+                    // reassign GamePlayerId but never rewrite who paid.
+                    PlayerSquaresCount = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
                     TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null),
                     ClaimedSquareOwners = gp.Game.GameSquares
                         .Where(gs => gs.GamePlayerId != null)
@@ -76,7 +78,7 @@ namespace RSS_Services
                     GameName = gp.Game.GameName,
                     GameType = gp.Game.GameType,
                     PricePerSquare = gp.Game.PricePerSquare,
-                    SquaresClaimed = gp.GamePlayerSquares.Count(),
+                    SquaresClaimed = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
                     IsHost = gp.IsHost,
                     IsOpen = gp.Game.isOpen,
                     SelectionPhaseActive = gp.Game.SelectionPhaseActive
@@ -105,7 +107,7 @@ namespace RSS_Services
                     gp.Game.PeriodWinners,
                     gp.Game.PeriodCount,
                     gp.Game.PayoutMode,
-                    PlayerSquaresCount = gp.GamePlayerSquares.Count(),
+                    PlayerSquaresCount = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
                     ClaimedSquareOwners = gp.Game.GameSquares
                         .Where(gs => gs.GamePlayerId != null)
                         .Select(gs => gs.GamePlayer.ApplicationUserId)

@@ -20,38 +20,49 @@ const PAYOUT_MODES: {
   label: string;
   description: string;
   available: boolean;
+  minPeriods: number;
 }[] = [
   {
     value: "Default",
     label: "DEFAULT",
     description: "Even payout per period. Unclaimed periods refund everyone at the end.",
     available: true,
+    minPeriods: 1,
   },
   {
     value: "Fair",
     label: "FAIR",
     description: "Missed periods raise the payout of every winning period.",
     available: true,
+    minPeriods: 1,
   },
   {
     value: "Push",
     label: "PUSH",
     description: "Missed periods push their coins onto the next period's prize.",
     available: true,
+    minPeriods: 1,
   },
   {
     value: "Thief",
     label: "THIEF",
-    description: "A missed period arms an arrow — the next winner gets robbed.",
-    available: false,
+    description: "A missed period arms an arrow — the next winner is eliminated and robbed of coins and squares.",
+    available: true,
+    minPeriods: 3,
   },
   {
     value: "Destruction",
     label: "DESTRUCTION",
     description: "A missed period bombs the previous winner's coins — the next winner collects them.",
     available: true,
+    minPeriods: 3,
   },
 ];
+
+// Mirrors the backend sport → period mapping (soccer halves vs quarters)
+function sportPeriodCount(sport: string | undefined): number {
+  return sport === "soccer" ? 2 : 4;
+}
 
 // Format game name for display
 function formatGameName(HomeTeam: string, AwayTeam: string) {
@@ -282,32 +293,37 @@ export function CreateGameDialog() {
               GAME MODE
             </label>
             <div className="space-y-1">
-              {PAYOUT_MODES.map((mode) => (
-                <button
-                  key={mode.value}
-                  type="button"
-                  disabled={!mode.available}
-                  onClick={() => mode.available && setPayoutMode(mode.value)}
-                  className={`w-full flex items-start gap-3 border-2 p-2 text-left transition-colors ${
-                    payoutMode === mode.value
-                      ? "border-primary bg-primary/10"
-                      : "border-primary/30"
-                  } ${!mode.available ? "opacity-50 cursor-not-allowed" : "hover:border-primary"}`}
-                >
-                  <div className={`mt-0.5 w-4 h-4 shrink-0 rounded-full border-2 border-primary flex items-center justify-center ${payoutMode === mode.value ? "bg-primary" : "bg-black"}`}>
-                    {payoutMode === mode.value && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
-                  </div>
-                  <div>
-                    <span className={`font-['Press_Start_2P'] text-xs ${payoutMode === mode.value ? "text-primary" : "text-gray-400"}`}>
-                      {mode.label}
-                      {!mode.available && <span className="ml-2 text-yellow-400">SOON</span>}
-                    </span>
-                    <p className="text-gray-400 font-['VT323'] text-base leading-tight mt-1">
-                      {mode.description}
-                    </p>
-                  </div>
-                </button>
-              ))}
+              {PAYOUT_MODES.map((mode) => {
+                const tooFewPeriods = sportPeriodCount(type) < mode.minPeriods;
+                const selectable = mode.available && !tooFewPeriods;
+                return (
+                  <button
+                    key={mode.value}
+                    type="button"
+                    disabled={!selectable}
+                    onClick={() => selectable && setPayoutMode(mode.value)}
+                    className={`w-full flex items-start gap-3 border-2 p-2 text-left transition-colors ${
+                      payoutMode === mode.value
+                        ? "border-primary bg-primary/10"
+                        : "border-primary/30"
+                    } ${!selectable ? "opacity-50 cursor-not-allowed" : "hover:border-primary"}`}
+                  >
+                    <div className={`mt-0.5 w-4 h-4 shrink-0 rounded-full border-2 border-primary flex items-center justify-center ${payoutMode === mode.value ? "bg-primary" : "bg-black"}`}>
+                      {payoutMode === mode.value && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                    </div>
+                    <div>
+                      <span className={`font-['Press_Start_2P'] text-xs ${payoutMode === mode.value ? "text-primary" : "text-gray-400"}`}>
+                        {mode.label}
+                        {!mode.available && <span className="ml-2 text-yellow-400">SOON</span>}
+                        {mode.available && tooFewPeriods && <span className="ml-2 text-yellow-400">NEEDS {mode.minPeriods}+ PERIODS</span>}
+                      </span>
+                      <p className="text-gray-400 font-['VT323'] text-base leading-tight mt-1">
+                        {mode.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div>

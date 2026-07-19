@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Logging;
 using RSS.DTOs;
+using RSS_DB.Entities;
+using RSS_Services.Helpers;
+using System.Linq;
 
 namespace RSS_Services
 {
@@ -35,7 +38,22 @@ namespace RSS_Services
                 {
                     var result = await _squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
                     if (result != null) // null = unclaimed period or already resolved — no email
+                    {
                         await _notifications.SendPeriodWinEmailAsync(squareGame.Id, result.Period, result.WinnerApplicationUserId);
+
+                        // Thief: if this win completed an arrow, the victim's squares
+                        // move to the shooter NOW so later periods resolve against the
+                        // new ownership. ThiefWalk is the same rules the settlement
+                        // engine replays, so the two can never disagree.
+                        if (squareGame.PayoutMode == PayoutModes.Thief)
+                        {
+                            var elimination = ThiefWalk
+                                .Analyze(squareGame.PeriodWinners, squareGame.PeriodCount)
+                                .FirstOrDefault(e => e.Type == ThiefEventType.Elimination && e.Period == result.Period);
+                            if (elimination != null)
+                                await _squareServices.EliminateThiefVictimAsync(squareGame.Id, elimination.TargetId!, elimination.ActorId);
+                        }
+                    }
                 }
 
                 // Terminal status: the sports game is past this board's final period.

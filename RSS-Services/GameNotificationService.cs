@@ -131,7 +131,7 @@ namespace RSS_Services
                         continue;
                     }
 
-                    var squaresClaimed = game.GameSquares.Count(gs => gs.GamePlayerId == player.Id);
+                    var squaresClaimed = game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == player.Id);
 
                     var model = new RecapEmailModel
                     {

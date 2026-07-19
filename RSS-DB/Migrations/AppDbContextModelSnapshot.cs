@@ -369,6 +369,9 @@ namespace RSS_DB.Migrations
                     b.Property<bool>("HasHadTurn")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("IsEliminated")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsHost")
                         .HasColumnType("tinyint(1)");
 
@@ -404,6 +407,9 @@ namespace RSS_DB.Migrations
 
                     b.Property<int>("HomeDigit")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("OriginalGamePlayerId")
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("RowIndex")
                         .HasColumnType("int");

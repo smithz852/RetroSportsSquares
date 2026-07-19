@@ -143,7 +143,7 @@ namespace RSS_Services
                     gp.Game.PeriodCount,
                     gp.Game.PayoutMode,
                     gp.Game.IsCompleted,
-                    PlayerSquaresCount = gp.GamePlayerSquares.Count(),
+                    PlayerSquaresCount = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
                     TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null),
                     ClaimedSquareOwners = gp.Game.GameSquares
                         .Where(gs => gs.GamePlayerId != null)

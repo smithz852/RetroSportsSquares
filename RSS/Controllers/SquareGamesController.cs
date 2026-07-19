@@ -76,6 +76,16 @@ namespace RSS.Controllers
             if (!RSS_DB.Entities.PayoutModes.Implemented.Contains(payoutMode))
                 return BadRequest(new { message = $"Payout mode '{payoutMode}' is coming soon." });
 
+            // Thief/Destruction need winner→null→winner room to breathe (3+ periods),
+            // so 2-period sports like soccer can't host them.
+            if (Guid.TryParse(gameData.DailySportsGameId, out var sportsGameGuid))
+            {
+                var sportsGame = await _appDbContext.DailySportsGames.FindAsync(sportsGameGuid);
+                var periodCount = AvailableGamesServices.GetPeriodCountForSport(sportsGame?.SportType);
+                if (periodCount < RSS_DB.Entities.PayoutModes.MinimumPeriods(payoutMode))
+                    return BadRequest(new { message = $"{payoutMode} mode needs games with at least {RSS_DB.Entities.PayoutModes.MinimumPeriods(payoutMode)} periods — this sport only has {periodCount}." });
+            }
+
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {

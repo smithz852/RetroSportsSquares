@@ -53,6 +53,7 @@ namespace RSS_Services
                     var squareId = Guid.Parse(square);
                     var selectedSquare = _appDbContext.GameSquares.FirstOrDefault(s => s.Id == squareId);
                     selectedSquare.GamePlayerId = gamePlayer.Id;
+                    selectedSquare.OriginalGamePlayerId = gamePlayer.Id;
 
                     gameSquares.Add(selectedSquare);
                 }
@@ -286,6 +287,43 @@ namespace RSS_Services
                 Period = winner.Period,
                 WinnerApplicationUserId = winnerApplicationUserId
             };
+        }
+
+        // Thief mode: an arrow landed — the victim is knocked out and every square
+        // they own transfers to the shooter, which naturally makes future periods
+        // landing on those squares resolve as the shooter's wins. Coins move at
+        // settlement, not here. Idempotent via the IsEliminated guard (and the
+        // caller only fires once per period save anyway).
+        public async Task EliminateThiefVictimAsync(Guid squareGameId, string victimUserId, string shooterUserId)
+        {
+            var players = await _appDbContext.GamePlayers
+                .Where(gp => gp.GameId == squareGameId &&
+                             (gp.ApplicationUserId == victimUserId || gp.ApplicationUserId == shooterUserId))
+                .ToListAsync();
+
+            var victim = players.FirstOrDefault(p => p.ApplicationUserId == victimUserId);
+            var shooter = players.FirstOrDefault(p => p.ApplicationUserId == shooterUserId);
+            if (victim == null || shooter == null || victim.IsEliminated) return;
+
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                victim.IsEliminated = true;
+                await _appDbContext.GameSquares
+                    .Where(gs => gs.SquareGamesId == squareGameId && gs.GamePlayerId == victim.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(gs => gs.GamePlayerId, shooter.Id));
+
+                await _appDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+
+            // Board ownership changed — poke clients to refetch the gameboard.
+            await _hubNotifier.NotifySquareSelected(squareGameId.ToString());
         }
 
         // Marks a game finished once its sports game has reached a terminal status

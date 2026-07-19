@@ -18,6 +18,12 @@ namespace RSS_Services
             _walletService = walletService;
         }
 
+        public static int GetPeriodCountForSport(string? sportType) => sportType switch
+        {
+            "soccer" => 2,
+            _ => 4
+        };
+
         public List<SquareGames> GetAllAvailableGames()
         {
             return _appDbContext.SquareGames
@@ -33,11 +39,7 @@ namespace RSS_Services
             var createdAt = DateTimeOffset.UtcNow;
             var dailySportGame = _appDbContext.DailySportsGames.FirstOrDefault(g => g.Id == dailySportsGameGuid);
 
-            var periodCount = dailySportGame?.SportType switch
-            {
-                "soccer" => 2,
-                _ => 4
-            };
+            var periodCount = GetPeriodCountForSport(dailySportGame?.SportType);
 
             var game = new SquareGames
             {

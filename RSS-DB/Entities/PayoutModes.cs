@@ -14,8 +14,13 @@ namespace RSS_DB.Entities
 
         public static readonly IReadOnlyList<string> All = new[] { Default, Fair, Push, Thief, Destruction };
 
-        // Modes with a working settlement implementation — game creation rejects the
-        // rest. Only Thief remains (deferred pending its design discussion).
-        public static readonly IReadOnlySet<string> Implemented = new HashSet<string> { Default, Fair, Push, Destruction };
+        // Modes with a working settlement implementation — game creation rejects the rest.
+        public static readonly IReadOnlySet<string> Implemented = new HashSet<string> { Default, Fair, Push, Thief, Destruction };
+
+        // Thief and Destruction's signature mechanics need winner → null → winner,
+        // which is unreachable in 2-period games. Keyed on period count (not sport)
+        // so a future 3-period sport qualifies automatically.
+        public static int MinimumPeriods(string mode)
+            => mode == Thief || mode == Destruction ? 3 : 1;
     }
 }

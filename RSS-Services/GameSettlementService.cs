@@ -51,6 +51,19 @@ namespace RSS_Services
                 {
                     game.SettlementCompleted = true;
 
+                    // Thief: make sure every arrow victim carries the flag — mid-game
+                    // eliminations were flagged live, but a game-end arrow (trailing
+                    // null periods) only resolves here.
+                    if (game.PayoutMode == PayoutModes.Thief)
+                    {
+                        var victims = ThiefWalk.Analyze(game.PeriodWinners, game.PeriodCount)
+                            .Where(e => e.Type == ThiefEventType.Elimination)
+                            .Select(e => e.TargetId!)
+                            .ToHashSet();
+                        foreach (var player in game.GamePlayers.Where(p => victims.Contains(p.ApplicationUserId)))
+                            player.IsEliminated = true;
+                    }
+
                     if (hasEscrow)
                     {
                         foreach (var line in lines)

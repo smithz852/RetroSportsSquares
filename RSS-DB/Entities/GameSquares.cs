@@ -14,6 +14,11 @@ namespace RSS_DB.Entities
         public SquareGames SquareGames { get; set; }
         public Guid? GamePlayerId { get; set; }
         public GamePlayer? GamePlayer { get; set; }
+        // Who originally claimed (paid for) this square. Never changes — Thief
+        // eliminations reassign GamePlayerId, and wagered/claimed stats must keep
+        // pointing at the buyer. Null on rows claimed before this column existed
+        // (readers fall back to GamePlayerId).
+        public Guid? OriginalGamePlayerId { get; set; }
         public int HomeDigit { get; set; }
         public int AwayDigit { get; set; }
         public int RowIndex {  get; set; }

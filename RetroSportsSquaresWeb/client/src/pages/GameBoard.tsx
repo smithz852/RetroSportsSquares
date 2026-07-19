@@ -108,6 +108,39 @@ export default function GameBoard() {
     return carry;
   }, [scoreData]);
 
+  // Thief mode: replay resolved periods with the same rules as the backend walk —
+  // who's armed, whose winnings are a bounty, who's been eliminated.
+  const thiefState = useMemo(() => {
+    if (scoreData?.payoutMode !== "Thief") return null;
+    const winners = scoreData.periodWinners ?? {};
+    const periodCount = scoreData.periodCount ?? 0;
+    const gameOver = Object.keys(winners).length >= periodCount;
+    let lastWinner: string | null = null;
+    let armed = false;
+    let bountyOwner: string | null = null;
+    const eliminated: string[] = [];
+    for (let p = 1; p <= periodCount; p++) {
+      if (!(p in winners)) break;
+      const w = winners[p];
+      if (w === null) {
+        if (lastWinner) armed = true;
+        continue;
+      }
+      if (bountyOwner) bountyOwner = null;
+      if (armed) {
+        armed = false;
+        if (w === lastWinner) {
+          if (p < periodCount) bountyOwner = w; // final-period self-hit is a dud
+        } else {
+          eliminated.push(w);
+          continue; // shooter stays the most recent surviving winner
+        }
+      }
+      lastWinner = w;
+    }
+    return { armed: armed && !gameOver, shooter: lastWinner, bountyOwner: gameOver ? null : bountyOwner, eliminated };
+  }, [scoreData]);
+
   // Destruction mode: replay resolved periods to find loot a bomb has knocked
   // loose (the previous winner's pot) that the next winner will collect.
   const destructionLoot = useMemo(() => {
@@ -484,6 +517,21 @@ useEffect(() => {
                 <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
                   <Coins size={16} />
                   LOOT: {destructionLoot.toFixed(2)} TO THE NEXT WINNER!
+                </span>
+              )}
+              {thiefState?.armed && thiefState.shooter && (
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 animate-pulse">
+                  ARROW ARMED BY {thiefState.shooter.toUpperCase()} — NEXT WINNER GETS ROBBED!
+                </span>
+              )}
+              {thiefState?.bountyOwner && (
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 animate-pulse">
+                  {thiefState.bountyOwner.toUpperCase()}'S WINNINGS UP FOR GRABS!
+                </span>
+              )}
+              {thiefState && thiefState.eliminated.length > 0 && (
+                <span className="px-2 py-1 font-['VT323'] text-xl text-red-500 border-2 border-red-900 bg-red-900/10">
+                  ELIMINATED: {thiefState.eliminated.map((n) => n.toUpperCase()).join(", ")}
                 </span>
               )}
             </div>

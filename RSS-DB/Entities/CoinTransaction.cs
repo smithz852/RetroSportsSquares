@@ -14,9 +14,11 @@ namespace RSS_DB.Entities
         public const string Redistribution = "Redistribution";
         // Push mode: an unclaimed period's share carried onto a later winner
         public const string Push = "Push";
-        // Destruction mode: a bomb transfer — negative on the looted previous
-        // winner, positive on the collecting next winner
+        // Destruction mode (and Thief self-hit bombs): a bomb transfer — negative
+        // on the looted player, positive on the collector
         public const string Destroy = "Destroy";
+        // Thief mode: an elimination — negative on the victim, positive on the shooter
+        public const string Steal = "Steal";
         // Destruction mode: bomb-period shares collected by the first winner
         public const string Salvage = "Salvage";
     }
