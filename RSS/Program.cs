@@ -133,11 +133,14 @@ builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
 builder.Services.AddScoped<RSS.Helpers.MapperHelpers>();
 builder.Services.AddScoped<RSS_Services.IGameHubNotifier, RSS.Hubs.GameHubNotifier>();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173"];
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
