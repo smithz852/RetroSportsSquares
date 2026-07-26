@@ -31,9 +31,8 @@ jobs:
         run: dotnet tool install --global dotnet-ef
 
       - name: Run migrations (dev)
-        run: dotnet ef database update --project RSS-DB --startup-project RSS --configuration Release
+        run: dotnet ef database update --project RSS-DB --startup-project RSS --configuration Release --connection "${{ secrets.AZURE_MYSQL_DEV_CONNECTION }}"
         env:
-          ConnectionStrings__Default: ${{ secrets.AZURE_MYSQL_DEV_CONNECTION }}
           ASPNETCORE_ENVIRONMENT: Production
           KeyVault__Url: ""
 
