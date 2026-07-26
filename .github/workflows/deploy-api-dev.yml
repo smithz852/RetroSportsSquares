@@ -27,6 +27,16 @@ jobs:
       - name: Test
         run: dotnet test RSS/RSS-API.csproj --configuration Release --no-build
 
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Run migrations (dev)
+        run: dotnet ef database update --project RSS-DB --startup-project RSS --no-build
+        env:
+          ConnectionStrings__Default: ${{ secrets.AZURE_MYSQL_DEV_CONNECTION }}
+          ASPNETCORE_ENVIRONMENT: Production
+          KeyVault__Url: ""
+
       - name: Publish
         run: dotnet publish RSS/RSS-API.csproj --configuration Release --no-build --output ./publish
 
