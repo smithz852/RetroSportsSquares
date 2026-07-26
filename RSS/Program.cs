@@ -20,16 +20,13 @@ using ZlEmailProvider;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (!builder.Environment.IsDevelopment())
+var keyVaultUrl = builder.Configuration["KeyVault:Url"];
+if (!string.IsNullOrEmpty(keyVaultUrl))
 {
-    var keyVaultUrl = builder.Configuration["KeyVault:Url"];
-    if (!string.IsNullOrEmpty(keyVaultUrl))
-    {
-        builder.Configuration.AddAzureKeyVault(
-            new Uri(keyVaultUrl),
-            new Azure.Identity.DefaultAzureCredential()
-        );
-    }
+    builder.Configuration.AddAzureKeyVault(
+        new Uri(keyVaultUrl),
+        new Azure.Identity.DefaultAzureCredential()
+    );
 }
 
 // Add services to the container.
