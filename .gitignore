@@ -27,4 +27,4 @@ packages/
 *.snupkg
 
 # Entity Framework
-Migrations/
+# Migrations/ — intentionally tracked so CI/CD can run them
