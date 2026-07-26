@@ -1,0 +1,38 @@
+name: Deploy API (Dev)
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore RSS.sln
+        env:
+          NUGET_PACKAGES_TOKEN: ${{ secrets.NUGET_PACKAGES_TOKEN }}
+
+      - name: Build
+        run: dotnet build RSS.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test RSS.sln --configuration Release --no-build
+
+      - name: Publish
+        run: dotnet publish RSS/RSS-API.csproj --configuration Release --no-build --output ./publish
+
+      - name: Deploy to Azure App Service (Dev)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: retrosportssquares-dev
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DEV }}
+          package: ./publish
