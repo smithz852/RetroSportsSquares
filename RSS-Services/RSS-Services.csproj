@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="TimeZoneConverter" Version="7.2.0" />
     <ProjectReference Include="..\RSS-DB\RSS-DB.csproj" />
     <PackageReference Include="ZlEmailProvider" Version="1.0.0" />
   </ItemGroup>

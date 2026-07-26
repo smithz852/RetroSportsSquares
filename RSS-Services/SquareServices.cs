@@ -5,6 +5,7 @@ using RSS.DTOs;
 using RSS_DB;
 using RSS_DB.Entities;
 using RSS_Services.DTOs;
+using RSS_Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -413,7 +414,7 @@ namespace RSS_Services
         // but never reached IsCompleted, backfilling any unresolved periods as null so past-game stats stay consistent.
         public async Task<List<Guid>> CloseStaleGamesAsync(string sportType, DateTime todayPst)
         {
-            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var pacific = TimeHelpers.PacificZone;
 
             var incompleteGames = await _appDbContext.SquareGames
                 .Include(g => g.DailySportGame)

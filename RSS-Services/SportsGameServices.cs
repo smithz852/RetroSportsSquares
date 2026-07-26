@@ -39,7 +39,7 @@ namespace RSS_Services
 
         public bool AreGamesInDbForToday(string sportType, int leagueId)
         {
-            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var pacific = TimeHelpers.PacificZone;
 
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
             return _appDbContext.DailySportsGames
@@ -113,7 +113,7 @@ namespace RSS_Services
 
         public List<DailySportsGames> GetAvailableSportsGameOptions(string gameType, int leagueId)
         {
-            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var pacific = TimeHelpers.PacificZone;
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
 
             if (gameType == "football")
@@ -130,7 +130,7 @@ namespace RSS_Services
 
         public List<(string SportType, string League, int LeagueId)> GetAvailableSportLeaguesToday()
         {
-            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var pacific = TimeHelpers.PacificZone;
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
 
             return _appDbContext.DailySportsGames
@@ -299,7 +299,7 @@ namespace RSS_Services
 
         public async Task<List<DailySportsGames>> GetAllGamesBySporttType(string sportType)
         {
-            var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            var pacific = TimeHelpers.PacificZone;
             var todayPst = _timeHelpers.GetTimeDateTimeTodayInPst();
             var todayStartUtc = TimeZoneInfo.ConvertTimeToUtc(todayPst, pacific);
             var todayEndUtc = todayStartUtc.AddDays(1);

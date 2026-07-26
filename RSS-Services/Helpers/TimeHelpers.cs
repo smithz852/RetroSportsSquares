@@ -1,18 +1,11 @@
-﻿using RSS_DB.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TimeZoneConverter;
 
 namespace RSS_Services.Helpers
 {
     public class TimeHelpers
     {
-        public TimeHelpers()
-        {
-            
-        }
+        public static readonly TimeZoneInfo PacificZone = TZConvert.GetTimeZoneInfo("America/Los_Angeles");
+
         public string GetTimeStringTodayInPst()
         {
             var todayPst = GetTimeDateTimeTodayInPst();
@@ -22,18 +15,12 @@ namespace RSS_Services.Helpers
 
         public DateTime GetTimeDateTimeTodayInPst()
         {
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var todayPst = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, pstZone).Date;
-            return todayPst;
+            return TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, PacificZone).Date;
         }
 
         public DateTime GetCurrentTimeInPst()
         {
-            var pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            var currentTimePst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone);
-            return currentTimePst;
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, PacificZone);
         }
-
-        
     }
 }

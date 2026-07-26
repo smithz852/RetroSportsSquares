@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net8.0": {
       "Humanizer.Core/2.14.1": {
@@ -1149,6 +1149,19 @@
         },
         "build": {
           "buildTransitive/netcoreapp3.1/_._": {}
+        }
+      },
+      "TimeZoneConverter/7.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/TimeZoneConverter.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/TimeZoneConverter.dll": {
+            "related": ".xml"
+          }
         }
       },
       "ZlEmailProvider/1.0.0": {
@@ -2953,6 +2966,26 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "TimeZoneConverter/7.2.0": {
+      "sha512": "4Poqu79dTmacVETqUJ53g3x4U21V/cmWPSlehdsVE4Q00akavvlRq+SRjcg/CmfO9ibOCjRl6TeUV7hkC5RC4w==",
+      "type": "package",
+      "path": "timezoneconverter/7.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net462/TimeZoneConverter.dll",
+        "lib/net462/TimeZoneConverter.xml",
+        "lib/net8.0/TimeZoneConverter.dll",
+        "lib/net8.0/TimeZoneConverter.xml",
+        "lib/net9.0/TimeZoneConverter.dll",
+        "lib/net9.0/TimeZoneConverter.xml",
+        "lib/netstandard2.0/TimeZoneConverter.dll",
+        "lib/netstandard2.0/TimeZoneConverter.xml",
+        "timezoneconverter.7.2.0.nupkg.sha512",
+        "timezoneconverter.nuspec"
+      ]
+    },
     "ZlEmailProvider/1.0.0": {
       "sha512": "beFuBXnJ0iKkLGgFBH8UKKBVmp86qTOGACfFXSom/UfGJI12FkgQWo2pKFRJW8cWzhOBYBIs+dsgBEmzv5/9bg==",
       "type": "package",
@@ -2973,6 +3006,7 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "RSS-DB >= 1.0.0",
+      "TimeZoneConverter >= 7.2.0",
       "ZlEmailProvider >= 1.0.0"
     ]
   },
@@ -3009,6 +3043,7 @@
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "projectReferences": {
             "C:\\Users\\surff\\Documents\\zachs-repos\\Csharp\\RetroSportsSquares\\RSS-DB\\RSS-DB.csproj": {
@@ -3027,12 +3062,17 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net8.0": {
+        "framework": "net8.0",
         "targetAlias": "net8.0",
         "dependencies": {
+          "TimeZoneConverter": {
+            "target": "Package",
+            "version": "[7.2.0, )"
+          },
           "ZlEmailProvider": {
             "target": "Package",
             "version": "[1.0.0, )"
@@ -3054,7 +3094,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.315/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

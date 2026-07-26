@@ -26,7 +26,7 @@ namespace RSS.SportsDataAutomation
             {
                 await CloseStaleGames();
 
-                var pacific = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+                var pacific = TimeHelpers.PacificZone;
                 var nowUtc = DateTimeOffset.UtcNow;
                 var nowPacific = TimeZoneInfo.ConvertTime(nowUtc, pacific);
 
