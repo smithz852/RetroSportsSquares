@@ -35,6 +35,7 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Production
           KeyVault__Url: ""
+          ConnectionStrings__Default: ${{ secrets.AZURE_MYSQL_DEV_CONNECTION }}
 
       - name: Publish
         run: dotnet publish RSS/RSS-API.csproj --configuration Release --no-build --output ./publish
