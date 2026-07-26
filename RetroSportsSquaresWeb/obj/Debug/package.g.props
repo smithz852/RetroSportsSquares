@@ -7,6 +7,7 @@
     <PackageJsonLicense Condition="$(PackageJsonLicense) == ''">MIT</PackageJsonLicense>
     <PackageJsonScriptsDev Condition="$(PackageJsonScriptsDev) == ''">vite</PackageJsonScriptsDev>
     <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">tsx script/build.ts</PackageJsonScriptsBuild>
+    <PackageJsonScriptsBuildSpa Condition="$(PackageJsonScriptsBuildSpa) == ''">vite build</PackageJsonScriptsBuildSpa>
     <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">cross-env NODE_ENV=production node dist/index.cjs</PackageJsonScriptsStart>
     <PackageJsonScriptsCheck Condition="$(PackageJsonScriptsCheck) == ''">tsc</PackageJsonScriptsCheck>
     <PackageJsonScriptsDbPush Condition="$(PackageJsonScriptsDbPush) == ''">drizzle-kit push</PackageJsonScriptsDbPush>
