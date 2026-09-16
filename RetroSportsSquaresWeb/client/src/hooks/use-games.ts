@@ -52,9 +52,8 @@ export function useAvailableSportsAndLeagues() {
 }
 
 export function useGetAvailableGameOptions(gameType: string, leagueId: string) {
-  const queryClient = useQueryClient();
   return useQuery({
-    queryKey: ['available-game-options'],
+    queryKey: ['available-game-options', gameType, leagueId],
     queryFn: async (): Promise<AvailableGameOptions[]> => {
       const res = await fetch(`${API_BASE_URL}${endpoints.games.options(gameType, leagueId)}`);
       if (!res.ok) throw new Error("Failed to fetch available game options");
@@ -62,6 +61,7 @@ export function useGetAvailableGameOptions(gameType: string, leagueId: string) {
      console.log(data);
      return data;
     },
+    enabled: !!gameType && !!leagueId,
   });
 }
 
