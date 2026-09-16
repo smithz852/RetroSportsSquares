@@ -47,7 +47,7 @@ export function AdminChatLogDialog({ gameId, gameName, onClose }: AdminChatLogDi
             messages.map((m) => (
               <div key={m.id} className="p-2 border border-primary/20">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-['Press_Start_2P'] text-[9px] text-primary truncate">
+                  <span className="font-['Press_Start_2P'] text-[10px] text-primary truncate">
                     {m.displayName}
                   </span>
                   <span className="font-['VT323'] text-sm text-gray-500 shrink-0">
@@ -62,7 +62,7 @@ export function AdminChatLogDialog({ gameId, gameName, onClose }: AdminChatLogDi
                   {m.message}
                 </p>
                 {m.isDeleted && (
-                  <span className="font-['Press_Start_2P'] text-[8px] px-1.5 py-0.5 bg-red-900 text-red-400 border border-red-600">
+                  <span className="font-['Press_Start_2P'] text-[10px] px-1.5 py-0.5 bg-red-900 text-red-400 border border-red-600">
                     DELETED
                   </span>
                 )}

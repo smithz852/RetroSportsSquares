@@ -201,14 +201,14 @@ export function Scoreboard({
           </span>
           {hasGameStarted ? (
             <div className="flex flex-col items-center gap-1">
-              <span className="text-red-900 text-[8px] uppercase">Leader</span>
+              <span className="text-red-900 text-[10px] uppercase">Leader</span>
               <div className="flex items-center gap-2 text-red-500 text-lg">
                 <span>{currentLeader}</span>
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1">
-              <span className="text-red-900 text-[8px] uppercase">
+              <span className="text-red-900 text-[10px] uppercase">
                 Game Time
               </span>
               <div className="flex items-center gap-2 text-red-500 text-lg">

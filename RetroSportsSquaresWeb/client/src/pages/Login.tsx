@@ -68,7 +68,7 @@ export default function Login() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Email Address</FormLabel>
+                      <FormLabel className="text-red-500 font-pixel text-base uppercase">Email Address</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -88,7 +88,7 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Access Code</FormLabel>
+                      <FormLabel className="text-red-500 font-pixel text-base uppercase">Access Code</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -107,7 +107,7 @@ export default function Login() {
                   <Button 
                     type="submit" 
                     disabled={isPending}
-                    className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
+                    className="w-full bg-red-600 text-black font-pixel py-6 text-[20px] rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
                     data-testid="button-login"
                   >
                     {isPending ? "AUTHENTICATING..." : "Authorize Access"}
@@ -116,7 +116,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setLocation("/signup")}
                     variant="outline"
-                    className="w-full border-2 border-red-600 text-red-600 font-pixel py-6 rounded-none hover:bg-red-600 hover:text-black uppercase"
+                    className="w-full border-2 border-red-600 text-red-600 font-pixel py-6 text-[20px] rounded-none hover:bg-red-600 hover:text-black uppercase"
                     data-testid="button-goto-signup"
                   >
                     Register Profile
@@ -127,7 +127,7 @@ export default function Login() {
             
             <div className="mt-8 text-center">
               <Link href="/">
-                <a className="text-red-900 hover:text-red-500 font-pixel text-[10px] uppercase transition-colors">
+                <a className="text-red-900 hover:text-red-500 font-pixel text-base uppercase transition-colors">
                   &lt; System Reset
                 </a>
               </Link>

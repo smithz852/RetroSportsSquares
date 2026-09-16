@@ -631,7 +631,7 @@ useEffect(() => {
                       : "bg-red-900/20 cursor-default"
                   }`}
                 >
-                  <span className="text-black font-pixel text-[8px] md:text-[10px]">
+                  <span className="text-black font-pixel text-[10px]">
                     {isSpectator || gameStarted ? "" : isHost ? "DEL" : "EXIT"}
                   </span>
                 </div>

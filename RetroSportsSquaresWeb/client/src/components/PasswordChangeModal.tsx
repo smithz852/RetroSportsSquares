@@ -69,7 +69,7 @@ export function PasswordChangeModal({ open, onClose }: Props) {
               </p>
               <p className="font-['VT323'] text-primary text-xl">{user?.email?.toUpperCase()}</p>
               {error && (
-                <p className="font-['Press_Start_2P'] text-red-500 text-[8px] leading-4">{error}</p>
+                <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
               )}
               <RetroButton
                 variant="primary"

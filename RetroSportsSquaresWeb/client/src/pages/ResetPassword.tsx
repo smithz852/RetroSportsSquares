@@ -91,7 +91,7 @@ export default function ResetPassword() {
             { label: "CONFIRM NEW PASSWORD", key: "confirmPassword" as const },
           ].map(({ label, key }) => (
             <div key={key} className="flex flex-col gap-1">
-              <span className="font-['Press_Start_2P'] text-gray-500 text-[9px] tracking-wider">{label}</span>
+              <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
               <Input
                 type="password"
                 value={form[key]}
@@ -106,7 +106,7 @@ export default function ResetPassword() {
           ))}
 
           {error && (
-            <p className="font-['Press_Start_2P'] text-red-500 text-[8px] leading-4">{error}</p>
+            <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
           )}
 
           <RetroButton

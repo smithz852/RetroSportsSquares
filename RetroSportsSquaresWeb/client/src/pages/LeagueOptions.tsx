@@ -49,7 +49,7 @@ export default function LeagueOptions() {
         <h1 className="text-4xl md:text-6xl text-red-600 font-pixel text-center leading-tight uppercase tracking-tighter">
           {sportLabel} Leagues
         </h1>
-        <p className="text-red-500/60 font-mono text-sm uppercase tracking-widest">
+        <p className="text-red-500/60 font-mono text-base uppercase tracking-widest">
           SELECT YOUR LEAGUE
         </p>
       </motion.div>
@@ -106,7 +106,7 @@ export default function LeagueOptions() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
         onClick={() => setLocation("/options")}
-        className="text-red-600/50 font-mono text-xs uppercase tracking-widest hover:text-red-500 transition-colors"
+        className="text-red-600/50 font-mono text-base uppercase tracking-widest hover:text-red-500 transition-colors"
       >
         &lt; BACK TO SPORTS
       </motion.button>

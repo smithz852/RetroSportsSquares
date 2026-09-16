@@ -114,7 +114,7 @@ export default function PlayerDashboard() {
           {/* Avatar / profile placeholder */}
           <div className="border-4 border-primary box-shadow-retro aspect-square flex flex-col items-center justify-center bg-black gap-1">
             <User className="w-12 h-12 text-primary/40" />
-            <span className="font-['Press_Start_2P'] text-primary/30 text-[8px] text-center leading-3">
+            <span className="font-['Press_Start_2P'] text-primary/30 text-[10px] text-center leading-3">
               PROFILE
             </span>
           </div>
@@ -124,7 +124,7 @@ export default function PlayerDashboard() {
             {/* Badge placeholder */}
             <div className="flex flex-col items-center gap-1 pt-1">
               <Shield className="w-10 h-10 text-primary/30" />
-              <span className="font-['Press_Start_2P'] text-primary/30 text-[8px] text-center leading-3">
+              <span className="font-['Press_Start_2P'] text-primary/30 text-[10px] text-center leading-3">
                 RANK
               </span>
               <span className="font-['VT323'] text-gray-600 text-base">-- UNRANKED --</span>
@@ -150,7 +150,7 @@ export default function PlayerDashboard() {
           <Link href="/settings">
             <div className="border-4 border-primary box-shadow-retro bg-black flex flex-col items-center justify-center gap-2 p-4 cursor-pointer hover:bg-primary/10 transition-colors group">
               <Settings className="w-8 h-8 text-primary group-hover:rotate-45 transition-transform duration-300" />
-              <span className="font-['Press_Start_2P'] text-primary/60 text-[8px]">SETTINGS</span>
+              <span className="font-['Press_Start_2P'] text-primary/60 text-[10px]">SETTINGS</span>
             </div>
           </Link>
         </div>
@@ -230,11 +230,11 @@ export default function PlayerDashboard() {
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
                             {game.isHost && (
-                              <span className="font-['Press_Start_2P'] text-[8px] px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/50">
+                              <span className="font-['Press_Start_2P'] text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/50">
                                 HOST
                               </span>
                             )}
-                            <span className={`font-['Press_Start_2P'] text-[8px] px-1.5 py-0.5 ${
+                            <span className={`font-['Press_Start_2P'] text-[10px] px-1.5 py-0.5 ${
                               game.selectionPhaseActive
                                 ? 'bg-yellow-900 text-yellow-400 border border-yellow-600'
                                 : game.isOpen

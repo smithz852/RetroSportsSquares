@@ -80,7 +80,7 @@ export function EmailChangeModal({ open, onClose }: Props) {
                 { label: "CURRENT PASSWORD", key: "currentPassword" as const, type: "password" },
               ].map(({ label, key, type }) => (
                 <div key={key} className="flex flex-col gap-1">
-                  <span className="font-['Press_Start_2P'] text-gray-500 text-[9px] tracking-wider">{label}</span>
+                  <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
                   <Input
                     type={type}
                     value={form[key]}
@@ -94,7 +94,7 @@ export function EmailChangeModal({ open, onClose }: Props) {
               ))}
 
               {error && (
-                <p className="font-['Press_Start_2P'] text-red-500 text-[8px] leading-4">{error}</p>
+                <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
               )}
 
               <RetroButton
