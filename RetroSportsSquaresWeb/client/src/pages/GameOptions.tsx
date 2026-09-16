@@ -92,14 +92,14 @@ export default function GameOptions() {
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="cursor-pointer w-80"
+                  className="cursor-pointer flex-1 min-w-[11rem] max-w-80"
                 >
-                  <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full">
-                    <CardContent className="p-12 flex flex-col items-center gap-6">
+                  <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full [container-type:inline-size]">
+                    <CardContent className="p-[clamp(1.25rem,6cqw,3rem)] flex flex-col items-center gap-6">
                       <div className={`text-red-600 ${ui.animation}`}>
                         <Icon size={80} />
                       </div>
-                      <h2 className="text-3xl text-red-600 font-pixel uppercase tracking-widest text-center">
+                      <h2 className="text-[clamp(0.9rem,8cqw,1.65rem)] text-red-600 font-pixel uppercase tracking-widest text-center whitespace-nowrap">
                         {ui.label}
                       </h2>
                       <p className="text-red-500/70 font-mono text-sm text-center">{ui.subtitle}</p>
