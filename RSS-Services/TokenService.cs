@@ -26,8 +26,17 @@ public class TokenService
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var encodedToken = Uri.EscapeDataString(token);
 
-        await _emailService.SendPasswordResetAsync(user.Email!, encodedToken);
-        _logger.LogInformation("Password reset email sent to {Email}", user.Email);
+        try
+        {
+            await _emailService.SendPasswordResetAsync(user.Email!, encodedToken);
+            _logger.LogInformation("Password reset email sent to {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            // Swallow — the caller always returns the same generic response
+            // regardless of outcome, so a delivery failure shouldn't surface as a 500.
+            _logger.LogWarning(ex, "Failed to send password reset email to {Email}", user.Email);
+        }
     }
 
     public async Task SendEmailVerificationAsync(ApplicationUser user)

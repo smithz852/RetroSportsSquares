@@ -9,7 +9,8 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useLogin } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,6 +21,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { mutate: login, isPending, error } = useLogin();
   const { toast } = useToast();
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -125,7 +127,14 @@ export default function Login() {
               </form>
             </Form>
             
-            <div className="mt-8 text-center">
+            <div className="mt-8 flex flex-col items-center gap-3 text-center">
+              <button
+                type="button"
+                onClick={() => setForgotOpen(true)}
+                className="text-red-900 hover:text-red-500 font-pixel text-base uppercase transition-colors"
+              >
+                Forgot Password?
+              </button>
               <Link href="/">
                 <a className="text-red-900 hover:text-red-500 font-pixel text-base uppercase transition-colors">
                   &lt; System Reset
@@ -135,6 +144,8 @@ export default function Login() {
           </CardContent>
         </Card>
       </motion.div>
+
+      <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }
