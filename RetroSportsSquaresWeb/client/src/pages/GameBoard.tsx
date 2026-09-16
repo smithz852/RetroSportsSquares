@@ -555,7 +555,7 @@ useEffect(() => {
             </div>
           )}
 
-          <div className="flex items-center gap-4 w-full max-w-xl">
+          <div className="flex items-center gap-4 w-full max-w-xl lg:self-end">
             <>
                   {isHost && isTurnBased && !selectionPhaseActive && !gameStarted && !allSelectionsComplete && (
                     <Button
