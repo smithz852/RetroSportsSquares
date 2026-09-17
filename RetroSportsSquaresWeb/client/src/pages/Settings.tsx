@@ -45,7 +45,7 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
 
   return (
     <div className="flex flex-col gap-1 py-3 border-b border-primary/10 last:border-0">
-      <span className="font-['Press_Start_2P'] text-gray-500 text-[9px] tracking-wider">{label}</span>
+      <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
       <div className="flex items-center gap-2">
         <Input
           type={inputType}
@@ -64,7 +64,7 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
               disabled={saving}
               className="border-2 border-primary/30 bg-black text-primary/50 hover:text-primary hover:border-primary p-2 transition-colors disabled:opacity-40"
             >
-              <span className="font-['Press_Start_2P'] text-[8px]">✕</span>
+              <span className="font-['Press_Start_2P'] text-[10px]">✕</span>
             </button>
             <button
               onClick={handleSave}
@@ -88,7 +88,7 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
         )}
       </div>
       {error && (
-        <p className="font-['Press_Start_2P'] text-red-500 text-[8px] leading-4 mt-1">{error}</p>
+        <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4 mt-1">{error}</p>
       )}
     </div>
   );
@@ -193,7 +193,7 @@ export default function Settings() {
           <TabsContent value="security" className="p-6 mt-0">
             <div className="max-w-lg space-y-6">
               <div className="flex flex-col gap-2 py-3 border-b border-primary/10">
-                <span className="font-['Press_Start_2P'] text-gray-500 text-[9px] tracking-wider">EMAIL</span>
+                <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">EMAIL</span>
                 <p className="font-['VT323'] text-white text-xl">{user.email}</p>
                 <div>
                   <RetroButton variant="outline" size="sm" onClick={() => setEmailModalOpen(true)}>
@@ -203,7 +203,7 @@ export default function Settings() {
               </div>
 
               <div className="flex flex-col gap-2 pt-2 border-t-2 border-primary/20">
-                <span className="font-['Press_Start_2P'] text-gray-500 text-[9px] tracking-wider">PASSWORD</span>
+                <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">PASSWORD</span>
                 <p className="font-['VT323'] text-gray-500 text-lg">
                   CHANGE YOUR ACCOUNT PASSWORD
                 </p>

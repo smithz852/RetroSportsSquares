@@ -49,7 +49,7 @@ export default function LeagueOptions() {
         <h1 className="text-4xl md:text-6xl text-red-600 font-pixel text-center leading-tight uppercase tracking-tighter">
           {sportLabel} Leagues
         </h1>
-        <p className="text-red-500/60 font-mono text-sm uppercase tracking-widest">
+        <p className="text-red-500/60 font-mono text-base uppercase tracking-widest">
           SELECT YOUR LEAGUE
         </p>
       </motion.div>
@@ -81,14 +81,14 @@ export default function LeagueOptions() {
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="cursor-pointer w-72"
+                  className="cursor-pointer flex-1 min-w-[10rem] max-w-72"
                 >
-                  <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full">
-                    <CardContent className="p-12 flex flex-col items-center gap-6">
+                  <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full [container-type:inline-size]">
+                    <CardContent className="p-[clamp(1.25rem,6cqw,3rem)] flex flex-col items-center gap-6">
                       <div className={`text-red-600 group-hover:${ui.animation}`}>
                         <Icon size={80} />
                       </div>
-                      <h2 className="text-3xl text-red-600 font-pixel uppercase tracking-widest text-center">
+                      <h2 className="text-[clamp(0.9rem,8cqw,1.65rem)] text-red-600 font-pixel uppercase tracking-widest text-center whitespace-nowrap">
                         {league.league}
                       </h2>
                       <p className="text-red-500/70 font-mono text-sm text-center">{ui.subtitle}</p>
@@ -106,7 +106,7 @@ export default function LeagueOptions() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
         onClick={() => setLocation("/options")}
-        className="text-red-600/50 font-mono text-xs uppercase tracking-widest hover:text-red-500 transition-colors"
+        className="text-red-600/50 font-mono text-base uppercase tracking-widest hover:text-red-500 transition-colors"
       >
         &lt; BACK TO SPORTS
       </motion.button>

@@ -21,6 +21,18 @@ namespace RSS
                     Status = "NS",
                     InUse = false
                 },
+                new DailySportsGames
+                {
+                    ApiGameId = 123492,
+                    HomeTeam = "Chiefs",
+                    AwayTeam = "Bills",
+                    GameStartTime = DateTimeOffset.UtcNow,
+                    SportType = "american-football",
+                    League = "NFL",
+                    LeagueId = 1,
+                    Status = "NS",
+                    InUse = false
+                },
                 // Add more test games here
             };
 

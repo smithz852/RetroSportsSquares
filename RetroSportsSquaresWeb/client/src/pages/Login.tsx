@@ -9,7 +9,8 @@ import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useLogin } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,6 +21,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { mutate: login, isPending, error } = useLogin();
   const { toast } = useToast();
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -68,7 +70,7 @@ export default function Login() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Email Address</FormLabel>
+                      <FormLabel className="text-red-500 font-pixel text-base uppercase">Email Address</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -88,7 +90,7 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-red-500 font-pixel text-xs uppercase">Access Code</FormLabel>
+                      <FormLabel className="text-red-500 font-pixel text-base uppercase">Access Code</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
@@ -107,7 +109,7 @@ export default function Login() {
                   <Button 
                     type="submit" 
                     disabled={isPending}
-                    className="w-full bg-red-600 text-black font-pixel py-6 rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
+                    className="w-full bg-red-600 text-black font-pixel py-6 text-[20px] rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
                     data-testid="button-login"
                   >
                     {isPending ? "AUTHENTICATING..." : "Authorize Access"}
@@ -116,7 +118,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setLocation("/signup")}
                     variant="outline"
-                    className="w-full border-2 border-red-600 text-red-600 font-pixel py-6 rounded-none hover:bg-red-600 hover:text-black uppercase"
+                    className="w-full border-2 border-red-600 text-red-600 font-pixel py-6 text-[20px] rounded-none hover:bg-red-600 hover:text-black uppercase"
                     data-testid="button-goto-signup"
                   >
                     Register Profile
@@ -125,9 +127,16 @@ export default function Login() {
               </form>
             </Form>
             
-            <div className="mt-8 text-center">
+            <div className="mt-8 flex flex-col items-center gap-3 text-center">
+              <button
+                type="button"
+                onClick={() => setForgotOpen(true)}
+                className="text-red-900 hover:text-red-500 font-pixel text-base uppercase transition-colors"
+              >
+                Forgot Password?
+              </button>
               <Link href="/">
-                <a className="text-red-900 hover:text-red-500 font-pixel text-[10px] uppercase transition-colors">
+                <a className="text-red-900 hover:text-red-500 font-pixel text-base uppercase transition-colors">
                   &lt; System Reset
                 </a>
               </Link>
@@ -135,6 +144,8 @@ export default function Login() {
           </CardContent>
         </Card>
       </motion.div>
+
+      <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }

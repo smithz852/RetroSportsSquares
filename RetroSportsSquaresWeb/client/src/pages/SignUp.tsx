@@ -98,48 +98,48 @@ export default function Signup() {
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-primary font-pixel text-[10px] uppercase">Name</label>
+                <label className="text-primary font-pixel text-base uppercase">Name</label>
                 <Input
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
+                  className="bg-black border-2 border-primary text-white font-pixel text-sm rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-primary font-pixel text-[10px] uppercase">Gamer Tag</label>
-                <p className="text-gray-500 font-pixel text-[8px]">TAG DISPLAYED ON SQUARES · 2-5 CHARS</p>
+                <label className="text-primary font-pixel text-base uppercase">Gamer Tag</label>
+                <p className="text-gray-500 font-pixel text-[14px]">TAG DISPLAYED ON SQUARES · 2-5 CHARACTERS</p>
                 <Input
                   required
                   value={formData.gamerTag}
                   maxLength={5}
                   onChange={(e) => setFormData({ ...formData, gamerTag: e.target.value })}
-                  className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white uppercase"
+                  className="bg-black border-2 border-primary text-white font-pixel text-sm rounded-none h-12 focus-visible:ring-0 focus-visible:border-white uppercase"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-primary font-pixel text-[10px] uppercase">Email</label>
+                <label className="text-primary font-pixel text-base  uppercase">Email</label>
                 <Input
                   required
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
+                  className="bg-black border-2 border-primary text-white font-pixel text-sm rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-primary font-pixel text-[10px] uppercase">Password</label>
+                <label className="text-primary font-pixel text-base uppercase">Password</label>
                 <Input
                   required
                   type="password"
                   pattern={passwordPattern}
                   value={formData.password}
                   onChange={handlePasswordChange}
-                  className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
+                  className="bg-black border-2 border-primary text-white font-pixel text-base rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-primary font-pixel text-[10px] uppercase">Confirm Password</label>
+                <label className="text-primary font-pixel text-base uppercase">Confirm Password</label>
                 <Input
                   required
                   type="password"

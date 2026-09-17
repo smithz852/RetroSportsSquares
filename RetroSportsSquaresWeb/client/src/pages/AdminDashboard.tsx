@@ -66,12 +66,12 @@ function StatTile({ icon: Icon, label, value, loading }: {
   );
 }
 
-const headCell = "font-['Press_Start_2P'] text-primary text-[9px] whitespace-nowrap";
+const headCell = "font-['Press_Start_2P'] text-primary text-[10px] whitespace-nowrap";
 const bodyCell = "font-['VT323'] text-gray-300 text-lg whitespace-nowrap";
 
 function StatusBadge({ isOpen, selectionPhaseActive }: { isOpen: boolean; selectionPhaseActive: boolean }) {
   return (
-    <span className={`font-['Press_Start_2P'] text-[8px] px-1.5 py-0.5 ${
+    <span className={`font-['Press_Start_2P'] text-[10px] px-1.5 py-0.5 ${
       selectionPhaseActive
         ? 'bg-yellow-900 text-yellow-400 border border-yellow-600'
         : isOpen
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
                       <TableCell className={bodyCell}>{u.gamesPlayed}</TableCell>
                       <TableCell>
                         {u.isAdmin && (
-                          <span className="font-['Press_Start_2P'] text-[8px] px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/50">
+                          <span className="font-['Press_Start_2P'] text-[10px] px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/50">
                             ADMIN
                           </span>
                         )}

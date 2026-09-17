@@ -2,7 +2,7 @@ import { useGames } from "@/hooks/use-games";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
-import { Loader2, Calendar, User, Trophy, X, Search, LogIn } from "lucide-react";
+import { Loader2, Calendar, User, Trophy, X, Search, LogIn, Coins } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
@@ -219,17 +219,25 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                <div className="space-y-2 mt-4 pt-4 border-t-2 border-primary/20">
-                  <div className="flex items-center text-gray-400 text-sm font-['VT323'] text-lg">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {game.createdAt ? format(new Date(game.createdAt), 'MMM dd, yyyy') : 'UNKNOWN'}
-                  </div>
-                  <div className="flex items-center text-gray-400 text-sm font-['VT323'] text-lg">
-                    <User className="w-4 h-4 mr-2" />
-                    Players: {game.currentPlayerCount}/{game.playerCount}
+                <div className="mt-4 pt-4 border-t-2 border-primary/20">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center text-gray-400 text-sm font-['VT323'] text-lg">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        {game.createdAt ? format(new Date(game.createdAt), 'MMM dd, yyyy') : 'UNKNOWN'}
+                      </div>
+                      <div className="flex items-center text-gray-400 text-sm font-['VT323'] text-lg">
+                        <User className="w-4 h-4 mr-2" />
+                        Players: {game.currentPlayerCount}/{game.playerCount}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-primary font-['VT323'] text-lg shrink-0">
+                      <Coins className="w-4 h-4" />
+                      {game.pricePerSquare.toFixed(2)}/SQ
+                    </div>
                   </div>
                   {joiningGameId === game.gameId && (
-                    <div className="flex items-center gap-2 text-primary font-['VT323'] text-lg pt-1">
+                    <div className="flex items-center gap-2 text-primary font-['VT323'] text-lg pt-3">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       JOINING...
                     </div>

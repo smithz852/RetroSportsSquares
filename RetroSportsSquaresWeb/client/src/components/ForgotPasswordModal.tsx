@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { RetroButton } from "@/components/RetroButton";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 
 type Props = {
@@ -10,21 +10,24 @@ type Props = {
   onClose: () => void;
 };
 
-export function PasswordChangeModal({ open, onClose }: Props) {
-  const { user } = useAuth();
+export function ForgotPasswordModal({ open, onClose }: Props) {
+  const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSend = async () => {
-    if (!user?.email) return;
+    if (!email.trim()) {
+      setError("EMAIL IS REQUIRED");
+      return;
+    }
     setError(null);
     setSending(true);
     try {
       const res = await fetch(`${API_BASE_URL}${endpoints.auth.forgotPassword}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify({ email: email.trim() }),
       });
       if (!res.ok) throw new Error();
       setSent(true);
@@ -37,6 +40,7 @@ export function PasswordChangeModal({ open, onClose }: Props) {
 
   const handleOpenChange = (open: boolean) => {
     if (!open && !sending) {
+      setEmail("");
       setSent(false);
       setError(null);
       onClose();
@@ -45,9 +49,9 @@ export function PasswordChangeModal({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-black border-4 border-primary box-shadow-retro rounded-none max-w-sm p-0">
-        <DialogHeader className="border-b-4 border-primary px-6 py-4">
-          <DialogTitle className="font-['Press_Start_2P'] text-primary text-xs text-shadow-retro">
+      <DialogContent className="bg-black border-4 border-red-600 box-shadow-retro rounded-none max-w-sm p-0">
+        <DialogHeader className="border-b-4 border-red-600 px-6 py-4">
+          <DialogTitle className="font-['Press_Start_2P'] text-red-600 text-[12px] text-shadow-retro">
             RESET PASSWORD
           </DialogTitle>
         </DialogHeader>
@@ -65,9 +69,17 @@ export function PasswordChangeModal({ open, onClose }: Props) {
           ) : (
             <>
               <p className="font-['VT323'] text-gray-400 text-xl leading-tight">
-                WE'LL SEND A PASSWORD RESET LINK TO:
+                ENTER YOUR EMAIL AND WE'LL SEND A PASSWORD RESET LINK.
               </p>
-              <p className="font-['VT323'] text-primary text-xl">{user?.email?.toUpperCase()}</p>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="PLAYER@ARCADE.COM"
+                disabled={sending}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
+              />
               {error && (
                 <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
               )}
