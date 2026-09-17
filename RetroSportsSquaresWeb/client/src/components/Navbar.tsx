@@ -27,7 +27,7 @@ export function Navbar() {
   return (
     <nav className="border-b-4 border-primary bg-black sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
+        <div className="flex flex-wrap justify-between items-center min-h-20 gap-y-2 py-2">
           <Link href="/" className="flex items-center gap-3 group cursor-pointer">
             <div className="p-2 border-2 border-primary group-hover:bg-primary group-hover:text-black transition-colors">
               <Gamepad2 className="h-8 w-8" />
@@ -37,7 +37,7 @@ export function Navbar() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
             {user ? (
               <>
                 <div className="hidden md:flex items-center gap-2 text-primary font-['VT323'] text-xl border-2 border-primary/30 px-3 py-1 bg-primary/5">
@@ -45,32 +45,33 @@ export function Navbar() {
                   <span>PLAYER: {user.displayName || 'UNKNOWN'}</span>
                 </div>
                 <div
-                  className="flex items-center gap-2 text-yellow-400 font-['VT323'] text-xl border-2 border-yellow-400/30 px-3 py-1 bg-yellow-400/5"
+                  className="flex items-center gap-1.5 sm:gap-2 text-yellow-400 font-['VT323'] text-base sm:text-xl border-2 border-yellow-400/30 px-2 sm:px-3 py-1 bg-yellow-400/5"
                   title="Coin balance — 15 free coins per active day"
                 >
                   <Coins className="h-4 w-4" />
                   <span>{formatCoins(user.coinBalance ?? 0)}</span>
                 </div>
                 <Link href="/options">
-                  <RetroButton variant="outline" size="sm">
+                  <RetroButton variant="outline" size="sm" className="text-[10px] sm:text-xs px-2 sm:px-3">
                     ARENA
                   </RetroButton>
                 </Link>
                 <Link href="/player-dashboard">
-                  <RetroButton variant="outline" size="sm">
+                  <RetroButton variant="outline" size="sm" className="text-[10px] sm:text-xs px-2 sm:px-3">
                     PROFILE
                   </RetroButton>
                 </Link>
                 {user.isAdmin && (
                   <Link href="/admin">
-                    <RetroButton variant="outline" size="sm">
+                    <RetroButton variant="outline" size="sm" className="text-[10px] sm:text-xs px-2 sm:px-3">
                       ADMIN
                     </RetroButton>
                   </Link>
                 )}
-                <RetroButton 
-                  variant="outline" 
-                  size="sm" 
+                <RetroButton
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] sm:text-xs px-2 sm:px-3"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
                 >
@@ -78,12 +79,12 @@ export function Navbar() {
                 </RetroButton>
               </>
             ) : (
-             <div className="flex items-center gap-2">
-                <RetroButton variant="primary" size="sm" onClick={handleLogin}>
+             <div className="flex flex-wrap items-center justify-end gap-2">
+                <RetroButton variant="primary" size="sm" className="text-[10px] sm:text-xs px-2 sm:px-3" onClick={handleLogin}>
                   LOGIN
                 </RetroButton>
                 <Link href="/signup">
-                  <RetroButton variant="outline" size="sm">
+                  <RetroButton variant="outline" size="sm" className="text-[10px] sm:text-xs px-2 sm:px-3">
                     SIGN UP
                   </RetroButton>
                 </Link>

@@ -106,37 +106,37 @@ export default function PlayerDashboard() {
       </div>
 
       {/* Main layout: left column + right panel */}
-      <div className="flex gap-3 h-[480px]">
+      <div className="flex flex-col sm:flex-row gap-3 sm:h-[480px]">
 
-        {/* ── Left column ── */}
-        <div className="flex flex-col gap-3 w-36 shrink-0">
+        {/* ── Left column — a row of three on mobile, a stacked column at sm+ ── */}
+        <div className="flex flex-row sm:flex-col gap-3 w-full sm:w-36 sm:shrink-0">
 
           {/* Avatar / profile placeholder */}
-          <div className="border-4 border-primary box-shadow-retro aspect-square flex flex-col items-center justify-center bg-black gap-1">
-            <User className="w-12 h-12 text-primary/40" />
+          <div className="border-4 border-primary box-shadow-retro sm:aspect-square flex-1 sm:flex-none flex flex-col items-center justify-center bg-black gap-1 py-2 sm:py-0">
+            <User className="w-6 h-6 sm:w-12 sm:h-12 text-primary/40" />
             <span className="font-['Press_Start_2P'] text-primary/30 text-[10px] text-center leading-3">
               PROFILE
             </span>
           </div>
 
           {/* Badge + Periods Won */}
-          <div className="border-4 border-primary box-shadow-retro flex-1 flex flex-col items-center justify-start gap-4 bg-black p-3">
+          <div className="border-4 border-primary box-shadow-retro flex-1 flex flex-col items-center justify-start gap-2 sm:gap-4 bg-black p-2 sm:p-3">
             {/* Badge placeholder */}
-            <div className="flex flex-col items-center gap-1 pt-1">
-              <Shield className="w-10 h-10 text-primary/30" />
+            <div className="flex flex-col items-center gap-0.5 sm:gap-1 sm:pt-1">
+              <Shield className="w-5 h-5 sm:w-10 sm:h-10 text-primary/30" />
               <span className="font-['Press_Start_2P'] text-primary/30 text-[10px] text-center leading-3">
                 RANK
               </span>
-              <span className="font-['VT323'] text-gray-600 text-base">-- UNRANKED --</span>
+              <span className="font-['VT323'] text-gray-600 text-xs sm:text-base">-- UNRANKED --</span>
             </div>
 
             {/* Divider */}
             <div className="w-full border-t-2 border-primary/20" />
 
             {/* Periods Won */}
-            <div className="flex flex-col items-center gap-1">
-              <span className="font-['VT323'] text-gray-400 text-lg tracking-wider text-center">PERIODS WON</span>
-              <span className="font-['Press_Start_2P'] text-primary text-2xl text-shadow-retro">
+            <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+              <span className="font-['VT323'] text-gray-400 text-sm sm:text-lg tracking-wider text-center">PERIODS WON</span>
+              <span className="font-['Press_Start_2P'] text-primary text-lg sm:text-2xl text-shadow-retro">
                 {statsLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
@@ -147,9 +147,9 @@ export default function PlayerDashboard() {
           </div>
 
           {/* Settings */}
-          <Link href="/settings">
-            <div className="border-4 border-primary box-shadow-retro bg-black flex flex-col items-center justify-center gap-2 p-4 cursor-pointer hover:bg-primary/10 transition-colors group">
-              <Settings className="w-8 h-8 text-primary group-hover:rotate-45 transition-transform duration-300" />
+          <Link href="/settings" className="flex-1 sm:flex-none">
+            <div className="border-4 border-primary box-shadow-retro bg-black h-full flex flex-col items-center justify-center gap-1 sm:gap-2 p-2 sm:p-4 cursor-pointer hover:bg-primary/10 transition-colors group">
+              <Settings className="w-5 h-5 sm:w-8 sm:h-8 text-primary group-hover:rotate-45 transition-transform duration-300" />
               <span className="font-['Press_Start_2P'] text-primary/60 text-[10px]">SETTINGS</span>
             </div>
           </Link>

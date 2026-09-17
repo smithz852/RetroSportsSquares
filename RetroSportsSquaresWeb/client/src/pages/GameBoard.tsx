@@ -498,7 +498,7 @@ useEffect(() => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,60rem)_340px] gap-6 lg:gap-8">
         {/* Main column — scoreboard and board share one width/alignment context */}
-        <div className="flex flex-col items-center gap-8 w-full">
+        <div className="flex flex-col items-center w-full">
         <div className="w-full">
           <Scoreboard
             isVisible={gameStarted}
