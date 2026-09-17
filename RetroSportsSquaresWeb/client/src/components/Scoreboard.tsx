@@ -180,7 +180,7 @@ export function Scoreboard({
     >
       {/* Header */}
       <div className="border-b-4 border-red-900 py-1 px-2 text-center bg-red-900/10">
-        <h2 className="text-red-600 text-lg tracking-tighter uppercase">
+        <h2 className="text-red-600 text-base tracking-tighter uppercase">
           Score Board
         </h2>
         {gameName && (
@@ -191,18 +191,18 @@ export function Scoreboard({
       {/* Main Score Area */}
       <div className="grid grid-cols-3 border-b-4 border-red-900">
         <div className="py-1.5 px-3 flex flex-col items-center justify-center border-r-4 border-red-900 bg-black">
-          <span className="text-red-500 text-base">{team1.name}</span>
-          <span className="text-red-600 text-3xl font-mono leading-tight">{team1.score}</span>
+          <span className="text-red-500 text-sm">{team1.name}</span>
+          <span className="text-red-600 text-2xl font-mono leading-tight">{team1.score}</span>
         </div>
 
         <div className="py-1.5 px-3 flex flex-col items-center justify-center bg-red-900/5">
-          <span className="text-red-500 text-lg">
+          <span className="text-red-500 text-base">
             {scoreData?.status}
           </span>
           {hasGameStarted ? (
             <div className="flex flex-col items-center">
               <span className="text-red-900 text-[10px] uppercase">Leader</span>
-              <div className="flex items-center gap-2 text-red-500 text-base">
+              <div className="flex items-center gap-2 text-red-500 text-sm">
                 <span>{currentLeader}</span>
               </div>
             </div>
@@ -211,8 +211,8 @@ export function Scoreboard({
               <span className="text-red-900 text-[10px] uppercase">
                 Game Time
               </span>
-              <div className="flex items-center gap-2 text-red-500 text-base">
-                <Clock className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-red-500 text-sm">
+                <Clock className="w-3.5 h-3.5" />
                 {timeUntilGame()}
               </div>
             </div>
@@ -220,8 +220,8 @@ export function Scoreboard({
         </div>
 
         <div className="py-1.5 px-3 flex flex-col items-center justify-center border-l-4 border-red-900 bg-black">
-          <span className="text-red-500 text-base">{team2.name}</span>
-          <span className="text-red-600 text-3xl font-mono leading-tight">{team2.score}</span>
+          <span className="text-red-500 text-sm">{team2.name}</span>
+          <span className="text-red-600 text-2xl font-mono leading-tight">{team2.score}</span>
         </div>
       </div>
 

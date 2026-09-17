@@ -603,7 +603,7 @@ useEffect(() => {
           <div className="flex items-center">
             {/* Away Team Label (Rotated) */}
             <div className="flex items-center justify-center w-12 shrink-0 mr-3">
-              <span className="-rotate-90 text-red-600 font-pixel text-5xl lg:text-6xl whitespace-nowrap">
+              <span className="-rotate-90 text-red-600 font-pixel text-3xl lg:text-4xl whitespace-nowrap">
                 {awayTeam}
               </span>
             </div>
@@ -611,8 +611,8 @@ useEffect(() => {
             {/* Grid Container */}
             <div className="flex flex-col">
               {/* Home Team Label */}
-              <div className="text-center mb-3 pl-10 md:pl-14 lg:pl-20">
-                <span className="text-red-600 font-pixel text-5xl lg:text-6xl">
+              <div className="text-center mb-2 pl-10 md:pl-14 lg:pl-20">
+                <span className="text-red-600 font-pixel text-3xl lg:text-4xl">
                   {homeTeam}
                 </span>
               </div>
@@ -626,13 +626,13 @@ useEffect(() => {
                     : !isHost && !gameStarted ? handleLeaveGame
                     : undefined
                   }
-                  className={`w-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] h-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] border-2 border-red-900 flex items-center justify-center transition-colors ${
+                  className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] border-2 border-red-900 flex items-center justify-center transition-colors ${
                     !gameStarted && !isSpectator
                       ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500"
                       : "bg-red-900/20 cursor-default"
                   }`}
                 >
-                  <span className="text-black font-pixel text-[clamp(0.5rem,1.2cqw,0.875rem)]">
+                  <span className="text-black font-pixel text-[clamp(0.5rem,1.08cqw,0.7875rem)]">
                     {isSpectator || gameStarted ? "" : isHost ? "DEL" : "EXIT"}
                   </span>
                 </div>
@@ -640,7 +640,7 @@ useEffect(() => {
                 {topNumbers.map((num, i) => (
                   <div
                     key={`top-${i}`}
-                    className="w-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] h-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] bg-red-600 border-2 border-red-900 flex items-center justify-center font-pixel text-black text-[clamp(1rem,3.5cqw,1.875rem)]"
+                    className="w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] bg-red-600 border-2 border-red-900 flex items-center justify-center font-pixel text-black text-[clamp(1rem,3.15cqw,1.6875rem)]"
                   >
                     {num !== null ? num : "?"}
                   </div>
@@ -648,7 +648,7 @@ useEffect(() => {
 
                 {Array.from({ length: 10 }).map((_, rowIndex) => (
                   <div key={`row-${rowIndex}`} className={`contents ${rowIndex === winningRow ? 'winning-row' : ''}`}>
-                    <div className="w-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] h-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] bg-red-600 border-2 border-red-900 flex items-center justify-center font-pixel text-black text-[clamp(1rem,3.5cqw,1.875rem)]">
+                    <div className="w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] bg-red-600 border-2 border-red-900 flex items-center justify-center font-pixel text-black text-[clamp(1rem,3.15cqw,1.6875rem)]">
                       {leftNumbers[rowIndex] !== null
                         ? leftNumbers[rowIndex]
                         : "?"}
@@ -667,12 +667,12 @@ useEffect(() => {
                         <div
                           key={`${rowIndex}-${colIndex}`}
                           onClick={() => squareId && handleSquareClick(squareId)}
-                          className={`w-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] h-[clamp(1.25rem,9.09cqw_-_0.432rem,5rem)] border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                          className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
                             isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
                           } ${colIndex === winningCol ? 'winning-column' : ''} ${rowIndex === winningRow ? 'winning-row' : ''} ${isWinningSquare ? 'winning-square' : ''}`}
                         >
                           <span
-                            className={`font-pixel text-[clamp(0.4rem,2.1cqw,1.625rem)] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
+                            className={`font-pixel text-[clamp(0.4rem,1.89cqw,1.4625rem)] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
                           >
                             {displayName}
                           </span>
@@ -693,8 +693,8 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Panels row — sits below the main grid */}
-      <div className="mt-6 lg:mt-8 flex flex-wrap gap-8 w-full justify-center">
+      {/* Panels row — width-matched to the scoreboard/board column above, not the full page */}
+      <div className="mt-6 lg:mt-8 flex flex-wrap gap-8 max-w-[60rem] justify-center">
 
           {/* Players / Turn Order Panel */}
           {!gameStarted && turnStatus && (
