@@ -20,6 +20,102 @@ namespace RSS_Tests
         private static decimal Total(IEnumerable<SettlementLine> lines, string userId)
             => lines.Where(l => l.UserId == userId).Sum(l => l.Amount);
 
+        // ---- Live (in-progress) use: a missing period key = unresolved ----
+
+        private static readonly Dictionary<string, int> LiveSquares = new() { [A] = 5, [B] = 5 }; // pool 20 @ 2/sq
+
+        private static List<SettlementLine> Live(string mode, params string?[] resolved)
+            => SettlementEngine.ComputeSettlement(mode, Periods(resolved), 4, 2m, LiveSquares);
+
+        [Fact]
+        public void Live_Fair_ShareRisesAsPeriodsGoUnclaimed_AndConvergesToSettlement()
+        {
+            Assert.Equal(5m, Total(Live(PayoutModes.Fair, A), A));            // 20 / 4
+            Assert.Equal(6.67m, Total(Live(PayoutModes.Fair, A, null), A));   // 20 / 3
+            var afterB = Live(PayoutModes.Fair, A, null, B);
+            Assert.Equal(6.67m, Total(afterB, A));
+            Assert.Equal(6.67m, Total(afterB, B));
+
+            var final = Live(PayoutModes.Fair, A, null, B, C);
+            Assert.Equal(20m, final.Sum(l => l.Amount)); // residual applied once fully resolved
+        }
+
+        [Fact]
+        public void Live_HoldsBackRefundsAndResidual()
+        {
+            Assert.Empty(Live(PayoutModes.Default, (string?)null));
+            Assert.Empty(Live(PayoutModes.Fair, (string?)null));
+            Assert.DoesNotContain(Live(PayoutModes.Default, A, null), l => l.Type == CoinTransactionTypes.Redistribution);
+            // 20/3 rounds to 6.67 per win; the pennies aren't pinned on anyone mid-game
+            Assert.Equal(6.67m, Total(Live(PayoutModes.Fair, A, null), A));
+        }
+
+        [Fact]
+        public void Live_Push_PendingCarryIsNotPaidUntilAWinnerCollectsIt()
+        {
+            var pending = Live(PayoutModes.Push, A, null);
+            Assert.Equal(5m, Total(pending, A));
+            Assert.DoesNotContain(pending, l => l.Type == CoinTransactionTypes.Push);
+
+            var collected = Live(PayoutModes.Push, A, null, B);
+            Assert.Equal(10m, Total(collected, B)); // own 5 + carried 5
+            Assert.Equal(5m, Total(collected, A));
+        }
+
+        [Fact]
+        public void Live_Destruction_BombZeroesPot_ButSalvageAndLootWaitForTheEnd()
+        {
+            var live = Live(PayoutModes.Destruction, A, null);
+            Assert.Equal(0m, Total(live, A));
+            Assert.DoesNotContain(live, l => l.Type == CoinTransactionTypes.Salvage);
+
+            var collected = Live(PayoutModes.Destruction, A, null, B);
+            Assert.Equal(10m, Total(collected, B)); // own 5 + A's looted 5
+            Assert.Equal(0m, Total(collected, A));
+        }
+
+        [Fact]
+        public void Live_Thief_ArrowFiresOnlyOnAResolvedWinner_NotOnUnresolvedTail()
+        {
+            var armed = Live(PayoutModes.Thief, A, null);
+            Assert.Equal(6.67m, Total(armed, A));              // 20 / 3, nothing stolen yet
+            Assert.DoesNotContain(armed, l => l.Type == CoinTransactionTypes.Steal);
+
+            var hit = Live(PayoutModes.Thief, A, null, B);
+            Assert.Equal(13.34m, Total(hit, A));               // A stole B's pot
+            Assert.Equal(0m, Total(hit, B));
+        }
+
+        [Fact]
+        public void Live_NonNegativeModes_EarningsOnlyRiseAsPeriodsResolve()
+        {
+            var rng = new Random(2026);
+            string[] modes = { PayoutModes.Default, PayoutModes.Fair, PayoutModes.Push };
+            for (int i = 0; i < 300; i++)
+            {
+                var periodCount = rng.Next(2, 7);
+                var winners = new string?[periodCount];
+                for (int p = 0; p < periodCount; p++)
+                    winners[p] = rng.Next(3) == 0 ? null : (rng.Next(2) == 0 ? A : B);
+                var mode = modes[i % modes.Length];
+
+                var previous = new Dictionary<string, decimal>();
+                for (int upTo = 1; upTo <= periodCount; upTo++)
+                {
+                    var lines = SettlementEngine.ComputeSettlement(
+                        mode, Periods(winners.Take(upTo).ToArray()), periodCount, 2m, LiveSquares);
+                    foreach (var user in new[] { A, B })
+                    {
+                        var now = Total(lines.Where(l => l.Type != CoinTransactionTypes.Redistribution), user);
+                        // 0.02 slack: final-step rounding residual can move a cent or two
+                        Assert.True(now + 0.02m >= previous.GetValueOrDefault(user),
+                            $"{mode} iteration {i}: {user} dropped at period {upTo}");
+                        previous[user] = now;
+                    }
+                }
+            }
+        }
+
         [Fact]
         public void Default_AllPeriodsClaimed_PaysPerPeriodWithNoRedistribution()
         {

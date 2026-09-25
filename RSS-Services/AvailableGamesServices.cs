@@ -124,6 +124,42 @@ namespace RSS_Services
             return PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
         }
 
+        // Prize money per player for the Odds board's Won column, keyed by the same
+        // name the board shows (GamerTag ?? DisplayName). Always runs the settlement
+        // engine, which is safe on in-progress games: unresolved periods hold back
+        // end-of-game effects, so amounts are "earned so far" and converge to the
+        // settled amounts once every period resolves. Refunds are stakes, not winnings.
+        public async Task<Dictionary<string, decimal>> GetPlayerWinnings(SquareGames game)
+        {
+            var winners = game.PeriodWinners;
+            if (winners.Count == 0) return new();
+
+            var players = await _appDbContext.GamePlayers
+                .Where(gp => gp.GameId == game.Id)
+                .Select(gp => new { gp.Id, gp.ApplicationUserId })
+                .ToListAsync();
+            var userIdByPlayerId = players.ToDictionary(p => p.Id, p => p.ApplicationUserId);
+            var squareCounts = game.GameSquares
+                .Where(gs => gs.GamePlayerId != null && userIdByPlayerId.ContainsKey(gs.GamePlayerId.Value))
+                .GroupBy(gs => userIdByPlayerId[gs.GamePlayerId!.Value])
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var byUserId = SettlementEngine
+                .ComputeSettlement(game.PayoutMode, winners, game.PeriodCount, game.PricePerSquare, squareCounts)
+                .Where(l => l.Type != CoinTransactionTypes.Redistribution)
+                .GroupBy(l => l.UserId)
+                .ToDictionary(g => g.Key, g => g.Sum(l => l.Amount));
+
+            var userIds = byUserId.Keys.ToList();
+            var names = await _appDbContext.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.GamerTag ?? u.DisplayName);
+
+            return byUserId
+                .Where(kvp => names.ContainsKey(kvp.Key))
+                .ToDictionary(kvp => names[kvp.Key], kvp => kvp.Value);
+        }
+
         public async Task<Dictionary<int, string?>> GetPeriodWinnerDisplayNames(Dictionary<int, string?> periodWinners)
         {
             if (periodWinners.Count == 0) return new();
@@ -136,7 +172,7 @@ namespace RSS_Services
 
             var users = await _appDbContext.Users
                 .Where(u => userIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.DisplayName);
+                .ToDictionaryAsync(u => u.Id, u => u.GamerTag ?? u.DisplayName);
 
             return periodWinners.ToDictionary(
                 kvp => kvp.Key,
