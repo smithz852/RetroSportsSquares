@@ -15,6 +15,16 @@ namespace RSS_Services.Helpers
     // (pricePerSquare × claimed squares); coins never leak and are never minted.
     // The zero-winner game therefore needs no special case — it falls out as a
     // full pro-rata refund.
+    //
+    // Live use: the same function is safe on a game still in progress. A period
+    // with no key in periodWinners is unresolved (a key with a null value is
+    // resolved-but-unclaimed). While any period is unresolved, end-of-game effects
+    // are held back — refunds, Push carry / Destruction salvage+loot payouts to the
+    // first winner, Thief game-end events, and the rounding residual — so the
+    // amounts are "earned so far". Fair/Thief divide by periodCount minus
+    // resolved-unclaimed periods, which only ever rises as periods go unclaimed and
+    // equals the claimed-period count once every period has resolved. Fully
+    // resolved input behaves exactly as settlement always has.
     public static class SettlementEngine
     {
         public static List<SettlementLine> ComputeSettlement(
@@ -34,8 +44,32 @@ namespace RSS_Services.Helpers
                 _ => throw new NotSupportedException($"Payout mode '{payoutMode}' has no settlement implementation."),
             };
 
+            if (!IsFullyResolved(periodWinners, periodCount))
+            {
+                // Refunds depend on how the game ends; nothing is owed back yet, and
+                // the pool is legitimately not fully allocated, so no residual either.
+                lines.RemoveAll(l => l.Type == CoinTransactionTypes.Redistribution);
+                return lines;
+            }
+
             ApplyRoundingResidual(lines, GetPool(pricePerSquare, squareCountsByUser));
             return lines;
+        }
+
+        public static bool IsFullyResolved(IReadOnlyDictionary<int, string?> periodWinners, int periodCount)
+        {
+            for (int period = 1; period <= periodCount; period++)
+                if (!periodWinners.ContainsKey(period)) return false;
+            return true;
+        }
+
+        // Periods that resolved with no winner. Unresolved periods don't count.
+        private static int CountResolvedUnclaimed(IReadOnlyDictionary<int, string?> periodWinners, int periodCount)
+        {
+            var count = 0;
+            for (int period = 1; period <= periodCount; period++)
+                if (periodWinners.TryGetValue(period, out var w) && w == null) count++;
+            return count;
         }
 
         public static decimal GetPool(decimal pricePerSquare, IReadOnlyDictionary<string, int> squareCountsByUser)
@@ -118,7 +152,7 @@ namespace RSS_Services.Helpers
                 return lines;
             }
 
-            var perWinningPeriod = pool / claimedPeriods.Count;
+            var perWinningPeriod = pool / (periodCount - CountResolvedUnclaimed(periodWinners, periodCount));
             foreach (var (period, winnerId) in claimedPeriods)
                 lines.Add(new SettlementLine(winnerId, Round2(perWinningPeriod), CoinTransactionTypes.PeriodWin, period));
 
@@ -153,7 +187,7 @@ namespace RSS_Services.Helpers
             var carry = 0m;
             for (int period = 1; period <= periodCount; period++)
             {
-                var winnerId = periodWinners.GetValueOrDefault(period);
+                if (!periodWinners.TryGetValue(period, out var winnerId)) break; // unresolved tail
                 if (winnerId == null)
                 {
                     carry += perPeriod;
@@ -167,8 +201,8 @@ namespace RSS_Services.Helpers
             }
 
             // Unclaimed final period(s): the riding pot rewards whoever won first.
-            if (carry > 0)
-                lines.Add(new SettlementLine(earliestWinner, Round2(carry), CoinTransactionTypes.Push, null));
+            if (carry > 0 && IsFullyResolved(periodWinners, periodCount))
+                lines.Add(new SettlementLine(earliestWinner,Round2(carry), CoinTransactionTypes.Push, null));
 
             return lines;
         }
@@ -212,7 +246,7 @@ namespace RSS_Services.Helpers
 
             for (int period = 1; period <= periodCount; period++)
             {
-                var winnerId = periodWinners.GetValueOrDefault(period);
+                if (!periodWinners.TryGetValue(period, out var winnerId)) break; // unresolved tail
                 if (winnerId != null)
                 {
                     var win = Round2(perPeriod);
@@ -242,11 +276,14 @@ namespace RSS_Services.Helpers
                 }
             }
 
+            // End-of-game payouts only exist once every period has resolved.
+            var fullyResolved = IsFullyResolved(periodWinners, periodCount);
+
             // Bomb with no later winner: the loot rewards whoever won first.
-            if (pendingLoot > 0)
+            if (pendingLoot > 0 && fullyResolved)
                 lines.Add(new SettlementLine(firstWinner, pendingLoot, CoinTransactionTypes.Destroy, null));
 
-            if (salvage > 0)
+            if (salvage > 0 && fullyResolved)
                 lines.Add(new SettlementLine(firstWinner, Round2(salvage), CoinTransactionTypes.Salvage, null));
 
             return lines;
@@ -278,7 +315,7 @@ namespace RSS_Services.Helpers
                 return lines;
             }
 
-            var perWin = pool / claimedPeriods;
+            var perWin = pool / (periodCount - CountResolvedUnclaimed(periodWinners, periodCount));
             var events = ThiefWalk.Analyze(periodWinners, periodCount);
             var eventsByPeriod = events
                 .Where(e => e.Period != null)

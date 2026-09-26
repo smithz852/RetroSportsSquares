@@ -36,6 +36,7 @@ export interface SquareGameScoreData {
   sportType: string;
   periodWinners: Record<number, string | null>;
   payoutPerPeriod: number;
+  playerWinnings: Record<string, number>;
   payoutMode: PayoutMode | null;
   periodCount: number;
 }

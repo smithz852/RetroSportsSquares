@@ -83,14 +83,6 @@ export default function GameBoard() {
     return mySquareCount > 0;
   }, [boardSquares, user, game?.squareSelectionLimit]);
 
-    const periodsWonByPlayer = useMemo(() => {
-    const map: Record<string, number> = {};
-    Object.values(scoreData?.periodWinners ?? {}).forEach((name) => {
-      if (name) map[name] = (map[name] ?? 0) + 1;
-    });
-    return map;
-  }, [scoreData?.periodWinners]);
-
   // Push mode: unclaimed periods ride their coins onto the next period's prize.
   // Walk resolved periods in order — nulls stack the carry, a winner resets it.
   // Zero once every period is resolved (a trailing pot has already been paid out).
@@ -816,7 +808,7 @@ useEffect(() => {
                           </span>
                           <span className="text-right flex items-center justify-end gap-1">
                             <Coins size={16} className="text-yellow-600" />
-                            {((periodsWonByPlayer[name] ?? 0) * (scoreData?.payoutPerPeriod ?? 0)).toFixed(2)}
+                            {(scoreData?.playerWinnings?.[name] ?? 0).toFixed(2)}
                           </span>
                         </motion.div>
                       ))

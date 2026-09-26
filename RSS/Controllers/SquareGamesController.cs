@@ -171,7 +171,8 @@ namespace RSS.Controllers
 
             var winnerNames = await _availableGamesServices.GetPeriodWinnerDisplayNames(scoreData.PeriodWinners);
             var payoutPerPeriod = _availableGamesServices.GetPayoutPerPeriod(scoreData);
-            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames, payoutPerPeriod);
+            var playerWinnings = await _availableGamesServices.GetPlayerWinnings(scoreData);
+            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames, payoutPerPeriod, playerWinnings);
             return Ok(gameDto);
         }
 

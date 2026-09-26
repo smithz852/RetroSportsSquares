@@ -46,7 +46,7 @@ namespace RSS.Helpers
             };
         }
 
-        public SportScoreUpdateDTO ScoreDataMapper(SquareGames squaregame, Dictionary<int, string?> periodWinnerNames, decimal payoutPerPeriod)
+        public SportScoreUpdateDTO ScoreDataMapper(SquareGames squaregame, Dictionary<int, string?> periodWinnerNames, decimal payoutPerPeriod, Dictionary<string, decimal> playerWinnings)
         {
             return new SportScoreUpdateDTO
             {
@@ -62,6 +62,7 @@ namespace RSS.Helpers
                 PayoutPerPeriod = payoutPerPeriod,
                 PayoutMode = squaregame.PayoutMode,
                 PeriodCount = squaregame.PeriodCount,
+                PlayerWinnings = playerWinnings,
             };
         }
 

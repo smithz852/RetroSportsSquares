@@ -24,5 +24,7 @@ namespace RSS.DTOs
         // Score-endpoint only: lets the board render mode mechanics (e.g. Push pot)
         public string? PayoutMode { get; set; }
         public int PeriodCount { get; set; }
+        // Score-endpoint only: prize money per player, keyed by board name (GamerTag ?? DisplayName)
+        public Dictionary<string, decimal> PlayerWinnings { get; set; } = new();
     }
 }
