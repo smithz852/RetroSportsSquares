@@ -68,6 +68,15 @@ namespace RSS_Services
             return gamePlayer;
         }
 
+        public async Task<bool> IsPlayerInGame(string userId, string gameId)
+        {
+            if (!Guid.TryParse(gameId, out var gameGuid))
+                return false;
+
+            return await _appDbContext.GamePlayers
+                .AnyAsync(gp => gp.ApplicationUserId == userId && gp.GameId == gameGuid);
+        }
+
         public async Task<bool> IsPlayerHost(string userId, string gameId)
         {
             if (!Guid.TryParse(gameId, out var gameGuid))

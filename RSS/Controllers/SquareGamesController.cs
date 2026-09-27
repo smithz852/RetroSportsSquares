@@ -280,7 +280,16 @@ namespace RSS.Controllers
                 var game = await _availableGamesServices.GetGameById(gameId);
                 if (game == null) return NotFound();
 
-                if (game.IsTurnBased && game.SelectionPhaseActive && game.CurrentTurnUserId != userId)
+                if (!await _gamePlayerServices.IsPlayerInGame(userId, gameId))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { message = "You are not a player in this game." });
+
+                // Turn-based squares are only claimable during the rotation. Before it begins
+                // players must wait for their turn order; after it ends, leftover squares are
+                // assigned by the game mode's rules, not by free selection.
+                if (game.IsTurnBased && !game.SelectionPhaseActive)
+                    return BadRequest(new { message = "Square selection isn't active for this game." });
+
+                if (game.IsTurnBased && game.CurrentTurnUserId != userId)
                     return BadRequest(new { message = "It is not your turn." });
 
                 var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
