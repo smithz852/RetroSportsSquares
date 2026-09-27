@@ -120,6 +120,38 @@ namespace RSS_Services
             await _hubNotifier.NotifySelectionsStarted(gameId);
         }
 
+        // Slack past the nominal timeout so the client's own auto-submit at 0 (which carries the
+        // player's picks) normally lands before the server gives up on the turn.
+        public const int TurnGraceSeconds = 5;
+
+        public static bool IsTurnExpired(SquareGames game, DateTimeOffset now) =>
+            game.IsTurnBased
+            && game.SelectionPhaseActive
+            && game.TurnTimeoutSeconds > 0
+            && game.TurnStartedAt != null
+            && now > game.TurnStartedAt.Value.AddSeconds(game.TurnTimeoutSeconds + TurnGraceSeconds);
+
+        // Skips every player whose turn has run past timeout + grace (same effect as the host's
+        // SKIP: no squares, HasHadTurn = true, turn moves on). Each advance is conditional on the
+        // expired player still holding the turn, so a racing submit or skip simply wins.
+        // Returns how many turns were advanced.
+        public async Task<int> AdvanceExpiredTurnsAsync(DateTimeOffset now)
+        {
+            var candidates = await _appDbContext.SquareGames
+                .AsNoTracking()
+                .Where(g => g.IsTurnBased && g.SelectionPhaseActive && g.TurnTimeoutSeconds > 0
+                            && g.TurnStartedAt != null && g.CurrentTurnUserId != null)
+                .ToListAsync();
+
+            var advanced = 0;
+            foreach (var game in candidates.Where(g => IsTurnExpired(g, now)))
+            {
+                if (await AdvanceTurn(game.Id.ToString(), expectedCurrentUserId: game.CurrentTurnUserId))
+                    advanced++;
+            }
+            return advanced;
+        }
+
         // Standalone advance (host skip): takes the same per-game lock as square selection so a skip
         // and a submit can't interleave, then notifies once the change is committed.
         public async Task<bool> AdvanceTurn(string gameId, string? expectedCurrentUserId = null)
@@ -227,6 +259,7 @@ namespace RSS_Services
                 CurrentTurnUserId = game.CurrentTurnUserId,
                 TurnStartedAt = game.TurnStartedAt,
                 TurnTimeoutSeconds = game.TurnTimeoutSeconds,
+                ServerNow = DateTimeOffset.UtcNow,
                 Players = players.Select(p => new TurnPlayerDTO
                 {
                     UserId = p.ApplicationUserId,

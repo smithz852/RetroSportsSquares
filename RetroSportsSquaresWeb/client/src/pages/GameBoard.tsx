@@ -56,7 +56,7 @@ export default function GameBoard() {
   useGameHub(id);
 
   const isTurnBased = game?.isTurnBased ?? false;
-  const { data: turnStatus } = useGetTurnStatus(id, !gameStarted);
+  const { data: turnStatus, dataUpdatedAt: turnStatusUpdatedAt } = useGetTurnStatus(id, !gameStarted);
   const selectionPhaseActive = turnStatus?.selectionPhaseActive ?? game?.selectionPhaseActive ?? false;
 
   const isMyTurn = isTurnBased
@@ -260,8 +260,12 @@ useEffect(() => {
     const timeout = turnStatus.turnTimeoutSeconds;
     if (timeout <= 0) { setCountdown(null); return; }
 
+    // Measure elapsed time on the server's clock: skewMs = server time at fetch − our clock at fetch
+    const skewMs = turnStatus.serverNow
+      ? new Date(turnStatus.serverNow).getTime() - turnStatusUpdatedAt
+      : 0;
     const elapsed = turnStatus.turnStartedAt
-      ? Math.floor((Date.now() - new Date(turnStatus.turnStartedAt).getTime()) / 1000)
+      ? Math.floor((Date.now() + skewMs - new Date(turnStatus.turnStartedAt).getTime()) / 1000)
       : 0;
     const remaining = Math.max(timeout - elapsed, 0);
     setCountdown(remaining);

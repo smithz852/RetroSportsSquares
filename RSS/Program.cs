@@ -190,6 +190,7 @@ builder.Services.AddHostedService<SoccerAutomation>();
 builder.Services.AddHostedService<FootballRefetchAutomation>();
 builder.Services.AddHostedService<BasketballRefetchAutomation>();
 builder.Services.AddHostedService<SoccerRefetchAutomation>();
+builder.Services.AddHostedService<RSS.TurnTimeoutSweeper>();
 
 //email services
 builder.Services.AddResend(o => o.ApiToken = builder.Configuration["Resend:ApiKey"]);

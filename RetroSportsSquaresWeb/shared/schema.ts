@@ -153,6 +153,7 @@ export interface TurnStatus {
   currentTurnUserId: string | null;
   turnStartedAt: string | null;
   turnTimeoutSeconds: number;
+  serverNow?: string;
   players: TurnPlayer[];
 }
 

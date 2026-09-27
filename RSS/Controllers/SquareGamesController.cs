@@ -76,6 +76,11 @@ namespace RSS.Controllers
             if (!RSS_DB.Entities.PayoutModes.Implemented.Contains(payoutMode))
                 return BadRequest(new { message = $"Payout mode '{payoutMode}' is coming soon." });
 
+            // 0 = no timeout; otherwise keep it in a sane range (the sweeper acts on this value)
+            if (gameData.IsTurnBased && gameData.TurnTimeoutSeconds != 0
+                && (gameData.TurnTimeoutSeconds < 10 || gameData.TurnTimeoutSeconds > 600))
+                return BadRequest(new { message = "Turn timeout must be 0 (none) or between 10 and 600 seconds." });
+
             // Thief/Destruction need winner→null→winner room to breathe (3+ periods),
             // so 2-period sports like soccer can't host them.
             if (Guid.TryParse(gameData.DailySportsGameId, out var sportsGameGuid))
@@ -320,6 +325,10 @@ namespace RSS.Controllers
 
                 if (game.IsTurnBased && game.CurrentTurnUserId != userId)
                     return BadRequest(new { message = "It is not your turn." });
+
+                // The sweeper skips expired turns within seconds; this closes the gap before it runs.
+                if (GamePlayerServices.IsTurnExpired(game, DateTimeOffset.UtcNow))
+                    return BadRequest(new { message = "Your turn has expired." });
 
                 var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
                 if (!withinSquareLimit)

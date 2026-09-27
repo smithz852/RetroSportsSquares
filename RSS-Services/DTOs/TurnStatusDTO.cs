@@ -6,6 +6,8 @@ namespace RSS_Services.DTOs
         public string? CurrentTurnUserId { get; set; }
         public DateTimeOffset? TurnStartedAt { get; set; }
         public int TurnTimeoutSeconds { get; set; }
+        // Lets the client compute its countdown from server time instead of trusting its own clock
+        public DateTimeOffset ServerNow { get; set; }
         public List<TurnPlayerDTO> Players { get; set; } = new();
     }
 
