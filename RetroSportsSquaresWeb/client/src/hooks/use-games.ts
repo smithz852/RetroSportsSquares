@@ -136,10 +136,11 @@ export function useBeginSelections(gameId: string) {
 export function useSkipPlayer(gameId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (): Promise<TurnStatus> => {
+    // expectedUserId = the player the host is skipping; the server ignores the skip if the turn already moved
+    mutationFn: async (expectedUserId: string): Promise<TurnStatus> => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Not authenticated');
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.skipPlayer(gameId)}`, {
+      const res = await fetch(`${API_BASE_URL}${endpoints.games.skipPlayer(gameId)}?expectedUserId=${encodeURIComponent(expectedUserId)}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

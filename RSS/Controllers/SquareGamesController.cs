@@ -254,7 +254,7 @@ namespace RSS.Controllers
 
         [HttpPost("skip-player/{gameId}")]
         [Authorize]
-        public async Task<IActionResult> SkipPlayer(string gameId)
+        public async Task<IActionResult> SkipPlayer(string gameId, [FromQuery] string expectedUserId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
@@ -262,7 +262,12 @@ namespace RSS.Controllers
             var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
             if (!isHost) return Forbid();
 
-            await _gamePlayerServices.AdvanceTurn(gameId);
+            if (string.IsNullOrEmpty(expectedUserId))
+                return BadRequest("expectedUserId is required — specify which player is being skipped.");
+
+            // Skips that specific player only. If the turn already moved (they submitted,
+            // or another skip landed first) this is a no-op and the caller gets the current status.
+            await _gamePlayerServices.AdvanceTurn(gameId, expectedCurrentUserId: expectedUserId);
             var status = await _gamePlayerServices.GetTurnStatus(gameId);
             return Ok(status);
         }
@@ -326,7 +331,7 @@ namespace RSS.Controllers
                     return BadRequest("Failed to save square selection data.");
 
                 if (game.IsTurnBased && game.SelectionPhaseActive)
-                    await _gamePlayerServices.AdvanceTurn(gameId);
+                    await _gamePlayerServices.AdvanceTurn(gameId, expectedCurrentUserId: userId);
                 else
                     await _hubNotifier.NotifySquareSelected(gameId);
 

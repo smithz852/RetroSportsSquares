@@ -578,8 +578,8 @@ useEffect(() => {
 
                   {isHost && isTurnBased && selectionPhaseActive && !gameStarted && (
                     <Button
-                      onClick={() => skipPlayer()}
-                      disabled={isSkipPending}
+                      onClick={() => turnStatus?.currentTurnUserId && skipPlayer(turnStatus.currentTurnUserId)}
+                      disabled={isSkipPending || !turnStatus?.currentTurnUserId}
                       className="bg-red-900 text-red-400 font-pixel text-xl py-8 rounded-none border-b-8 border-red-950 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-800"
                     >
                       SKIP

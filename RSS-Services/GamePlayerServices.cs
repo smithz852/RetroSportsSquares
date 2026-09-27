@@ -120,36 +120,65 @@ namespace RSS_Services
             await _hubNotifier.NotifySelectionsStarted(gameId);
         }
 
-        public async Task AdvanceTurn(string gameId)
+        // expectedCurrentUserId makes the advance conditional: it only proceeds if that player
+        // still holds the turn, so a concurrent skip/submit can't advance the rotation twice.
+        // Returns false when the turn had already moved (or the selection phase isn't active).
+        public async Task<bool> AdvanceTurn(string gameId, string? expectedCurrentUserId = null)
         {
-            if (!Guid.TryParse(gameId, out var gameGuid)) return;
+            if (!Guid.TryParse(gameId, out var gameGuid)) return false;
 
-            var game = await _appDbContext.SquareGames.FindAsync(gameGuid);
-            if (game == null || !game.SelectionPhaseActive) return;
+            // Untracked reads — the scoped context may hold stale copies from earlier in the request.
+            var game = await _appDbContext.SquareGames.AsNoTracking().FirstOrDefaultAsync(g => g.Id == gameGuid);
+            if (game == null || !game.SelectionPhaseActive) return false;
+
+            var currentUserId = game.CurrentTurnUserId;
+            if (expectedCurrentUserId != null && expectedCurrentUserId != currentUserId) return false;
 
             var players = await _appDbContext.GamePlayers
+                .AsNoTracking()
                 .Where(p => p.GameId == gameGuid)
                 .OrderBy(p => p.TurnOrder)
                 .ToListAsync();
 
-            var current = players.FirstOrDefault(p => p.ApplicationUserId == game.CurrentTurnUserId);
-            if (current != null) current.HasHadTurn = true;
+            var next = players.FirstOrDefault(p => !p.HasHadTurn && p.ApplicationUserId != currentUserId);
 
-            var next = players.FirstOrDefault(p => !p.HasHadTurn);
-            if (next == null)
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
             {
-                game.SelectionPhaseActive = false;
-                game.CurrentTurnUserId = null;
-                game.TurnStartedAt = null;
+                // Atomic claim: the WHERE on CurrentTurnUserId means only one concurrent caller
+                // can move the turn off this player; the loser sees 0 rows and bails out.
+                var claimGame = _appDbContext.SquareGames
+                    .Where(g => g.Id == gameGuid && g.SelectionPhaseActive && g.CurrentTurnUserId == currentUserId);
+
+                var claimed = next == null
+                    ? await claimGame.ExecuteUpdateAsync(s => s
+                        .SetProperty(g => g.SelectionPhaseActive, false)
+                        .SetProperty(g => g.CurrentTurnUserId, (string?)null)
+                        .SetProperty(g => g.TurnStartedAt, (DateTimeOffset?)null))
+                    : await claimGame.ExecuteUpdateAsync(s => s
+                        .SetProperty(g => g.CurrentTurnUserId, next.ApplicationUserId)
+                        .SetProperty(g => g.TurnStartedAt, (DateTimeOffset?)DateTimeOffset.UtcNow));
+
+                if (claimed == 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+
+                await _appDbContext.GamePlayers
+                    .Where(p => p.GameId == gameGuid && p.ApplicationUserId == currentUserId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.HasHadTurn, true));
+
+                await transaction.CommitAsync();
             }
-            else
+            catch
             {
-                game.CurrentTurnUserId = next.ApplicationUserId;
-                game.TurnStartedAt = DateTimeOffset.UtcNow;
+                await transaction.RollbackAsync();
+                throw;
             }
 
-            await _appDbContext.SaveChangesAsync();
             await _hubNotifier.NotifyTurnAdvanced(gameId);
+            return true;
         }
 
         public async Task LeaveGame(string userId, string gameId)
