@@ -18,7 +18,7 @@ namespace RSS_Services
         public async Task<PlayerStatsDTO> GetStatsAsync(string userId)
         {
             var gameData = await _context.GamePlayers
-                .Where(gp => gp.ApplicationUserId == userId)
+                .Where(gp => gp.ApplicationUserId == userId && gp.Game.IsPublic)
                 .Select(gp => new
                 {
                     gp.Game.PricePerSquare,
