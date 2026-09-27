@@ -23,9 +23,9 @@ namespace RSS
                 },
                 new DailySportsGames
                 {
-                    ApiGameId = 123492,
-                    HomeTeam = "Chiefs",
-                    AwayTeam = "Bills",
+                    ApiGameId = 123494,
+                    HomeTeam = "49ers",
+                    AwayTeam = "Sea Hawks",
                     GameStartTime = DateTimeOffset.UtcNow,
                     SportType = "american-football",
                     League = "NFL",

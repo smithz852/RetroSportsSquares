@@ -56,7 +56,7 @@ export default function GameBoard() {
   useGameHub(id);
 
   const isTurnBased = game?.isTurnBased ?? false;
-  const { data: turnStatus } = useGetTurnStatus(id, !gameStarted);
+  const { data: turnStatus, dataUpdatedAt: turnStatusUpdatedAt } = useGetTurnStatus(id, !gameStarted);
   const selectionPhaseActive = turnStatus?.selectionPhaseActive ?? game?.selectionPhaseActive ?? false;
 
   const isMyTurn = isTurnBased
@@ -75,13 +75,18 @@ export default function GameBoard() {
     return Object.fromEntries(boardSquares.map(sq => [`${sq.rowIndex}-${sq.colIndex}`, sq]));
   }, [gameStarted, boardSquares]);
 
-  const hasSubmittedSelections = useMemo(() => {
-    if (!boardSquares || !user) return false;
-    const mySquareCount = boardSquares.filter(s => s.displayName === (user.gamerTag ?? user.displayName)).length;
+  // Open (non-turn-based) selection: Submit persists so players can keep claiming
+  // squares, and only hides once a square limit (if any) is reached.
+  // Turn-based selection: the server's turn state is the source of truth. A successful
+  // submit advances the turn (isMyTurn flips false); a partial failure ("choose N more
+  // squares") does not, so the button stays for the retry.
+  const hasReachedSquareLimit = useMemo(() => {
+    if (isTurnBased || !boardSquares || !user) return false;
     const limit = game?.squareSelectionLimit;
-    if (limit && limit > 0) return mySquareCount >= limit;
-    return mySquareCount > 0;
-  }, [boardSquares, user, game?.squareSelectionLimit]);
+    if (!limit || limit <= 0) return false;
+    const mySquareCount = boardSquares.filter(s => s.displayName === (user.gamerTag ?? user.displayName)).length;
+    return mySquareCount >= limit;
+  }, [isTurnBased, boardSquares, user, game?.squareSelectionLimit]);
 
   // Push mode: unclaimed periods ride their coins onto the next period's prize.
   // Walk resolved periods in order — nulls stack the carry, a winner resets it.
@@ -255,8 +260,12 @@ useEffect(() => {
     const timeout = turnStatus.turnTimeoutSeconds;
     if (timeout <= 0) { setCountdown(null); return; }
 
+    // Measure elapsed time on the server's clock: skewMs = server time at fetch − our clock at fetch
+    const skewMs = turnStatus.serverNow
+      ? new Date(turnStatus.serverNow).getTime() - turnStatusUpdatedAt
+      : 0;
     const elapsed = turnStatus.turnStartedAt
-      ? Math.floor((Date.now() - new Date(turnStatus.turnStartedAt).getTime()) / 1000)
+      ? Math.floor((Date.now() + skewMs - new Date(turnStatus.turnStartedAt).getTime()) / 1000)
       : 0;
     const remaining = Math.max(timeout - elapsed, 0);
     setCountdown(remaining);
@@ -391,6 +400,8 @@ useEffect(() => {
               "bg-black border-2 border-primary text-primary font-['VT323']",
           });
           queryClient.invalidateQueries({ queryKey: ['boardSquares', id] });
+          // Turn advanced server-side — refresh so Submit hides without waiting on the poll
+          queryClient.invalidateQueries({ queryKey: ['turnStatus', id] });
         },
         onError: (error: any) => {
           const message = error instanceof Error ? error.message : "FAILED TO SAVE SELECTIONS.";
@@ -571,15 +582,15 @@ useEffect(() => {
 
                   {isHost && isTurnBased && selectionPhaseActive && !gameStarted && (
                     <Button
-                      onClick={() => skipPlayer()}
-                      disabled={isSkipPending}
+                      onClick={() => turnStatus?.currentTurnUserId && skipPlayer(turnStatus.currentTurnUserId)}
+                      disabled={isSkipPending || !turnStatus?.currentTurnUserId}
                       className="bg-red-900 text-red-400 font-pixel text-xl py-8 rounded-none border-b-8 border-red-950 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-800"
                     >
                       SKIP
                     </Button>
                   )}
 
-                  {!isSpectator && !hasSubmittedSelections && (!isTurnBased || selectionPhaseActive) && isMyTurn && !gameStarted && (
+                  {!isSpectator && !hasReachedSquareLimit && (!isTurnBased || selectionPhaseActive) && isMyTurn && !gameStarted && (
                     <Button
                       onClick={handleSubmit}
                       disabled={isPending}

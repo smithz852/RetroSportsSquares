@@ -76,6 +76,11 @@ namespace RSS.Controllers
             if (!RSS_DB.Entities.PayoutModes.Implemented.Contains(payoutMode))
                 return BadRequest(new { message = $"Payout mode '{payoutMode}' is coming soon." });
 
+            // 0 = no timeout; otherwise keep it in a sane range (the sweeper acts on this value)
+            if (gameData.IsTurnBased && gameData.TurnTimeoutSeconds != 0
+                && (gameData.TurnTimeoutSeconds < 10 || gameData.TurnTimeoutSeconds > 600))
+                return BadRequest(new { message = "Turn timeout must be 0 (none) or between 10 and 600 seconds." });
+
             // Thief/Destruction need winner→null→winner room to breathe (3+ periods),
             // so 2-period sports like soccer can't host them.
             if (Guid.TryParse(gameData.DailySportsGameId, out var sportsGameGuid))
@@ -125,6 +130,16 @@ namespace RSS.Controllers
             var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
             if (!isHost)
                 return Forbid();
+
+            var game = await _availableGamesServices.GetGameById(gameId);
+            if (game == null)
+                return NotFound();
+
+            if (!game.isOpen)
+                return BadRequest("This game has already started.");
+
+            if (game.SelectionPhaseActive)
+                return BadRequest("Can't start the game while square selection is still in progress.");
 
             var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
             if (!setGameToClosed)
@@ -244,7 +259,7 @@ namespace RSS.Controllers
 
         [HttpPost("skip-player/{gameId}")]
         [Authorize]
-        public async Task<IActionResult> SkipPlayer(string gameId)
+        public async Task<IActionResult> SkipPlayer(string gameId, [FromQuery] string expectedUserId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
@@ -252,7 +267,12 @@ namespace RSS.Controllers
             var isHost = await _gamePlayerServices.IsPlayerHost(userId, gameId);
             if (!isHost) return Forbid();
 
-            await _gamePlayerServices.AdvanceTurn(gameId);
+            if (string.IsNullOrEmpty(expectedUserId))
+                return BadRequest("expectedUserId is required — specify which player is being skipped.");
+
+            // Skips that specific player only. If the turn already moved (they submitted,
+            // or another skip landed first) this is a no-op and the caller gets the current status.
+            await _gamePlayerServices.AdvanceTurn(gameId, expectedCurrentUserId: expectedUserId);
             var status = await _gamePlayerServices.GetTurnStatus(gameId);
             return Ok(status);
         }
@@ -280,8 +300,35 @@ namespace RSS.Controllers
                 var game = await _availableGamesServices.GetGameById(gameId);
                 if (game == null) return NotFound();
 
-                if (game.IsTurnBased && game.SelectionPhaseActive && game.CurrentTurnUserId != userId)
+                if (!await _gamePlayerServices.IsPlayerInGame(userId, gameId))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { message = "You are not a player in this game." });
+
+                // Everything below runs under a per-game row lock, so overlapping requests
+                // (double submit, submit vs. skip) are serialized and each re-checks turn,
+                // limit, and square availability against committed state. Returning early
+                // disposes the transaction, which rolls it back.
+                await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+                await _squareServices.LockGameForUpdateAsync(game.Id);
+
+                // GetGameById's tracked copy predates the lock — refresh turn/phase state.
+                await _appDbContext.Entry(game).ReloadAsync();
+                if (_appDbContext.Entry(game).State == Microsoft.EntityFrameworkCore.EntityState.Detached) return NotFound();
+
+                if (!game.isOpen || game.IsCompleted)
+                    return BadRequest(new { message = "This game is no longer accepting selections." });
+
+                // Turn-based squares are only claimable during the rotation. Before it begins
+                // players must wait for their turn order; after it ends, leftover squares are
+                // assigned by the game mode's rules, not by free selection.
+                if (game.IsTurnBased && !game.SelectionPhaseActive)
+                    return BadRequest(new { message = "Square selection isn't active for this game." });
+
+                if (game.IsTurnBased && game.CurrentTurnUserId != userId)
                     return BadRequest(new { message = "It is not your turn." });
+
+                // The sweeper skips expired turns within seconds; this closes the gap before it runs.
+                if (GamePlayerServices.IsTurnExpired(game, DateTimeOffset.UtcNow))
+                    return BadRequest(new { message = "Your turn has expired." });
 
                 var withinSquareLimit = await _squareServices.SquareLimitCheck(gameId, userId, squareSelections.Selections.Count);
                 if (!withinSquareLimit)
@@ -299,16 +346,29 @@ namespace RSS.Controllers
                         return BadRequest(new { message = $"Not enough coins — you need {wagerCost:0.##} coins for this selection." });
                 }
 
-                var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
-                if (selectedSquares == null || !selectedSquares.Any())
+                var result = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+                if (result == null || !result.Squares.Any())
                     return BadRequest("Failed to save square selection data.");
 
-                if (game.IsTurnBased && game.SelectionPhaseActive)
-                    await _gamePlayerServices.AdvanceTurn(gameId);
+                // A partial selection keeps the squares that were free but leaves the turn with
+                // the player so they can pick the rest.
+                var partial = result.Unavailable > 0;
+                var advancesTurn = game.IsTurnBased && game.SelectionPhaseActive && !partial;
+                if (advancesTurn)
+                    await _gamePlayerServices.TryAdvanceTurnAsync(game.Id, userId);
+
+                await transaction.CommitAsync();
+
+                // Notify only after commit so clients refetching on the event see the new state.
+                if (advancesTurn)
+                    await _hubNotifier.NotifyTurnAdvanced(gameId);
                 else
                     await _hubNotifier.NotifySquareSelected(gameId);
 
-                var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
+                if (partial)
+                    return BadRequest(new { message = $"Some squares aren't available, please choose {result.Unavailable} more squares." });
+
+                var squareDtos = result.Squares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);
             }
             catch (InvalidOperationException ex)
