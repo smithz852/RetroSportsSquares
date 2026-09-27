@@ -264,37 +264,39 @@ export default function PlayerDashboard() {
                 <>
                   <div className="space-y-3">
                     {pastGamesData.games.map(game => (
-                      <div key={game.gameId} className="border-2 border-primary/30 p-3">
-                        <div className="flex justify-between items-start gap-3 mb-2">
-                          <div>
-                            <p className="font-['Press_Start_2P'] text-white text-[10px] mb-1 leading-4">{game.gameName}</p>
-                            <p className="font-['VT323'] text-gray-400 text-lg">
-                              {game.gameType.toUpperCase()} · {format(new Date(game.createdAt), 'MMM dd, yyyy')}
-                            </p>
+                      <Link key={game.gameId} href={`/game/${game.gameId}?spectate=1`}>
+                        <div className="border-2 border-primary/30 hover:border-primary p-3 cursor-pointer transition-colors group">
+                          <div className="flex justify-between items-start gap-3 mb-2">
+                            <div>
+                              <p className="font-['Press_Start_2P'] text-white text-[10px] group-hover:text-primary transition-colors mb-1 leading-4">{game.gameName}</p>
+                              <p className="font-['VT323'] text-gray-400 text-lg">
+                                {game.gameType.toUpperCase()} · {format(new Date(game.createdAt), 'MMM dd, yyyy')}
+                              </p>
+                            </div>
+                            {game.periodsWon > 0 && (
+                              <span className="font-['Press_Start_2P'] text-[10px] px-2 py-1 bg-primary text-black shrink-0">
+                                {game.periodsWon}W
+                              </span>
+                            )}
                           </div>
-                          {game.periodsWon > 0 && (
-                            <span className="font-['Press_Start_2P'] text-[10px] px-2 py-1 bg-primary text-black shrink-0">
-                              {game.periodsWon}W
-                            </span>
-                          )}
+                          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-primary/20">
+                            <div className="text-center">
+                              <p className="font-['VT323'] text-gray-500 text-sm">SQUARES</p>
+                              <p className="font-['Press_Start_2P'] text-primary text-[10px]">{game.squaresClaimed}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="font-['VT323'] text-gray-500 text-sm">WAGERED</p>
+                              <p className="font-['Press_Start_2P'] text-primary text-[10px]">{game.totalWagered.toFixed(2)}</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="font-['VT323'] text-gray-500 text-sm">WON</p>
+                              <p className={`font-['Press_Start_2P'] text-[10px] ${game.totalWon > 0 ? 'text-green-400' : 'text-gray-600'}`}>
+                                {game.totalWon.toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-primary/20">
-                          <div className="text-center">
-                            <p className="font-['VT323'] text-gray-500 text-sm">SQUARES</p>
-                            <p className="font-['Press_Start_2P'] text-primary text-[10px]">{game.squaresClaimed}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-['VT323'] text-gray-500 text-sm">WAGERED</p>
-                            <p className="font-['Press_Start_2P'] text-primary text-[10px]">{game.totalWagered.toFixed(2)}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-['VT323'] text-gray-500 text-sm">WON</p>
-                            <p className={`font-['Press_Start_2P'] text-[10px] ${game.totalWon > 0 ? 'text-green-400' : 'text-gray-600'}`}>
-                              {game.totalWon.toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
 

@@ -23,9 +23,10 @@ export default function GameBoard() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Admins can open a board with ?spectate to view it without joining
+  // Opening a board with ?spectate views it read-only without joining
+  // (admins spectating any game, or players revisiting one of their completed games)
   const searchParams = useSearch();
-  const isSpectator = !!user?.isAdmin && new URLSearchParams(searchParams).has("spectate");
+  const isSpectator = new URLSearchParams(searchParams).has("spectate");
 
   const [gameStarted, setGameStarted] = useState(false);
 
