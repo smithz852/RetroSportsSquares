@@ -28,7 +28,20 @@ namespace RSS_Services
             _walletService = walletService;
         }
 
-        public async Task<List<GameSquares>> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
+        // Row-locks the game for the rest of the current transaction (released on commit/rollback).
+        // Callers must already be inside a transaction. Serializes every selection/turn change
+        // for a game so check-then-act guards (turn, limit, availability) can't interleave.
+        public async Task LockGameForUpdateAsync(Guid gameGuid)
+        {
+            await _appDbContext.Database.ExecuteSqlInterpolatedAsync($"SELECT Id FROM SquareGames WHERE Id = {gameGuid} FOR UPDATE");
+        }
+
+        // Unavailable = how many requested squares were already taken (partial selection).
+        public record SquareSelectionResult(List<GameSquares> Squares, int Unavailable);
+
+        // Joins the caller's transaction when one is open (SelectSquare holds the game lock in one);
+        // otherwise opens and commits its own. Returns null when no requested square was free.
+        public async Task<SquareSelectionResult?> CreateSquareSelections(List<string> squareSelections, string userId, string gameId)
         {
             var gameSquares = new List<GameSquares>();
             var gameIdGuid = Guid.Parse(gameId);
@@ -46,7 +59,9 @@ namespace RSS_Services
             // Squares in public games are bought from the coin wallet; the wager,
             // its ledger row, and the square assignments must commit or roll back
             // together (the conditional decrement in WagerAsync runs immediately).
-            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            await using var ownedTransaction = _appDbContext.Database.CurrentTransaction == null
+                ? await _appDbContext.Database.BeginTransactionAsync()
+                : null;
             try
             {
                 foreach (var square in availableSquares)
@@ -68,22 +83,19 @@ namespace RSS_Services
 
                 if (savedSquares <= 0)
                 {
-                    await transaction.RollbackAsync();
+                    if (ownedTransaction != null) await ownedTransaction.RollbackAsync();
                     return null;
                 }
 
-                await transaction.CommitAsync();
+                if (ownedTransaction != null) await ownedTransaction.CommitAsync();
             }
             catch
             {
-                await transaction.RollbackAsync();
+                if (ownedTransaction != null) await ownedTransaction.RollbackAsync();
                 throw;
             }
 
-            if (availableSquares.Count < squareSelections.Count)
-                throw new InvalidOperationException($"Some squares aren't available, please choose {squareSelections.Count - availableSquares.Count} more squares.");
-
-            return gameSquares;
+            return new SquareSelectionResult(gameSquares, squareSelections.Count - availableSquares.Count);
         }
 
         public async Task<bool> SquareLimitCheck(string gameId, string userId, int incomingCount)

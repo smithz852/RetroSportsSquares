@@ -295,11 +295,22 @@ namespace RSS.Controllers
                 var game = await _availableGamesServices.GetGameById(gameId);
                 if (game == null) return NotFound();
 
-                if (!game.isOpen || game.IsCompleted)
-                    return BadRequest(new { message = "This game is no longer accepting selections." });
-
                 if (!await _gamePlayerServices.IsPlayerInGame(userId, gameId))
                     return StatusCode(StatusCodes.Status403Forbidden, new { message = "You are not a player in this game." });
+
+                // Everything below runs under a per-game row lock, so overlapping requests
+                // (double submit, submit vs. skip) are serialized and each re-checks turn,
+                // limit, and square availability against committed state. Returning early
+                // disposes the transaction, which rolls it back.
+                await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+                await _squareServices.LockGameForUpdateAsync(game.Id);
+
+                // GetGameById's tracked copy predates the lock — refresh turn/phase state.
+                await _appDbContext.Entry(game).ReloadAsync();
+                if (_appDbContext.Entry(game).State == Microsoft.EntityFrameworkCore.EntityState.Detached) return NotFound();
+
+                if (!game.isOpen || game.IsCompleted)
+                    return BadRequest(new { message = "This game is no longer accepting selections." });
 
                 // Turn-based squares are only claimable during the rotation. Before it begins
                 // players must wait for their turn order; after it ends, leftover squares are
@@ -326,16 +337,29 @@ namespace RSS.Controllers
                         return BadRequest(new { message = $"Not enough coins — you need {wagerCost:0.##} coins for this selection." });
                 }
 
-                var selectedSquares = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
-                if (selectedSquares == null || !selectedSquares.Any())
+                var result = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
+                if (result == null || !result.Squares.Any())
                     return BadRequest("Failed to save square selection data.");
 
-                if (game.IsTurnBased && game.SelectionPhaseActive)
-                    await _gamePlayerServices.AdvanceTurn(gameId, expectedCurrentUserId: userId);
+                // A partial selection keeps the squares that were free but leaves the turn with
+                // the player so they can pick the rest.
+                var partial = result.Unavailable > 0;
+                var advancesTurn = game.IsTurnBased && game.SelectionPhaseActive && !partial;
+                if (advancesTurn)
+                    await _gamePlayerServices.TryAdvanceTurnAsync(game.Id, userId);
+
+                await transaction.CommitAsync();
+
+                // Notify only after commit so clients refetching on the event see the new state.
+                if (advancesTurn)
+                    await _hubNotifier.NotifyTurnAdvanced(gameId);
                 else
                     await _hubNotifier.NotifySquareSelected(gameId);
 
-                var squareDtos = selectedSquares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
+                if (partial)
+                    return BadRequest(new { message = $"Some squares aren't available, please choose {result.Unavailable} more squares." });
+
+                var squareDtos = result.Squares.Select(s => _mapperHelpers.SelectedGamePlayerSquaresMapper(s)).ToList();
                 return Ok(squareDtos);
             }
             catch (InvalidOperationException ex)

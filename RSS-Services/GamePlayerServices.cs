@@ -120,13 +120,29 @@ namespace RSS_Services
             await _hubNotifier.NotifySelectionsStarted(gameId);
         }
 
-        // expectedCurrentUserId makes the advance conditional: it only proceeds if that player
-        // still holds the turn, so a concurrent skip/submit can't advance the rotation twice.
-        // Returns false when the turn had already moved (or the selection phase isn't active).
+        // Standalone advance (host skip): takes the same per-game lock as square selection so a skip
+        // and a submit can't interleave, then notifies once the change is committed.
         public async Task<bool> AdvanceTurn(string gameId, string? expectedCurrentUserId = null)
         {
             if (!Guid.TryParse(gameId, out var gameGuid)) return false;
 
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            await _squareServices.LockGameForUpdateAsync(gameGuid);
+
+            if (!await TryAdvanceTurnAsync(gameGuid, expectedCurrentUserId))
+                return false; // nothing changed; disposing the transaction rolls it back
+
+            await transaction.CommitAsync();
+            await _hubNotifier.NotifyTurnAdvanced(gameId);
+            return true;
+        }
+
+        // Core advance — runs inside the caller's transaction (which should hold the game lock) and
+        // does not notify; the caller notifies after commit. expectedCurrentUserId makes it
+        // conditional: it only proceeds if that player still holds the turn. Returns false when the
+        // turn had already moved (or the selection phase isn't active).
+        public async Task<bool> TryAdvanceTurnAsync(Guid gameGuid, string? expectedCurrentUserId = null)
+        {
             // Untracked reads — the scoped context may hold stale copies from earlier in the request.
             var game = await _appDbContext.SquareGames.AsNoTracking().FirstOrDefaultAsync(g => g.Id == gameGuid);
             if (game == null || !game.SelectionPhaseActive) return false;
@@ -142,42 +158,26 @@ namespace RSS_Services
 
             var next = players.FirstOrDefault(p => !p.HasHadTurn && p.ApplicationUserId != currentUserId);
 
-            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
-            try
-            {
-                // Atomic claim: the WHERE on CurrentTurnUserId means only one concurrent caller
-                // can move the turn off this player; the loser sees 0 rows and bails out.
-                var claimGame = _appDbContext.SquareGames
-                    .Where(g => g.Id == gameGuid && g.SelectionPhaseActive && g.CurrentTurnUserId == currentUserId);
+            // Belt and braces on top of the game lock: the WHERE on CurrentTurnUserId means a
+            // caller without the lock still can't move the turn off a player twice.
+            var claimGame = _appDbContext.SquareGames
+                .Where(g => g.Id == gameGuid && g.SelectionPhaseActive && g.CurrentTurnUserId == currentUserId);
 
-                var claimed = next == null
-                    ? await claimGame.ExecuteUpdateAsync(s => s
-                        .SetProperty(g => g.SelectionPhaseActive, false)
-                        .SetProperty(g => g.CurrentTurnUserId, (string?)null)
-                        .SetProperty(g => g.TurnStartedAt, (DateTimeOffset?)null))
-                    : await claimGame.ExecuteUpdateAsync(s => s
-                        .SetProperty(g => g.CurrentTurnUserId, next.ApplicationUserId)
-                        .SetProperty(g => g.TurnStartedAt, (DateTimeOffset?)DateTimeOffset.UtcNow));
+            var claimed = next == null
+                ? await claimGame.ExecuteUpdateAsync(s => s
+                    .SetProperty(g => g.SelectionPhaseActive, false)
+                    .SetProperty(g => g.CurrentTurnUserId, (string?)null)
+                    .SetProperty(g => g.TurnStartedAt, (DateTimeOffset?)null))
+                : await claimGame.ExecuteUpdateAsync(s => s
+                    .SetProperty(g => g.CurrentTurnUserId, next.ApplicationUserId)
+                    .SetProperty(g => g.TurnStartedAt, (DateTimeOffset?)DateTimeOffset.UtcNow));
 
-                if (claimed == 0)
-                {
-                    await transaction.RollbackAsync();
-                    return false;
-                }
+            if (claimed == 0) return false;
 
-                await _appDbContext.GamePlayers
-                    .Where(p => p.GameId == gameGuid && p.ApplicationUserId == currentUserId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.HasHadTurn, true));
+            await _appDbContext.GamePlayers
+                .Where(p => p.GameId == gameGuid && p.ApplicationUserId == currentUserId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.HasHadTurn, true));
 
-                await transaction.CommitAsync();
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-
-            await _hubNotifier.NotifyTurnAdvanced(gameId);
             return true;
         }
 
