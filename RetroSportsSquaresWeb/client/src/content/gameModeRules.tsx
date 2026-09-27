@@ -134,3 +134,10 @@ export function getGameRulesPages(mode: PayoutMode | null | undefined): InfoModa
   const content = MODE_CONTENT[mode ?? "Default"] ?? MODE_CONTENT.Default;
   return [GENERAL_INTRO_PAGE, { heading: content.title, body: content.body }];
 }
+
+// Mode-only, no square-selection mechanics — for previewing a mode before a game
+// (and its squares) exist, e.g. the CreateGameDialog picker.
+export function getModeDetailPage(mode: PayoutMode | null | undefined): InfoModalPage[] {
+  const content = MODE_CONTENT[mode ?? "Default"] ?? MODE_CONTENT.Default;
+  return [{ heading: content.title, body: content.body }];
+}
