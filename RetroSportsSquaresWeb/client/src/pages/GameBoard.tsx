@@ -511,6 +511,16 @@ useEffect(() => {
         {/* Main column — scoreboard and board share one width/alignment context */}
         <div className="flex flex-col items-center w-full">
         <div className="w-full">
+          {game && (
+            <div className="mb-2 flex items-center justify-between w-full">
+              <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
+                {getPayoutModeLabel(game.payoutMode)} MODE
+              </span>
+              <RetroButton variant="outline" size="sm" onClick={() => setShowRulesModal(true)}>
+                RULES
+              </RetroButton>
+            </div>
+          )}
           <Scoreboard
             isVisible={gameStarted}
             gameName={(game as any)?.name}
@@ -521,18 +531,8 @@ useEffect(() => {
             currentLeader={currentLeader}
             periodWinners={periodWinners}
           />
-          {game && (
-            <div className="mt-2 flex justify-center">
-              <RetroButton variant="outline" size="sm" onClick={() => setShowRulesModal(true)}>
-                RULES
-              </RetroButton>
-            </div>
-          )}
           {scoreData?.payoutMode && scoreData.payoutMode !== "Default" && (
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-              <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
-                {getPayoutModeLabel(scoreData.payoutMode)} MODE
-              </span>
               {scoreData.payoutMode === "Push" && pushCarry > 0 && (
                 <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
                   <Coins size={16} />
