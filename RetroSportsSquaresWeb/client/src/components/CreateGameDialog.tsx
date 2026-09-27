@@ -8,12 +8,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "react-day-picker";
 import { useParams, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { type PayoutMode } from "@shared/schema";
+import { getPayoutModeLabel, getModeDetailPage } from "@/content/gameModeRules";
+import { InfoModal } from "@/components/InfoModal";
 
 const PAYOUT_MODES: {
   value: PayoutMode;
@@ -24,7 +26,7 @@ const PAYOUT_MODES: {
 }[] = [
   {
     value: "Default",
-    label: "DEFAULT",
+    label: getPayoutModeLabel("Default"),
     description: "Even payout per period. Unclaimed periods refund everyone at the end.",
     available: true,
     minPeriods: 1,
@@ -86,6 +88,7 @@ export function CreateGameDialog() {
   const [turnTimeoutSeconds, setTurnTimeoutSeconds] = useState(60);
   const [isPublic, setIsPublic] = useState(true);
   const [payoutMode, setPayoutMode] = useState<PayoutMode>("Default");
+  const [rulesPreviewMode, setRulesPreviewMode] = useState<PayoutMode | null>(null);
   const { mutate, isPending } = useCreateGame();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -143,6 +146,7 @@ export function CreateGameDialog() {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <RetroButton
@@ -297,21 +301,27 @@ export function CreateGameDialog() {
                 const tooFewPeriods = sportPeriodCount(type) < mode.minPeriods;
                 const selectable = mode.available && !tooFewPeriods;
                 return (
-                  <button
+                  <div
                     key={mode.value}
-                    type="button"
-                    disabled={!selectable}
+                    role="button"
+                    tabIndex={selectable ? 0 : -1}
                     onClick={() => selectable && setPayoutMode(mode.value)}
+                    onKeyDown={(e) => {
+                      if (selectable && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault();
+                        setPayoutMode(mode.value);
+                      }
+                    }}
                     className={`w-full flex items-start gap-3 border-2 p-2 text-left transition-colors ${
                       payoutMode === mode.value
                         ? "border-primary bg-primary/10"
                         : "border-primary/30"
-                    } ${!selectable ? "opacity-50 cursor-not-allowed" : "hover:border-primary"}`}
+                    } ${!selectable ? "opacity-50 cursor-not-allowed" : "hover:border-primary cursor-pointer"}`}
                   >
                     <div className={`mt-0.5 w-4 h-4 shrink-0 rounded-full border-2 border-primary flex items-center justify-center ${payoutMode === mode.value ? "bg-primary" : "bg-black"}`}>
                       {payoutMode === mode.value && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <span className={`font-['Press_Start_2P'] text-xs ${payoutMode === mode.value ? "text-primary" : "text-gray-400"}`}>
                         {mode.label}
                         {!mode.available && <span className="ml-2 text-yellow-400">SOON</span>}
@@ -321,7 +331,18 @@ export function CreateGameDialog() {
                         {mode.description}
                       </p>
                     </div>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRulesPreviewMode(mode.value);
+                      }}
+                      className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full border-2 border-primary/50 text-primary/70 hover:border-primary hover:text-primary transition-colors"
+                      aria-label={`${mode.label} mode rules`}
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 );
               })}
             </div>
@@ -371,5 +392,12 @@ export function CreateGameDialog() {
         </form>
       </DialogContent>
     </Dialog>
+    <InfoModal
+      open={rulesPreviewMode !== null}
+      onClose={() => setRulesPreviewMode(null)}
+      title={`${getPayoutModeLabel(rulesPreviewMode)} MODE RULES`}
+      pages={getModeDetailPage(rulesPreviewMode)}
+    />
+    </>
   );
 }

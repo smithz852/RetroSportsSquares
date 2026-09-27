@@ -10,6 +10,7 @@ import { useState, useMemo, useEffect } from "react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import { useJoinGame } from "@/hooks/use-gameplay";
 import { useDeleteGame } from "@/hooks/use-games";
+import { getPayoutModeLabel } from "@/content/gameModeRules";
 import Fuse from "fuse.js";
 import { Button } from "@/components/ui/button";
 import {
@@ -199,7 +200,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 shrink-0">
                     {game.payoutMode && game.payoutMode !== "Default" && (
                       <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400" title={`${game.payoutMode} payout mode`}>
-                        {game.payoutMode.toUpperCase()}
+                        {getPayoutModeLabel(game.payoutMode)}
                       </span>
                     )}
                     <span className={`px-2 py-1 text-xs font-['Press_Start_2P'] ${

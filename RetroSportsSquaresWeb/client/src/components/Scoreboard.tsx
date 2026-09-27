@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Trophy, Clock } from "lucide-react";
+import { Trophy, Clock, Info } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TeamData {
   name: string;
@@ -180,8 +181,16 @@ export function Scoreboard({
     >
       {/* Header */}
       <div className="border-b-4 border-red-900 py-1 px-2 text-center bg-red-900/10">
-        <h2 className="text-red-600 text-base tracking-tighter uppercase">
+        <h2 className="text-red-600 text-base tracking-tighter uppercase flex items-center justify-center gap-1.5">
           Score Board
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="w-3.5 h-3.5 text-red-900 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="bg-black border-2 border-red-900 text-red-400 font-['VT323'] text-base rounded-none max-w-[220px] text-center normal-case tracking-normal">
+              Live scores refresh roughly every 10 minutes — don't worry if it looks a beat behind the real game.
+            </TooltipContent>
+          </Tooltip>
         </h2>
         {gameName && (
           <p className="text-red-900 text-[10px] uppercase">{gameName}</p>

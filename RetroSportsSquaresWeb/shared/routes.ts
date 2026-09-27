@@ -54,6 +54,7 @@ export const endpoints = {
     updateGamerTag: '/User/gamer-tag',
     requestEmailChange: '/User/request-email-change',
     confirmEmailChange: '/User/confirm-email-change',
+    markWelcomeSeen: '/User/welcome-seen',
   }
 };
 

@@ -39,5 +39,18 @@ namespace RSS_Services
             user.GamerTag = gamerTag;
             return await _userManager.UpdateAsync(user);
         }
+
+        public async Task<IdentityResult> MarkWelcomeSeenAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Description = "User not found." });
+
+            if (user.HasSeenWelcome)
+                return IdentityResult.Success;
+
+            user.HasSeenWelcome = true;
+            return await _userManager.UpdateAsync(user);
+        }
     }
 }

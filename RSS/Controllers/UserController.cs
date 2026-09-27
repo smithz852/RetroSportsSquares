@@ -59,6 +59,19 @@ namespace RSS.Controllers
             return NoContent();
         }
 
+        [HttpPatch("welcome-seen")]
+        public async Task<IActionResult> MarkWelcomeSeen()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _userServices.MarkWelcomeSeenAsync(userId);
+            if (!result.Succeeded)
+                return BadRequest(new { message = result.Errors.FirstOrDefault()?.Description });
+
+            return NoContent();
+        }
+
         [HttpPost("request-email-change")]
         public async Task<IActionResult> RequestEmailChange([FromBody] RequestEmailChangeDto dto)
         {
