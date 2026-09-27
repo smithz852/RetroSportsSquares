@@ -16,7 +16,7 @@ import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 import { useGameHub } from "@/hooks/use-game-hub";
 import { GameChat } from "@/components/GameChat";
 import { InfoModal } from "@/components/InfoModal";
-import { getGameRulesPages } from "@/content/gameModeRules";
+import { getGameRulesPages, getPayoutModeLabel } from "@/content/gameModeRules";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -531,7 +531,7 @@ useEffect(() => {
           {scoreData?.payoutMode && scoreData.payoutMode !== "Default" && (
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
               <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
-                {scoreData.payoutMode.toUpperCase()} MODE
+                {getPayoutModeLabel(scoreData.payoutMode)} MODE
               </span>
               {scoreData.payoutMode === "Push" && pushCarry > 0 && (
                 <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
@@ -860,7 +860,7 @@ useEffect(() => {
       <InfoModal
         open={showRulesModal}
         onClose={() => setShowRulesModal(false)}
-        title={`${(game?.payoutMode ?? "DEFAULT").toUpperCase()} MODE RULES`}
+        title={`${getPayoutModeLabel(game?.payoutMode)} MODE RULES`}
         pages={getGameRulesPages(game?.payoutMode)}
       />
     </div>

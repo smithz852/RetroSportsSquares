@@ -14,6 +14,7 @@ import { Button } from "react-day-picker";
 import { useParams, useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { type PayoutMode } from "@shared/schema";
+import { getPayoutModeLabel } from "@/content/gameModeRules";
 
 const PAYOUT_MODES: {
   value: PayoutMode;
@@ -24,7 +25,7 @@ const PAYOUT_MODES: {
 }[] = [
   {
     value: "Default",
-    label: "DEFAULT",
+    label: getPayoutModeLabel("Default"),
     description: "Even payout per period. Unclaimed periods refund everyone at the end.",
     available: true,
     minPeriods: 1,
