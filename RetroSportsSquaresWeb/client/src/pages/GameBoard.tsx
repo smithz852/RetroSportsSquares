@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
+import { RetroButton } from "@/components/RetroButton";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +15,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 import { useGameHub } from "@/hooks/use-game-hub";
 import { GameChat } from "@/components/GameChat";
+import { InfoModal } from "@/components/InfoModal";
+import { getGameRulesPages } from "@/content/gameModeRules";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -169,6 +172,7 @@ export default function GameBoard() {
     return localStorage.getItem("sports_squares_player") || "";
   });
   const [isHost, setIsHost] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
@@ -212,7 +216,10 @@ useEffect(() => {
   useEffect(() => {
     if (user && id && !isSpectator) {
       joinGame(id, {
-        onSuccess: (data) => setIsHost(data.isHost),
+        onSuccess: (data) => {
+          setIsHost(data.isHost);
+          setShowRulesModal(true);
+        },
       });
     }
   }, [user, id, isSpectator]);
@@ -514,6 +521,13 @@ useEffect(() => {
             currentLeader={currentLeader}
             periodWinners={periodWinners}
           />
+          {game && (
+            <div className="mt-2 flex justify-center">
+              <RetroButton variant="outline" size="sm" onClick={() => setShowRulesModal(true)}>
+                RULES
+              </RetroButton>
+            </div>
+          )}
           {scoreData?.payoutMode && scoreData.payoutMode !== "Default" && (
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
               <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
@@ -842,6 +856,13 @@ useEffect(() => {
           </div>
 
         </div>
+
+      <InfoModal
+        open={showRulesModal}
+        onClose={() => setShowRulesModal(false)}
+        title={`${(game?.payoutMode ?? "DEFAULT").toUpperCase()} MODE RULES`}
+        pages={getGameRulesPages(game?.payoutMode)}
+      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ namespace RSS_DB.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal CoinBalance { get; set; } = 0;
         public DateTimeOffset CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool HasSeenWelcome { get; set; } = false;
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }

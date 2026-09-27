@@ -108,3 +108,23 @@ export function useAuth() {
     isLoggingOut: logoutMutation.isPending,
   };
 }
+
+export function useMarkWelcomeSeen() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (): Promise<void> => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      await fetch(`${API_BASE_URL}${endpoints.user.markWelcomeSeen}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<User | null>(["currentUser"], (prev) =>
+        prev ? { ...prev, hasSeenWelcome: true } : prev,
+      );
+    },
+  });
+}

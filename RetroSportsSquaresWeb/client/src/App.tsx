@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/Navbar";
+import { WelcomeModal } from "@/components/WelcomeModal";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import GameOptions from "@/pages/GameOptions";
@@ -23,6 +24,7 @@ function Router() {
   return (
     <div className="min-h-screen bg-black text-foreground font-sans selection:bg-red-900 selection:text-white pb-20">
       <Navbar />
+      <WelcomeModal />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Switch>
           <Route path="/" component={Home} />
