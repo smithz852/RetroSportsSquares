@@ -52,6 +52,10 @@ namespace RSS_Services
             if (game == null)
                 throw new ArgumentException($"Game not found: {gameId}");
 
+            // Existing members returned early above, so this only blocks new joiners.
+            if (!game.isOpen || game.IsCompleted)
+                throw new InvalidOperationException("This game has already started.");
+
             if (game.GamePlayers.Count >= game.PlayerCount)
                 throw new InvalidOperationException("Game is full.");
 

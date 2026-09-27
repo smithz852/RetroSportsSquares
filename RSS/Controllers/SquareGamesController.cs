@@ -126,6 +126,16 @@ namespace RSS.Controllers
             if (!isHost)
                 return Forbid();
 
+            var game = await _availableGamesServices.GetGameById(gameId);
+            if (game == null)
+                return NotFound();
+
+            if (!game.isOpen)
+                return BadRequest("This game has already started.");
+
+            if (game.SelectionPhaseActive)
+                return BadRequest("Can't start the game while square selection is still in progress.");
+
             var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
             if (!setGameToClosed)
             {
@@ -279,6 +289,9 @@ namespace RSS.Controllers
             {
                 var game = await _availableGamesServices.GetGameById(gameId);
                 if (game == null) return NotFound();
+
+                if (!game.isOpen || game.IsCompleted)
+                    return BadRequest(new { message = "This game is no longer accepting selections." });
 
                 if (!await _gamePlayerServices.IsPlayerInGame(userId, gameId))
                     return StatusCode(StatusCodes.Status403Forbidden, new { message = "You are not a player in this game." });
