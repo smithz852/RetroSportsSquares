@@ -123,8 +123,11 @@ namespace RSS_Services
 
             var availbleGameOptions = _appDbContext.DailySportsGames
                 .AsEnumerable()
-                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst && g.LeagueId == leagueId && g.SportType == gameType)
-                .ToList(); //add check for status != FT or AOT later
+                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst
+                    && g.LeagueId == leagueId
+                    && g.SportType == gameType
+                    && !IsGameFinished(g.Status))
+                .ToList();
             return availbleGameOptions;
         }
 
@@ -135,7 +138,7 @@ namespace RSS_Services
 
             return _appDbContext.DailySportsGames
                 .AsEnumerable()
-                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst)
+                .Where(g => TimeZoneInfo.ConvertTime(g.GameStartTime, pacific).Date == todayPst && !IsGameFinished(g.Status))
                 .Select(g => (g.SportType, g.League, g.LeagueId))
                 .Distinct()
                 .ToList();
@@ -173,7 +176,7 @@ namespace RSS_Services
 
                 var status = data.Status;
 
-                sportsGame.InUse = !(status == "FT" || status == "AOT" || status == null || status == "Final/OT" || status == "Postponed");
+                sportsGame.InUse = !(status == null || IsGameFinished(status));
                 sportsGame.Status = status;
                 sportsGame.CurrentHomeScore = data.CurrentHomeScore;
                 sportsGame.CurrentAwayScore = data.CurrentAwayScore;
@@ -309,6 +312,13 @@ namespace RSS_Services
                     && g.GameStartTime >= todayStartUtc
                     && g.GameStartTime < todayEndUtc)
                 .ToListAsync();
+        }
+
+        private static readonly HashSet<string> _finishedStatuses = new() { "FT", "AOT", "Final/OT", "Postponed" };
+
+        private static bool IsGameFinished(string status)
+        {
+            return status != null && _finishedStatuses.Contains(status);
         }
 
         public bool HasGameStarted(Guid gameId)
