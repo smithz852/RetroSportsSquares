@@ -16,7 +16,7 @@ import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 import { useGameHub } from "@/hooks/use-game-hub";
 import { GameChat } from "@/components/GameChat";
 import { InfoModal } from "@/components/InfoModal";
-import { getGameRulesPages, getPayoutModeLabel } from "@/content/gameModeRules";
+import { getGameRulesPages, getPayoutModeLabel, getPayoutModeIcon } from "@/content/gameModeRules";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -56,6 +56,7 @@ export default function GameBoard() {
   const { mutate: beginSelections, isPending: isBeginPending } = useBeginSelections(id);
   const { mutate: skipPlayer, isPending: isSkipPending } = useSkipPlayer(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id);
+  const ModeIcon = getPayoutModeIcon(game?.payoutMode ?? scoreData?.payoutMode);
 
   useGameHub(id);
 
@@ -687,6 +688,9 @@ useEffect(() => {
                       const displayName = savedSquare?.displayName || localSelection || "OPEN";
                       const isSelected = !!savedSquare?.displayName || !!localSelection;
                       const isWinningSquare = rowIndex === winningRow && colIndex === winningCol;
+                      // Once the game has started, unclaimed squares are locked in — show the
+                      // mode's icon instead of "OPEN" text, which was a click affordance.
+                      const showModeIcon = gameStarted && !isSelected;
 
                       return (
                         <div
@@ -696,11 +700,18 @@ useEffect(() => {
                             isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
                           } ${colIndex === winningCol ? 'winning-column' : ''} ${rowIndex === winningRow ? 'winning-row' : ''} ${isWinningSquare ? 'winning-square' : ''}`}
                         >
-                          <span
-                            className={`font-pixel text-[clamp(0.4rem,1.89cqw,1.4625rem)] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
-                          >
-                            {displayName}
-                          </span>
+                          {showModeIcon ? (
+                            <ModeIcon
+                              className="text-red-900/40 w-[clamp(0.6rem,3.6cqw,1.75rem)] h-[clamp(0.6rem,3.6cqw,1.75rem)]"
+                              strokeWidth={2.5}
+                            />
+                          ) : (
+                            <span
+                              className={`font-pixel text-[clamp(0.4rem,1.89cqw,1.4625rem)] text-center px-1 leading-tight ${isSelected ? "text-red-500" : "text-red-900/40"}`}
+                            >
+                              {displayName}
+                            </span>
+                          )}
                         </div>
                       );
                     })}
