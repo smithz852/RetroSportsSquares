@@ -800,7 +800,7 @@ useEffect(() => {
             <Card className="bg-black border-4 border-red-900 rounded-none shadow-[0_0_20px_rgba(255,0,0,0.1)]">
               <CardHeader className="border-b-2 border-red-900 p-4">
                 <CardTitle className="text-2xl text-red-600 font-pixel text-center uppercase tracking-tighter">
-                  THE ODDS
+                  THE POOL
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-6">
