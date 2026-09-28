@@ -4,9 +4,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePlayerStats, useCurrentGames, usePastGames } from "@/hooks/use-dashboard";
 import { RetroButton } from "@/components/RetroButton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Trophy, User, Settings, Shield, Copy, Check } from "lucide-react";
+import { Loader2, Trophy, User, Settings, BookOpen, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { InfoModal } from "@/components/InfoModal";
+import { WELCOME_PAGES } from "@/content/welcomeContent";
 
 function LoadingRow() {
   return (
@@ -66,6 +68,7 @@ export default function PlayerDashboard() {
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [loaded, setLoaded] = useState({ current: false, past: false });
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const { data: stats, isLoading: statsLoading } = usePlayerStats();
   const { data: currentGames, isLoading: currentLoading } = useCurrentGames(loaded.current);
@@ -121,14 +124,16 @@ export default function PlayerDashboard() {
 
           {/* Badge + Periods Won */}
           <div className="border-4 border-primary box-shadow-retro flex-1 flex flex-col items-center justify-start gap-2 sm:gap-4 bg-black p-2 sm:p-3">
-            {/* Badge placeholder */}
-            <div className="flex flex-col items-center gap-0.5 sm:gap-1 sm:pt-1">
-              <Shield className="w-5 h-5 sm:w-10 sm:h-10 text-primary/30" />
-              <span className="font-['Press_Start_2P'] text-primary/30 text-[10px] text-center leading-3">
-                RANK
+            {/* Game info / welcome recap */}
+            <button
+              onClick={() => setShowWelcomeModal(true)}
+              className="flex flex-col items-center gap-0.5 sm:gap-1 sm:pt-1 group cursor-pointer"
+            >
+              <BookOpen className="w-5 h-5 sm:w-10 sm:h-10 text-primary/40 group-hover:text-primary transition-colors" />
+              <span className="font-['Press_Start_2P'] text-primary/40 group-hover:text-primary text-[10px] text-center leading-3 transition-colors">
+                GAME INFO
               </span>
-              <span className="font-['VT323'] text-gray-600 text-xs sm:text-base">-- UNRANKED --</span>
-            </div>
+            </button>
 
             {/* Divider */}
             <div className="w-full border-t-2 border-primary/20" />
@@ -329,6 +334,13 @@ export default function PlayerDashboard() {
           </Tabs>
         </div>
       </div>
+
+      <InfoModal
+        open={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        title="WELCOME TO RETRO SPORTS SQUARES"
+        pages={WELCOME_PAGES}
+      />
     </div>
   );
 }
