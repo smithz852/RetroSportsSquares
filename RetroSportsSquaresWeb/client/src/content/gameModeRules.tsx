@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Circle, Handshake, Hand, BowArrow, Bomb, type LucideIcon } from "lucide-react";
 import type { InfoModalPage } from "@/components/InfoModal";
 import type { PayoutMode } from "@shared/schema";
 
@@ -11,6 +12,19 @@ export const REFRESH_NOTE =
 export function getPayoutModeLabel(mode: PayoutMode | null | undefined): string {
   const resolved = mode ?? "Default";
   return resolved === "Default" ? "STANDARD" : resolved.toUpperCase();
+}
+
+// Board-cell icon shown on unclaimed squares once a game has started, in place of "OPEN".
+const PAYOUT_MODE_ICONS: Record<PayoutMode, LucideIcon> = {
+  Default: Circle,
+  Fair: Handshake,
+  Push: Hand,
+  Thief: BowArrow,
+  Destruction: Bomb,
+};
+
+export function getPayoutModeIcon(mode: PayoutMode | null | undefined): LucideIcon {
+  return PAYOUT_MODE_ICONS[mode ?? "Default"] ?? PAYOUT_MODE_ICONS.Default;
 }
 
 const GENERAL_INTRO_PAGE: InfoModalPage = {

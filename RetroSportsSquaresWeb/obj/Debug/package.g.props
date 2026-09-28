@@ -56,7 +56,7 @@
     <PackageJsonDependenciesFramerMotion Condition="$(PackageJsonDependenciesFramerMotion) == ''">^11.13.1</PackageJsonDependenciesFramerMotion>
     <PackageJsonDependenciesFuseJs Condition="$(PackageJsonDependenciesFuseJs) == ''">^7.4.2</PackageJsonDependenciesFuseJs>
     <PackageJsonDependenciesInputOtp Condition="$(PackageJsonDependenciesInputOtp) == ''">^1.4.2</PackageJsonDependenciesInputOtp>
-    <PackageJsonDependenciesLucideReact Condition="$(PackageJsonDependenciesLucideReact) == ''">^0.453.0</PackageJsonDependenciesLucideReact>
+    <PackageJsonDependenciesLucideReact Condition="$(PackageJsonDependenciesLucideReact) == ''">^0.503.0</PackageJsonDependenciesLucideReact>
     <PackageJsonDependenciesMemoizee Condition="$(PackageJsonDependenciesMemoizee) == ''">^0.4.17</PackageJsonDependenciesMemoizee>
     <PackageJsonDependenciesMemorystore Condition="$(PackageJsonDependenciesMemorystore) == ''">^1.6.7</PackageJsonDependenciesMemorystore>
     <PackageJsonDependenciesNextThemes Condition="$(PackageJsonDependenciesNextThemes) == ''">^0.4.6</PackageJsonDependenciesNextThemes>
