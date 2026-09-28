@@ -2,7 +2,7 @@ import { useGames } from "@/hooks/use-games";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
-import { Loader2, Calendar, User, Trophy, X, Search, LogIn, Coins } from "lucide-react";
+import { Loader2, Calendar, User, Trophy, X, Search, LogIn, Coins, Hash } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
@@ -232,9 +232,17 @@ export default function Dashboard() {
                         Players: {game.currentPlayerCount}/{game.playerCount}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 text-primary font-['VT323'] text-lg shrink-0">
-                      <Coins className="w-4 h-4" />
-                      {game.pricePerSquare.toFixed(2)}/SQ
+                    <div className="space-y-2 text-right shrink-0">
+                      <div className="flex items-center justify-end gap-1 text-sm font-['VT323'] text-lg">
+                        <Coins className="w-4 h-4" />
+                        {game.pricePerSquare.toFixed(2)}/SQ
+                      </div>
+                      {game.squareSelectionLimit > 0 && (
+                        <div className="flex items-center justify-end gap-1 text-sm font-['VT323'] text-lg">
+                          <Hash className="w-4 h-4" />
+                          SQ LIMIT: {game.squareSelectionLimit}
+                        </div>
+                      )}
                     </div>
                   </div>
                   {joiningGameId === game.gameId && (

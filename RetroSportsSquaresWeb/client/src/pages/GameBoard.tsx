@@ -512,10 +512,17 @@ useEffect(() => {
         <div className="flex flex-col items-center w-full">
         <div className="w-full">
           {game && (
-            <div className="mb-2 flex items-center justify-between w-full">
-              <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
-                {getPayoutModeLabel(game.payoutMode)} MODE
-              </span>
+            <div className="mb-2 flex items-center justify-between w-full gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
+                  {getPayoutModeLabel(game.payoutMode)} MODE
+                </span>
+                {game.squareSelectionLimit > 0 && (
+                  <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-blue-900/60 text-blue-300">
+                    SQ LIMIT: {game.squareSelectionLimit}
+                  </span>
+                )}
+              </div>
               <RetroButton variant="outline" size="sm" onClick={() => setShowRulesModal(true)}>
                 RULES
               </RetroButton>
@@ -798,7 +805,7 @@ useEffect(() => {
               </CardHeader>
               <CardContent className="p-4 space-y-6">
                 <div className="flex justify-between items-center">
-                  <span className="text-s text-red-900 font-pixel uppercase">Multiplier</span>
+                  <span className="text-s text-red-900 font-pixel uppercase">Price/SQ</span>
                   <span className="font-pixel text-ss text-red-500 flex items-center gap-1">
                     <Coins size={16} className="text-yellow-600" />
                     {multiplier.toFixed(2)}
