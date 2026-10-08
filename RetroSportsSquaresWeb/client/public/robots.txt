@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://purple-hill-07156321e.7.azurestaticapps.net/sitemap.xml
