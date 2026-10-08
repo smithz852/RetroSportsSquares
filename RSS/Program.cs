@@ -197,6 +197,8 @@ builder.Services.AddResend(o => o.ApiToken = builder.Configuration["Resend:ApiKe
 builder.Services.Configure<ResendOptions>(builder.Configuration.GetSection("Resend"));
 builder.Services.AddScoped<IEmailService, ResendEmailService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.Configure<SupportOptions>(builder.Configuration.GetSection("Support"));
+builder.Services.AddScoped<SupportService>();
 
 // Rate limiting
 var authPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -252,6 +254,21 @@ builder.Services.AddRateLimiter(options =>
             {
                 PermitLimit = 5,
                 Window = TimeSpan.FromSeconds(10),
+                QueueLimit = 0
+            });
+    });
+
+    options.AddPolicy("support-send", context =>
+    {
+        // Support is reachable while logged out, so key by user when available, IP otherwise
+        var key = context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                  ?? context.Connection.RemoteIpAddress?.ToString() ?? "anon";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"support:{key}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromHours(1),
                 QueueLimit = 0
             });
     });
