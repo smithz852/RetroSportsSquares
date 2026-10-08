@@ -19,6 +19,7 @@ import ConfirmEmailChange from "@/pages/ConfirmEmailChange";
 import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { AdminRoute } from "@/components/AdminRoute";
+import Support from "@/pages/Support";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
             </AdminRoute>
           </Route>
           <Route path="/settings" component={Settings} />
+          <Route path="/support" component={Support} />
           <Route path="/confirm-email-change" component={ConfirmEmailChange} />
           <Route path="/reset-password" component={ResetPassword} />
           <Route component={NotFound} />

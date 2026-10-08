@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { RetroButton } from "./RetroButton";
-import { Coins, Gamepad2, Menu, X, User } from "lucide-react";
+import { Coins, Gamepad2, Menu, X, User, LifeBuoy } from "lucide-react";
 
 // Whole coins render bare ("45"), fractional balances keep two decimals ("45.50")
 function formatCoins(balance: number): string {
@@ -53,6 +53,14 @@ export function Navbar() {
 
             {/* Full nav links — sm and up */}
             <div className="hidden sm:flex items-center gap-4">
+              <Link href="/support">
+                <RetroButton variant="outline" size="sm" className="text-xs px-3">
+                  <span className="flex items-center gap-1.5">
+                    <LifeBuoy className="h-3 w-3" />
+                    SUPPORT
+                  </span>
+                </RetroButton>
+              </Link>
               {user ? (
                 <>
                   <div className="hidden md:flex items-center gap-2 text-primary font-['VT323'] text-xl border-2 border-primary/30 px-3 py-1 bg-primary/5">
@@ -116,6 +124,14 @@ export function Navbar() {
         {/* Mobile dropdown panel */}
         {menuOpen && (
           <div className="sm:hidden border-t-2 border-primary/30 py-4 flex flex-col gap-3">
+            <Link href="/support" onClick={() => setMenuOpen(false)}>
+              <RetroButton variant="outline" size="sm" className="w-full text-xs">
+                <span className="flex items-center justify-center gap-1.5">
+                  <LifeBuoy className="h-3 w-3" />
+                  SUPPORT
+                </span>
+              </RetroButton>
+            </Link>
             {user ? (
               <>
                 <div className="flex items-center gap-2 text-primary font-['VT323'] text-xl border-2 border-primary/30 px-3 py-2 bg-primary/5">

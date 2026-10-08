@@ -141,6 +141,16 @@ export interface SignupRequest {
   gamerTag: string;
 }
 
+export type SupportCategory = "Bug" | "Account" | "Other";
+
+export interface SupportRequest {
+  name: string;
+  email: string;
+  category: SupportCategory;
+  message: string;
+  website?: string; // honeypot — always left blank by real users
+}
+
 export interface TurnPlayer {
   userId: string;
   displayName: string;
