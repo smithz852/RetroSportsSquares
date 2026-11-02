@@ -19,7 +19,7 @@ namespace RSS_Services
         {
             return new AdminSummaryDTO
             {
-                TotalUsers = await _context.Users.CountAsync(),
+                TotalUsers = await _context.Users.CountAsync(u => !u.IsDeleted),
                 ActiveGames = await _context.SquareGames.CountAsync(sg => !sg.IsCompleted),
                 CompletedGames = await _context.SquareGames.CountAsync(sg => sg.IsCompleted),
                 TotalCoinsWagered = await _context.GameSquares
@@ -202,6 +202,7 @@ namespace RSS_Services
                 .ToListAsync();
 
             var users = await _context.Users
+                .Where(u => !u.IsDeleted)
                 .OrderByDescending(u => u.CreatedAt)
                 .Select(u => new AdminUserSummaryDTO
                 {

@@ -55,6 +55,7 @@ export const endpoints = {
     requestEmailChange: '/User/request-email-change',
     confirmEmailChange: '/User/confirm-email-change',
     markWelcomeSeen: '/User/welcome-seen',
+    deleteAccount: '/User/account',
   },
   support: {
     send: '/Support/send',

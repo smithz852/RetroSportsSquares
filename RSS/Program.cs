@@ -129,6 +129,7 @@ builder.Services.AddScoped<RSS_Services.GamePlayerServices>();
 builder.Services.AddScoped<RSS_Services.PlayerDashboardService>();
 builder.Services.AddScoped<RSS_Services.AdminDashboardService>();
 builder.Services.AddScoped<RSS_Services.UserServices>();
+builder.Services.AddScoped<RSS_Services.AccountDeletionService>();
 builder.Services.AddScoped<RSS_Services.ChatServices>();
 builder.Services.AddScoped<RSS_Services.WalletService>();
 builder.Services.AddScoped<RSS_Services.GameSettlementService>();

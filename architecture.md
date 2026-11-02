@@ -247,7 +247,7 @@ query param on the SignalR handshake).
   dotnet ef migrations add <Name> --project ../RSS-DB --startup-project .
   dotnet ef database update      --project ../RSS-DB --startup-project .
   ```
-- **Config/secrets:** connection string, `Jwt:*`, and `Resend:ApiKey` live in
-  `RSS/appsettings.json`. Note the sports-API key is currently hard-coded in
-  `Program.cs`.
+- **Config/secrets:** connection string, `Jwt:*`, `Resend:ApiKey`, and
+  `ApiSports:Key` are all config-driven (`appsettings.json` placeholders locally,
+  Azure Key Vault in `Production`) — no secrets are hard-coded in `Program.cs`.
 ```

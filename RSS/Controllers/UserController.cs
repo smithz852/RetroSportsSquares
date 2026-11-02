@@ -16,13 +16,15 @@ namespace RSS.Controllers
         private readonly UserServices _userServices;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly TokenService _tokenService;
+        private readonly AccountDeletionService _accountDeletionService;
         private readonly ILogger<UserController> _logger;
 
-        public UserController(UserServices userServices, UserManager<ApplicationUser> userManager, TokenService tokenService, ILogger<UserController> logger)
+        public UserController(UserServices userServices, UserManager<ApplicationUser> userManager, TokenService tokenService, AccountDeletionService accountDeletionService, ILogger<UserController> logger)
         {
             _userServices = userServices;
             _userManager = userManager;
             _tokenService = tokenService;
+            _accountDeletionService = accountDeletionService;
             _logger = logger;
         }
 
@@ -116,10 +118,38 @@ namespace RSS.Controllers
             await _userManager.SetUserNameAsync(user, dto.NewEmail);
             return Ok(new { message = "Email address updated successfully." });
         }
+
+        [HttpDelete("account")]
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto dto)
+        {
+            if (dto.ConfirmText != "DELETE")
+                return BadRequest(new { message = "Type DELETE to confirm." });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+
+            var passwordValid = await _userManager.CheckPasswordAsync(user, dto.CurrentPassword);
+            if (!passwordValid) return Unauthorized();
+
+            try
+            {
+                await _accountDeletionService.DeleteAccountAsync(user);
+                return Ok(new { message = "Your account has been deleted." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete account for user {UserId}", userId);
+                return StatusCode(500, new { message = "Failed to delete account. Please try again or contact support." });
+            }
+        }
     }
 
     public record UpdateDisplayNameDto(string DisplayName);
     public record UpdateGamerTagDto(string GamerTag);
     public record RequestEmailChangeDto(string NewEmail, string CurrentPassword);
     public record ConfirmEmailChangeDto(string NewEmail, string Token);
+    public record DeleteAccountDto(string CurrentPassword, string ConfirmText);
 }
