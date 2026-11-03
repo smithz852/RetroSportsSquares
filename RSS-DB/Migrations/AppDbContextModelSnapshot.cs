@@ -165,6 +165,9 @@ namespace RSS_DB.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("DisplayName")
                         .HasColumnType("longtext");
 
@@ -179,6 +182,9 @@ namespace RSS_DB.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<bool>("HasSeenWelcome")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("LockoutEnabled")

@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { PasswordChangeModal } from "@/components/PasswordChangeModal";
 import { EmailChangeModal } from "@/components/EmailChangeModal";
+import { DeleteAccountModal } from "@/components/DeleteAccountModal";
 import { Pencil, Check, Loader2, ArrowLeft } from "lucide-react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 
@@ -116,6 +117,7 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const [pwModalOpen, setPwModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -217,6 +219,23 @@ export default function Settings() {
                   </RetroButton>
                 </div>
               </div>
+
+              <div className="flex flex-col gap-2 pt-2 border-t-2 border-red-600/30">
+                <span className="font-['Press_Start_2P'] text-red-500 text-[10px] tracking-wider">DANGER ZONE</span>
+                <p className="font-['VT323'] text-gray-500 text-lg">
+                  PERMANENTLY DELETE YOUR ACCOUNT AND ALL ASSOCIATED DATA
+                </p>
+                <div>
+                  <RetroButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeleteModalOpen(true)}
+                    className="border-red-600 text-red-500 hover:bg-red-600 hover:text-black"
+                  >
+                    DELETE MY ACCOUNT
+                  </RetroButton>
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -237,6 +256,7 @@ export default function Settings() {
 
       <PasswordChangeModal open={pwModalOpen} onClose={() => setPwModalOpen(false)} />
       <EmailChangeModal open={emailModalOpen} onClose={() => setEmailModalOpen(false)} />
+      <DeleteAccountModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} />
     </div>
   );
 }

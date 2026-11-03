@@ -36,7 +36,7 @@ namespace RSS.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null)
+            if (user == null || user.IsDeleted)
                 return Unauthorized();
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
