@@ -223,7 +223,7 @@ useEffect(() => {
         },
       });
     }
-  }, [user, id, isSpectator]);
+  }, [user?.id, id, isSpectator]);
 
   // Update state when game data loads
   useEffect(() => {
@@ -582,7 +582,7 @@ useEffect(() => {
             </div>
           )}
 
-          <div className="flex items-center gap-4 w-full">
+          <div id="board-controls" tabIndex={-1} className="flex items-center gap-4 w-full">
             <>
                   {isHost && isTurnBased && !selectionPhaseActive && !gameStarted && !allSelectionsComplete && (
                     <Button
@@ -625,6 +625,13 @@ useEffect(() => {
             </>
           </div>
 
+          <a
+            href="#board-controls"
+            className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-2 focus:left-2 focus:bg-black focus:text-red-500 focus:px-3 focus:py-2 focus:border-2 focus:border-red-500 font-pixel text-xs"
+          >
+            Skip squares grid
+          </a>
+
           {/* Game Board with Team Labels */}
           <div className="flex items-center">
             {/* Away Team Label (Rotated) */}
@@ -645,14 +652,18 @@ useEffect(() => {
 
               {/* Game Grid */}
               <div className="inline-grid grid-cols-11 border-4 border-red-900 bg-black p-1 shadow-[0_0_30px_rgba(255,0,0,0.2)]">
-                <div
-                  onClick={
-                    isSpectator ? undefined
-                    : isHost && !gameStarted ? handleDeleteGame
-                    : !isHost && !gameStarted ? handleLeaveGame
-                    : undefined
+                <button
+                  type="button"
+                  onClick={isHost ? handleDeleteGame : handleLeaveGame}
+                  disabled={gameStarted || isSpectator}
+                  aria-label={
+                    isSpectator || gameStarted
+                      ? undefined
+                      : isHost
+                      ? "Delete this game"
+                      : "Leave this game"
                   }
-                  className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] border-2 border-red-900 flex items-center justify-center transition-colors ${
+                  className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] p-0 border-2 border-red-900 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
                     !gameStarted && !isSpectator
                       ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500"
                       : "bg-red-900/20 cursor-default"
@@ -661,7 +672,7 @@ useEffect(() => {
                   <span className="text-black font-pixel text-[clamp(0.5rem,1.08cqw,0.7875rem)]">
                     {isSpectator || gameStarted ? "" : isHost ? "DEL" : "EXIT"}
                   </span>
-                </div>
+                </button>
 
                 {topNumbers.map((num, i) => (
                   <div
@@ -692,11 +703,30 @@ useEffect(() => {
                       // mode's icon instead of "OPEN" text, which was a click affordance.
                       const showModeIcon = gameStarted && !isSelected;
 
+                      const rowDigit = leftNumbers[rowIndex];
+                      const colDigit = topNumbers[colIndex];
+                      const digitsLabel =
+                        rowDigit !== null && colDigit !== null
+                          ? `, away digit ${rowDigit}, home digit ${colDigit}`
+                          : "";
+                      const stateLabel = isSelected
+                        ? `, claimed by ${displayName}`
+                        : gameStarted
+                        ? ", locked"
+                        : ", open";
+                      const squareLabel = `Row ${rowIndex + 1}, Column ${colIndex + 1}${digitsLabel}${stateLabel}${
+                        isWinningSquare ? ", winning square" : ""
+                      }`;
+
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={`${rowIndex}-${colIndex}`}
                           onClick={() => squareId && handleSquareClick(squareId)}
-                          className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                          disabled={gameStarted || isSpectator}
+                          aria-label={squareLabel}
+                          aria-pressed={!gameStarted ? isSelected : undefined}
+                          className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] p-0 border-2 border-red-900/30 flex flex-col items-center justify-center cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-default ${
                             isSelected ? "bg-red-600/20" : "hover:bg-red-900/10"
                           } ${colIndex === winningCol ? 'winning-column' : ''} ${rowIndex === winningRow ? 'winning-row' : ''} ${isWinningSquare ? 'winning-square' : ''}`}
                         >
@@ -712,7 +742,7 @@ useEffect(() => {
                               {displayName}
                             </span>
                           )}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>

@@ -337,6 +337,7 @@ export function CreateGameDialog() {
                         e.stopPropagation();
                         setRulesPreviewMode(mode.value);
                       }}
+                      onKeyDown={(e) => e.stopPropagation()}
                       className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full border-2 border-primary/50 text-primary/70 hover:border-primary hover:text-primary transition-colors"
                       aria-label={`${mode.label} mode rules`}
                     >

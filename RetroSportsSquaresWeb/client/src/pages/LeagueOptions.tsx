@@ -74,14 +74,17 @@ export default function LeagueOptions() {
             const ui = LEAGUE_UI[league.league] ?? FALLBACK_LEAGUE_UI;
             const Icon = ui.icon;
             return (
-              <Link key={league.leagueId} href={`/arena/${sport}/${league.leagueId}`} asChild>
+              <Link
+                key={league.leagueId}
+                href={`/arena/${sport}/${league.leagueId}`}
+                className="block flex-1 min-w-[10rem] max-w-72 rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="cursor-pointer flex-1 min-w-[10rem] max-w-72"
                 >
                   <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full [container-type:inline-size]">
                     <CardContent className="p-[clamp(1.25rem,6cqw,3rem)] flex flex-col items-center gap-6">
