@@ -139,6 +139,9 @@ export interface SignupRequest {
   email: string;
   password: string;
   gamerTag: string;
+  dateOfBirth: string; // "YYYY-MM-DD"
+  ageConfirmed: boolean;
+  acceptedTerms: boolean;
 }
 
 export type SupportCategory = "Bug" | "Account" | "Other";

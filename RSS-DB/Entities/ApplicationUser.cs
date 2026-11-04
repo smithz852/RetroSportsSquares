@@ -19,6 +19,14 @@ namespace RSS_DB.Entities
         // login so it can never become reachable even if something else slips through.
         public bool IsDeleted { get; set; } = false;
         public DateTimeOffset? DeletedAt { get; set; }
+        // Age/ToS consent captured at signup. Deliberately does NOT store the raw
+        // date of birth (data minimization) — the server computes + validates age
+        // at signup time and discards it; birth year only is logged (not persisted)
+        // for audit purposes. See AuthController.SignUp.
+        public bool AgeVerified { get; set; } = false;
+        public DateTimeOffset? AgeVerifiedAt { get; set; }
+        public DateTimeOffset? AcceptedTermsAt { get; set; }
+        public string? TermsVersion { get; set; }
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }
