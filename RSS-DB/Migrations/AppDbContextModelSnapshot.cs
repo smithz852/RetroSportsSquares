@@ -152,8 +152,17 @@ namespace RSS_DB.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTimeOffset?>("AcceptedTermsAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<bool>("AgeVerified")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset?>("AgeVerifiedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("CoinBalance")
                         .HasColumnType("decimal(18,2)");
@@ -211,6 +220,9 @@ namespace RSS_DB.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TermsVersion")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("TwoFactorEnabled")

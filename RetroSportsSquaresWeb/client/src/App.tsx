@@ -22,6 +22,8 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import { AdminRoute } from "@/components/AdminRoute";
 import Support from "@/pages/Support";
 import Sitemap from "@/pages/Sitemap";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
 
 function Router() {
   return (
@@ -46,6 +48,8 @@ function Router() {
           <Route path="/settings" component={Settings} />
           <Route path="/support" component={Support} />
           <Route path="/sitemap" component={Sitemap} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/privacy" component={Privacy} />
           <Route path="/confirm-email-change" component={ConfirmEmailChange} />
           <Route path="/reset-password" component={ResetPassword} />
           <Route component={NotFound} />

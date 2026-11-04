@@ -77,9 +77,10 @@ export function useSignup() {
       });
       
       if (!response.ok) {
-        throw new Error('Signup failed');
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.message || 'Signup failed');
       }
-      
+
       return response.json();
     },
   });

@@ -21,8 +21,15 @@ namespace RSS.Controllers
         private readonly TokenService _tokenService;
         private readonly IMemoryCache _cache;
         private readonly WalletService _walletService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, WalletService walletService)
+        // Version of the Terms of Service / Privacy Policy presented at signup.
+        // Bump this if the legal text changes materially, so AcceptedTermsAt/TermsVersion
+        // can later be used to detect stale consent.
+        private const string CurrentTermsVersion = "2026-11-03";
+        private const int MinimumAge = 18;
+
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, WalletService walletService, ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -30,6 +37,7 @@ namespace RSS.Controllers
             _tokenService = tokenService;
             _cache = cache;
             _walletService = walletService;
+            _logger = logger;
         }
 
         [HttpPost("login")]
@@ -92,17 +100,40 @@ namespace RSS.Controllers
             if (existingUser != null)
                 return BadRequest(new { message = "User already exists" });
 
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (dto.DateOfBirth > today)
+                return BadRequest(new { message = "Invalid date of birth." });
+
+            var age = today.Year - dto.DateOfBirth.Year;
+            if (dto.DateOfBirth > today.AddYears(-age))
+                age--;
+
+            if (age < MinimumAge)
+                return BadRequest(new { message = "You must be 18 or older to create an account." });
+
+            if (!dto.AgeConfirmed || !dto.AcceptedTerms)
+                return BadRequest(new { message = "You must confirm you are 18+ and accept the Terms of Service." });
+
+            var now = DateTimeOffset.UtcNow;
             var user = new ApplicationUser
             {
                 UserName = dto.Email,
                 Email = dto.Email,
                 DisplayName = dto.Name,
-                GamerTag = dto.GamerTag?.Trim().ToUpper()
+                GamerTag = dto.GamerTag?.Trim().ToUpper(),
+                AgeVerified = true,
+                AgeVerifiedAt = now,
+                AcceptedTermsAt = now,
+                TermsVersion = CurrentTermsVersion
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
+
+            // Audit trail for the age gate without persisting the raw date of birth (data minimization) —
+            // birth year + computed age is enough to reconstruct why AgeVerified was set true.
+            _logger.LogInformation("Signup age gate passed: user {Email}, birth year {BirthYear}, computed age {Age}", dto.Email, dto.DateOfBirth.Year, age);
 
             return Ok(new { message = "User created successfully" });
         }
@@ -158,7 +189,7 @@ namespace RSS.Controllers
         }
     }
 
-    public record RegisterDto(string Email, string Password, string Name, string? GamerTag);
+    public record RegisterDto(string Email, string Password, string Name, string? GamerTag, DateOnly DateOfBirth, bool AgeConfirmed, bool AcceptedTerms);
     public record LoginDto(string Email, string Password);
     public record ForgotPasswordDto(string Email);
     public record ResetPasswordDto(string Email, string Token, string NewPassword);

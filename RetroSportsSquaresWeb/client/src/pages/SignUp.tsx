@@ -1,11 +1,31 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { RetroButton } from "@/components/RetroButton";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSignup } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
+
+const MINIMUM_AGE = 18;
+
+function getEighteenYearsAgoIso() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - MINIMUM_AGE);
+  return d.toISOString().slice(0, 10);
+}
+
+function computeAge(dateOfBirth: string) {
+  const dob = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const notYetHadBirthdayThisYear =
+    today.getMonth() < dob.getMonth() ||
+    (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate());
+  if (notYetHadBirthdayThisYear) age--;
+  return age;
+}
 
 export default function Signup() {
   const [, setLocation] = useLocation();
@@ -17,7 +37,10 @@ export default function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
+    dateOfBirth: "",
   });
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const validatePassword = (password: string) => {
     const minLength = password.length >= 8;
@@ -52,6 +75,17 @@ export default function Signup() {
     }
   };
 
+  const handleDateOfBirthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateOfBirth = e.target.value;
+    setFormData({ ...formData, dateOfBirth });
+
+    if (dateOfBirth && computeAge(dateOfBirth) < MINIMUM_AGE) {
+      e.target.setCustomValidity("You must be 18 or older to sign up.");
+    } else {
+      e.target.setCustomValidity("");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -60,6 +94,9 @@ export default function Signup() {
       gamerTag: formData.gamerTag.trim().toUpperCase(),
       email: formData.email,
       password: formData.password,
+      dateOfBirth: formData.dateOfBirth,
+      ageConfirmed,
+      acceptedTerms,
     }, {
       onSuccess: () => {
         toast({
@@ -148,7 +185,53 @@ export default function Signup() {
                   className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
               </div>
-              
+              <div className="space-y-2">
+                <label className="text-primary font-pixel text-base uppercase">Date of Birth</label>
+                <Input
+                  required
+                  type="date"
+                  max={getEighteenYearsAgoIso()}
+                  value={formData.dateOfBirth}
+                  onChange={handleDateOfBirthChange}
+                  className="bg-black border-2 border-primary text-white font-pixel text-sm rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
+                />
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="accepted-terms"
+                    required
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="accepted-terms" className="text-gray-300 font-['VT323'] text-base">
+                    I agree to the{" "}
+                    <Link href="/terms" className="text-primary underline hover:text-white focus-visible:outline-none focus-visible:text-white">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy" className="text-primary underline hover:text-white focus-visible:outline-none focus-visible:text-white">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </label>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="age-confirmed"
+                    required
+                    checked={ageConfirmed}
+                    onCheckedChange={(checked) => setAgeConfirmed(checked === true)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="age-confirmed" className="text-gray-300 font-['VT323'] text-base">
+                    I confirm I am 18 years of age or older.
+                  </label>
+                </div>
+              </div>
+
               <div className="pt-4 flex flex-col gap-4">
                 <RetroButton type="submit" disabled={isPending} className="w-full py-6 text-lg">
                   {isPending ? "CREATING..." : "SIGN UP"}
