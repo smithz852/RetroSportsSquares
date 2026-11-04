@@ -21,7 +21,7 @@ namespace RSS.Helpers
                 CurrentPlayerCount = availableGames.GamePlayers.Count,
                 PricePerSquare = availableGames.PricePerSquare,
                 SquareSelectionLimit = availableGames.SquareSelectionLimit,
-                PayoutMode = availableGames.PayoutMode,
+                SettlementMode = availableGames.SettlementMode,
                 HostUserId = availableGames.GamePlayers.FirstOrDefault(p => p.IsHost)?.ApplicationUserId,
                 IsTurnBased = availableGames.IsTurnBased,
                 SelectionPhaseActive = availableGames.SelectionPhaseActive,
@@ -46,7 +46,7 @@ namespace RSS.Helpers
             };
         }
 
-        public SportScoreUpdateDTO ScoreDataMapper(SquareGames squaregame, Dictionary<int, string?> periodWinnerNames, decimal payoutPerPeriod, Dictionary<string, decimal> playerWinnings)
+        public SportScoreUpdateDTO ScoreDataMapper(SquareGames squaregame, Dictionary<int, string?> periodWinnerNames, decimal coinsPerPeriod, Dictionary<string, decimal> playerCoinTotals)
         {
             return new SportScoreUpdateDTO
             {
@@ -59,10 +59,10 @@ namespace RSS.Helpers
                 HomePeriodScores = squaregame.DailySportGame.HomePeriodScores,
                 AwayPeriodScores = squaregame.DailySportGame.AwayPeriodScores,
                 PeriodWinners = periodWinnerNames,
-                PayoutPerPeriod = payoutPerPeriod,
-                PayoutMode = squaregame.PayoutMode,
+                CoinsPerPeriod = coinsPerPeriod,
+                SettlementMode = squaregame.SettlementMode,
                 PeriodCount = squaregame.PeriodCount,
-                PlayerWinnings = playerWinnings,
+                PlayerCoinTotals = playerCoinTotals,
             };
         }
 

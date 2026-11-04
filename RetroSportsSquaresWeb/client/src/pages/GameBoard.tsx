@@ -16,7 +16,7 @@ import { getCurrentGamePeriodIndex } from "@/components/Scoreboard";
 import { useGameHub } from "@/hooks/use-game-hub";
 import { GameChat } from "@/components/GameChat";
 import { InfoModal } from "@/components/InfoModal";
-import { getGameRulesPages, getPayoutModeLabel, getPayoutModeIcon } from "@/content/gameModeRules";
+import { getGameRulesPages, getSettlementModeLabel, getSettlementModeIcon } from "@/content/gameModeRules";
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
@@ -56,7 +56,7 @@ export default function GameBoard() {
   const { mutate: beginSelections, isPending: isBeginPending } = useBeginSelections(id);
   const { mutate: skipPlayer, isPending: isSkipPending } = useSkipPlayer(id);
   const { data: scoreData, isLoading } = GetGameScoreData(id);
-  const ModeIcon = getPayoutModeIcon(game?.payoutMode ?? scoreData?.payoutMode);
+  const ModeIcon = getSettlementModeIcon(game?.settlementMode ?? scoreData?.settlementMode);
 
   useGameHub(id);
 
@@ -97,11 +97,11 @@ export default function GameBoard() {
   // Walk resolved periods in order — nulls stack the carry, a winner resets it.
   // Zero once every period is resolved (a trailing pot has already been paid out).
   const pushCarry = useMemo(() => {
-    if (scoreData?.payoutMode !== "Push") return 0;
+    if (scoreData?.settlementMode !== "Push") return 0;
     const winners = scoreData.periodWinners ?? {};
     const periodCount = scoreData.periodCount ?? 0;
     if (Object.keys(winners).length >= periodCount) return 0;
-    const perPeriod = scoreData.payoutPerPeriod ?? 0;
+    const perPeriod = scoreData.coinsPerPeriod ?? 0;
     let carry = 0;
     for (let p = 1; p <= periodCount; p++) {
       if (!(p in winners)) break;
@@ -113,7 +113,7 @@ export default function GameBoard() {
   // Thief mode: replay resolved periods with the same rules as the backend walk —
   // who's armed, whose winnings are a bounty, who's been eliminated.
   const thiefState = useMemo(() => {
-    if (scoreData?.payoutMode !== "Thief") return null;
+    if (scoreData?.settlementMode !== "Thief") return null;
     const winners = scoreData.periodWinners ?? {};
     const periodCount = scoreData.periodCount ?? 0;
     const gameOver = Object.keys(winners).length >= periodCount;
@@ -146,11 +146,11 @@ export default function GameBoard() {
   // Destruction mode: replay resolved periods to find loot a bomb has knocked
   // loose (the previous winner's pot) that the next winner will collect.
   const destructionLoot = useMemo(() => {
-    if (scoreData?.payoutMode !== "Destruction") return 0;
+    if (scoreData?.settlementMode !== "Destruction") return 0;
     const winners = scoreData.periodWinners ?? {};
     const periodCount = scoreData.periodCount ?? 0;
     if (Object.keys(winners).length >= periodCount) return 0;
-    const perPeriod = scoreData.payoutPerPeriod ?? 0;
+    const perPeriod = scoreData.coinsPerPeriod ?? 0;
     const pots: Record<string, number> = {};
     let lastWinner: string | null = null;
     let loot = 0;
@@ -516,7 +516,7 @@ useEffect(() => {
             <div className="mb-2 flex items-center justify-between w-full gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-yellow-900/60 text-yellow-400">
-                  {getPayoutModeLabel(game.payoutMode)} MODE
+                  {getSettlementModeLabel(game.settlementMode)} MODE
                 </span>
                 {game.squareSelectionLimit > 0 && (
                   <span className="px-2 py-1 text-xs font-['Press_Start_2P'] bg-blue-900/60 text-blue-300">
@@ -539,15 +539,15 @@ useEffect(() => {
             currentLeader={currentLeader}
             periodWinners={periodWinners}
           />
-          {scoreData?.payoutMode && scoreData.payoutMode !== "Default" && (
+          {scoreData?.settlementMode && scoreData.settlementMode !== "Default" && (
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-              {scoreData.payoutMode === "Push" && pushCarry > 0 && (
+              {scoreData.settlementMode === "Push" && pushCarry > 0 && (
                 <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
                   <Coins size={16} />
-                  POT: {(pushCarry + (scoreData.payoutPerPeriod ?? 0)).toFixed(2)} ON THE NEXT PERIOD!
+                  POT: {(pushCarry + (scoreData.coinsPerPeriod ?? 0)).toFixed(2)} ON THE NEXT PERIOD!
                 </span>
               )}
-              {scoreData.payoutMode === "Destruction" && destructionLoot > 0 && (
+              {scoreData.settlementMode === "Destruction" && destructionLoot > 0 && (
                 <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
                   <Coins size={16} />
                   LOOT: {destructionLoot.toFixed(2)} TO THE NEXT WINNER!
@@ -882,7 +882,7 @@ useEffect(() => {
                           </span>
                           <span className="text-right flex items-center justify-end gap-1">
                             <Coins size={16} className="text-yellow-600" />
-                            {(scoreData?.playerWinnings?.[name] ?? 0).toFixed(2)}
+                            {(scoreData?.playerCoinTotals?.[name] ?? 0).toFixed(2)}
                           </span>
                         </motion.div>
                       ))
@@ -908,8 +908,8 @@ useEffect(() => {
       <InfoModal
         open={showRulesModal}
         onClose={() => setShowRulesModal(false)}
-        title={`${getPayoutModeLabel(game?.payoutMode)} MODE RULES`}
-        pages={getGameRulesPages(game?.payoutMode)}
+        title={`${getSettlementModeLabel(game?.settlementMode)} MODE RULES`}
+        pages={getGameRulesPages(game?.settlementMode)}
       />
     </div>
   );

@@ -20,11 +20,11 @@ namespace RSS.DTOs
         public List<int> AwayPeriodScores { get; set; } = new();
         // Populated only for the score endpoint response (display names keyed by period number)
         public Dictionary<int, string?> PeriodWinners { get; set; } = new();
-        public decimal PayoutPerPeriod { get; set; }
+        public decimal CoinsPerPeriod { get; set; }
         // Score-endpoint only: lets the board render mode mechanics (e.g. Push pot)
-        public string? PayoutMode { get; set; }
+        public string? SettlementMode { get; set; }
         public int PeriodCount { get; set; }
-        // Score-endpoint only: prize money per player, keyed by board name (GamerTag ?? DisplayName)
-        public Dictionary<string, decimal> PlayerWinnings { get; set; } = new();
+        // Score-endpoint only: coin total per player, keyed by board name (GamerTag ?? DisplayName)
+        public Dictionary<string, decimal> PlayerCoinTotals { get; set; } = new();
     }
 }

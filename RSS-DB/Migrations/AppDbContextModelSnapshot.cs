@@ -486,11 +486,6 @@ namespace RSS_DB.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("PayoutMode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<int>("PeriodCount")
                         .HasColumnType("int");
 
@@ -512,6 +507,11 @@ namespace RSS_DB.Migrations
 
                     b.Property<bool>("SettlementCompleted")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SettlementMode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<int>("SquareSelectionLimit")
                         .HasColumnType("int");

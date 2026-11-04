@@ -45,7 +45,7 @@ namespace RSS_Services
                         // move to the shooter NOW so later periods resolve against the
                         // new ownership. ThiefWalk is the same rules the settlement
                         // engine replays, so the two can never disagree.
-                        if (squareGame.PayoutMode == PayoutModes.Thief)
+                        if (squareGame.SettlementMode == SettlementModes.Thief)
                         {
                             var elimination = ThiefWalk
                                 .Analyze(squareGame.PeriodWinners, squareGame.PeriodCount)

@@ -9,13 +9,13 @@ namespace RSS_Services
     {
         private readonly AppDbContext _appDbContext;
         private readonly TimeHelpers _timeHelpers;
-        private readonly WalletService _walletService;
+        private readonly CoinWalletService _coinWalletService;
 
-        public AvailableGamesServices(AppDbContext appDbContext, TimeHelpers timeHelpers, WalletService walletService)
+        public AvailableGamesServices(AppDbContext appDbContext, TimeHelpers timeHelpers, CoinWalletService coinWalletService)
         {
             _appDbContext = appDbContext;
             _timeHelpers = timeHelpers;
-            _walletService = walletService;
+            _coinWalletService = coinWalletService;
         }
 
         public static int GetPeriodCountForSport(string? sportType) => sportType switch
@@ -33,7 +33,7 @@ namespace RSS_Services
                 .ToList();
         }
 
-        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, decimal pricePerSquare, int squareSelectionLimit, bool isTurnBased, int turnTimeoutSeconds, string dailySportsGameId, bool isPublic = true, string payoutMode = PayoutModes.Default)
+        public SquareGames CreateGame(string name, bool isOpen, int playerCount, string gameType, decimal pricePerSquare, int squareSelectionLimit, bool isTurnBased, int turnTimeoutSeconds, string dailySportsGameId, bool isPublic = true, string settlementMode = SettlementModes.Default)
         {
             var dailySportsGameGuid = Guid.Parse(dailySportsGameId);
             var createdAt = DateTimeOffset.UtcNow;
@@ -55,7 +55,7 @@ namespace RSS_Services
                 DailySportGame = dailySportGame,
                 PeriodCount = periodCount,
                 IsPublic = isPublic,
-                PayoutMode = payoutMode,
+                SettlementMode = settlementMode,
             };
 
             return game;
@@ -76,7 +76,7 @@ namespace RSS_Services
                 // Deletion is only reachable while the game is open (pre-start), so a
                 // refund here can never collide with end-of-game settlement.
                 if (game.IsPublic)
-                    await _walletService.RefundGameWagersAsync(gameGuid);
+                    await _coinWalletService.RefundGameWagersAsync(gameGuid);
 
                 var squares = _appDbContext.GameSquares.Where(s => s.SquareGamesId == gameGuid);
                 _appDbContext.GameSquares.RemoveRange(squares);
@@ -118,18 +118,18 @@ namespace RSS_Services
                 .FirstOrDefault(g => g.Id == gameId);
         }
 
-        public decimal GetPayoutPerPeriod(SquareGames game)
+        public decimal GetCoinsPerPeriod(SquareGames game)
         {
             var claimedSquares = game.GameSquares.Count(gs => gs.GamePlayerId != null);
-            return PayoutCalculator.GetPayoutPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
+            return SettlementCalculator.GetCoinsPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
         }
 
-        // Prize money per player for the Odds board's Won column, keyed by the same
+        // Coin total per player for the Odds board's Won column, keyed by the same
         // name the board shows (GamerTag ?? DisplayName). Always runs the settlement
         // engine, which is safe on in-progress games: unresolved periods hold back
         // end-of-game effects, so amounts are "earned so far" and converge to the
         // settled amounts once every period resolves. Refunds are stakes, not winnings.
-        public async Task<Dictionary<string, decimal>> GetPlayerWinnings(SquareGames game)
+        public async Task<Dictionary<string, decimal>> GetPlayerCoinTotals(SquareGames game)
         {
             var winners = game.PeriodWinners;
             if (winners.Count == 0) return new();
@@ -145,7 +145,7 @@ namespace RSS_Services
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var byUserId = SettlementEngine
-                .ComputeSettlement(game.PayoutMode, winners, game.PeriodCount, game.PricePerSquare, squareCounts)
+                .ComputeSettlement(game.SettlementMode, winners, game.PeriodCount, game.PricePerSquare, squareCounts)
                 .Where(l => l.Type != CoinTransactionTypes.Redistribution)
                 .GroupBy(l => l.UserId)
                 .ToDictionary(g => g.Key, g => g.Sum(l => l.Amount));

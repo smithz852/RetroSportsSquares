@@ -7,7 +7,7 @@ namespace RSS_DB.Entities
     {
         public string? DisplayName { get; set; }
         public string? GamerTag { get; set; }
-        // Only ever modified via atomic ExecuteUpdate arithmetic (see WalletService) —
+        // Only ever modified via atomic ExecuteUpdate arithmetic (see CoinWalletService) —
         // never through tracked-entity writes, so concurrent grant/wager can't clobber it.
         [Column(TypeName = "decimal(18,2)")]
         public decimal CoinBalance { get; set; } = 0;

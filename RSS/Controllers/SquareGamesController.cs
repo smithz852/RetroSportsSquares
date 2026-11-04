@@ -23,9 +23,9 @@ namespace RSS.Controllers
         private readonly AppDbContext _appDbContext;
         private readonly GamePlayerServices _gamePlayerServices;
         private readonly IGameHubNotifier _hubNotifier;
-        private readonly WalletService _walletService;
+        private readonly CoinWalletService _coinWalletService;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, WalletService walletService)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, CoinWalletService coinWalletService)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -35,7 +35,7 @@ namespace RSS.Controllers
             _appDbContext = appDbContext;
             _gamePlayerServices = gamePlayerServices;
             _hubNotifier = hubNotifier;
-            _walletService = walletService;
+            _coinWalletService = coinWalletService;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -68,13 +68,13 @@ namespace RSS.Controllers
                 return Unauthorized();
             }
 
-            var payoutMode = string.IsNullOrWhiteSpace(gameData.PayoutMode)
-                ? RSS_DB.Entities.PayoutModes.Default
-                : gameData.PayoutMode;
-            if (!RSS_DB.Entities.PayoutModes.All.Contains(payoutMode))
-                return BadRequest(new { message = $"Unknown payout mode '{payoutMode}'." });
-            if (!RSS_DB.Entities.PayoutModes.Implemented.Contains(payoutMode))
-                return BadRequest(new { message = $"Payout mode '{payoutMode}' is coming soon." });
+            var settlementMode = string.IsNullOrWhiteSpace(gameData.SettlementMode)
+                ? RSS_DB.Entities.SettlementModes.Default
+                : gameData.SettlementMode;
+            if (!RSS_DB.Entities.SettlementModes.All.Contains(settlementMode))
+                return BadRequest(new { message = $"Unknown settlement mode '{settlementMode}'." });
+            if (!RSS_DB.Entities.SettlementModes.Implemented.Contains(settlementMode))
+                return BadRequest(new { message = $"Settlement mode '{settlementMode}' is coming soon." });
 
             // 0 = no timeout; otherwise keep it in a sane range (the sweeper acts on this value)
             if (gameData.IsTurnBased && gameData.TurnTimeoutSeconds != 0
@@ -87,14 +87,14 @@ namespace RSS.Controllers
             {
                 var sportsGame = await _appDbContext.DailySportsGames.FindAsync(sportsGameGuid);
                 var periodCount = AvailableGamesServices.GetPeriodCountForSport(sportsGame?.SportType);
-                if (periodCount < RSS_DB.Entities.PayoutModes.MinimumPeriods(payoutMode))
-                    return BadRequest(new { message = $"{payoutMode} mode needs games with at least {RSS_DB.Entities.PayoutModes.MinimumPeriods(payoutMode)} periods — this sport only has {periodCount}." });
+                if (periodCount < RSS_DB.Entities.SettlementModes.MinimumPeriods(settlementMode))
+                    return BadRequest(new { message = $"{settlementMode} mode needs games with at least {RSS_DB.Entities.SettlementModes.MinimumPeriods(settlementMode)} periods — this sport only has {periodCount}." });
             }
 
             await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
             try
             {
-                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic, payoutMode);
+                var createdGame = _availableGamesServices.CreateGame(gameData.Name, gameData.IsOpen, gameData.PlayerCount, gameData.GameType, gameData.PricePerSquare, gameData.SquareSelectionLimit, gameData.IsTurnBased, gameData.TurnTimeoutSeconds, gameData.DailySportsGameId, gameData.IsPublic, settlementMode);
                 _appDbContext.Set<RSS_DB.Entities.SquareGames>().Add(createdGame);
 
                 await _appDbContext.SaveChangesAsync();
@@ -185,9 +185,9 @@ namespace RSS.Controllers
                 return NotFound();
 
             var winnerNames = await _availableGamesServices.GetPeriodWinnerDisplayNames(scoreData.PeriodWinners);
-            var payoutPerPeriod = _availableGamesServices.GetPayoutPerPeriod(scoreData);
-            var playerWinnings = await _availableGamesServices.GetPlayerWinnings(scoreData);
-            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames, payoutPerPeriod, playerWinnings);
+            var coinsPerPeriod = _availableGamesServices.GetCoinsPerPeriod(scoreData);
+            var playerCoinTotals = await _availableGamesServices.GetPlayerCoinTotals(scoreData);
+            var gameDto = _mapperHelpers.ScoreDataMapper(scoreData, winnerNames, coinsPerPeriod, playerCoinTotals);
             return Ok(gameDto);
         }
 
@@ -342,7 +342,7 @@ namespace RSS.Controllers
                 if (game.IsPublic)
                 {
                     var wagerCost = game.PricePerSquare * squareSelections.Selections.Count;
-                    if (!await _walletService.HasSufficientCoinsAsync(userId, wagerCost))
+                    if (!await _coinWalletService.HasSufficientCoinsAsync(userId, wagerCost))
                         return BadRequest(new { message = $"Not enough coins — you need {wagerCost:0.##} coins for this selection." });
                 }
 

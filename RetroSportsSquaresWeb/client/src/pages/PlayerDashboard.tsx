@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePlayerStats, useCurrentGames, usePastGames } from "@/hooks/use-dashboard";
 import { RetroButton } from "@/components/RetroButton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Trophy, User, Settings, BookOpen, Copy, Check } from "lucide-react";
+import { Loader2, Trophy, User, Settings, BookOpen, Copy, Check, Coins } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { InfoModal } from "@/components/InfoModal";
@@ -223,8 +223,10 @@ export default function PlayerDashboard() {
                             <p className="font-['Press_Start_2P'] text-white text-[10px] group-hover:text-primary transition-colors mb-2 leading-4">
                               {game.gameName}
                             </p>
-                            <p className="font-['VT323'] text-gray-400 text-lg">
-                              {game.gameType.toUpperCase()} · {game.squaresClaimed} SQ · ${game.pricePerSquare.toFixed(2)}/SQ
+                            <p className="font-['VT323'] text-gray-400 text-lg flex items-center gap-1">
+                              {game.gameType.toUpperCase()} · {game.squaresClaimed} SQ ·
+                              <Coins className="w-4 h-4" />
+                              {game.pricePerSquare.toFixed(2)}/SQ
                             </p>
                             {game.isHost && (
                               <p className="font-['VT323'] text-primary/50 text-base tracking-widest">
