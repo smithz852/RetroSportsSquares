@@ -1,5 +1,11 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html"
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "*.{svg,png,jpg,jpeg,gif,ico,css,js,txt,xml,json}"]
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://retrosportssquares-dev-bsc7d5czd3hsa7ch.westus3-01.azurewebsites.net wss://retrosportssquares-dev-bsc7d5czd3hsa7ch.westus3-01.azurewebsites.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer"
   }
 }
