@@ -2,28 +2,30 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { useAvailableSportsAndLeagues } from "@/hooks/use-games";
 import { Trophy, Circle, GraduationCap, Globe, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 import { useLocation, useParams, Link } from "wouter";
+import { entranceProps, hoverTapProps } from "@/lib/motion";
 
 const LEAGUE_UI: Record<string, {
   icon: React.ElementType;
   subtitle: string;
   animation: string;
 }> = {
-  NFL:        { icon: Trophy,        subtitle: "NATIONAL FOOTBALL LEAGUE",        animation: "animate-pulse" },
-  NCAA:       { icon: GraduationCap, subtitle: "COLLEGE SPORTS",                  animation: "animate-bounce" },
-  NBA:        { icon: Circle,        subtitle: "NATIONAL BASKETBALL ASSOCIATION",  animation: "animate-pulse" },
-  "World Cup":{ icon: Globe,         subtitle: "FIFA WORLD CUP",                  animation: "animate-spin" },
+  NFL:        { icon: Trophy,        subtitle: "NATIONAL FOOTBALL LEAGUE",        animation: "group-hover:animate-pulse motion-reduce:group-hover:animate-none" },
+  NCAA:       { icon: GraduationCap, subtitle: "COLLEGE SPORTS",                  animation: "group-hover:animate-bounce motion-reduce:group-hover:animate-none" },
+  NBA:        { icon: Circle,        subtitle: "NATIONAL BASKETBALL ASSOCIATION",  animation: "group-hover:animate-pulse motion-reduce:group-hover:animate-none" },
+  "World Cup":{ icon: Globe,         subtitle: "FIFA WORLD CUP",                  animation: "group-hover:animate-spin motion-reduce:group-hover:animate-none" },
 };
 
-const FALLBACK_LEAGUE_UI = { icon: Trophy, subtitle: "", animation: "animate-pulse" };
+const FALLBACK_LEAGUE_UI = { icon: Trophy, subtitle: "", animation: "group-hover:animate-pulse motion-reduce:group-hover:animate-none" };
 
 export default function LeagueOptions() {
   const [, setLocation] = useLocation();
   const { sport } = useParams<{ sport: string }>();
   const { user, isLoading: authLoading } = useAuth();
   const { data: sportsAndLeagues, isLoading: optionsLoading } = useAvailableSportsAndLeagues();
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -42,8 +44,7 @@ export default function LeagueOptions() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] gap-12 p-4">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        {...entranceProps(reducedMotion, { opacity: 0, y: -20 }, { opacity: 1, y: 0 })}
         className="flex flex-col items-center gap-2"
       >
         <h1 className="text-4xl md:text-6xl text-red-600 font-pixel text-center leading-tight uppercase tracking-tighter">
@@ -57,7 +58,7 @@ export default function LeagueOptions() {
       {optionsLoading ? (
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 text-red-600 animate-spin" />
-          <p className="text-red-600/60 font-pixel text-xs uppercase tracking-widest animate-pulse">
+          <p className="text-red-600/60 font-pixel text-xs uppercase tracking-widest animate-pulse motion-reduce:animate-none">
             Loading Leagues...
           </p>
         </div>
@@ -80,15 +81,12 @@ export default function LeagueOptions() {
                 className="block flex-1 min-w-[10rem] max-w-72 rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  {...entranceProps(reducedMotion, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, { delay: i * 0.1 })}
+                  {...hoverTapProps(reducedMotion, { scale: 1.05 }, { scale: 0.95 })}
                 >
                   <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full [container-type:inline-size]">
                     <CardContent className="p-[clamp(1.25rem,6cqw,3rem)] flex flex-col items-center gap-6">
-                      <div className={`text-red-600 group-hover:${ui.animation}`}>
+                      <div className={`text-red-600 ${ui.animation}`}>
                         <Icon size={80} />
                       </div>
                       <h2 className="text-[clamp(0.9rem,8cqw,1.65rem)] text-red-600 font-pixel uppercase tracking-widest text-center whitespace-nowrap">
@@ -105,9 +103,7 @@ export default function LeagueOptions() {
       )}
 
       <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
+        {...entranceProps(reducedMotion, { opacity: 0 }, { opacity: 1 }, { delay: 0.3 })}
         onClick={() => setLocation("/options")}
         className="text-red-600/50 font-mono text-base uppercase tracking-widest hover:text-red-500 transition-colors"
       >

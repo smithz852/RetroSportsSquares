@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useLogin } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
+import { entranceProps } from "@/lib/motion";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,6 +23,7 @@ export default function Login() {
   const { mutate: login, isPending, error } = useLogin();
   const { toast } = useToast();
   const [forgotOpen, setForgotOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -52,8 +54,7 @@ export default function Login() {
  return (
     <div className="flex items-center justify-center min-h-[80vh] p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        {...entranceProps(reducedMotion, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1 })}
         className="w-full max-w-md"
       >
         <Card className="bg-black border-4 border-red-600 rounded-none shadow-[0_0_15px_rgba(255,0,0,0.3)]">

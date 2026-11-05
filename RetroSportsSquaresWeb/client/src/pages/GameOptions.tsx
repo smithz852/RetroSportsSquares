@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useAvailableSportsAndLeagues } from "@/hooks/use-games";
 import { Link } from "wouter";
 import { Trophy, Circle, Globe, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { entranceProps, hoverTapProps } from "@/lib/motion";
 
 const SPORT_UI: Record<string, {
   label: string;
@@ -16,19 +17,19 @@ const SPORT_UI: Record<string, {
   football: {
     label: "Football",
     icon: Trophy,
-    animation: "group-hover:animate-pulse",
+    animation: "group-hover:animate-pulse motion-reduce:group-hover:animate-none",
     subtitle: "CLASSIC GRIDIRON SQUARES",
   },
   basketball: {
     label: "Basketball",
     icon: Circle,
-    animation: "group-hover:animate-bounce",
+    animation: "group-hover:animate-bounce motion-reduce:group-hover:animate-none",
     subtitle: "HARDWOOD HOOPS CHALLENGE",
   },
   soccer: {
     label: "Soccer",
     icon: Globe,
-    animation: "group-hover:animate-spin",
+    animation: "group-hover:animate-spin motion-reduce:group-hover:animate-none",
     subtitle: "GLOBAL FOOTBALL SQUARES",
   },
 };
@@ -37,6 +38,7 @@ export default function GameOptions() {
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
   const { data: sportsAndLeagues, isLoading: optionsLoading } = useAvailableSportsAndLeagues();
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -53,8 +55,7 @@ export default function GameOptions() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] gap-12 p-4">
       <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        {...entranceProps(reducedMotion, { opacity: 0, y: -20 }, { opacity: 1, y: 0 })}
         className="text-4xl md:text-6xl text-red-600 font-pixel text-center leading-tight uppercase tracking-tighter"
       >
         Select Your Arena
@@ -63,7 +64,7 @@ export default function GameOptions() {
       {optionsLoading ? (
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 text-red-600 animate-spin" />
-          <p className="text-red-600/60 font-pixel text-xs uppercase tracking-widest animate-pulse">
+          <p className="text-red-600/60 font-pixel text-xs uppercase tracking-widest animate-pulse motion-reduce:animate-none">
             Loading Today's Sports...
           </p>
         </div>
@@ -80,7 +81,7 @@ export default function GameOptions() {
             const ui = SPORT_UI[sport.sportType] ?? {
               label: sport.sportType,
               icon: Trophy,
-              animation: "group-hover:animate-pulse",
+              animation: "group-hover:animate-pulse motion-reduce:group-hover:animate-none",
               subtitle: "",
             };
             const Icon = ui.icon;
@@ -91,11 +92,8 @@ export default function GameOptions() {
                 className="block flex-1 min-w-[11rem] max-w-80 rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  {...entranceProps(reducedMotion, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, { delay: i * 0.1 })}
+                  {...hoverTapProps(reducedMotion, { scale: 1.05 }, { scale: 0.95 })}
                 >
                   <Card className="bg-black border-4 border-red-600 rounded-none overflow-hidden group hover:shadow-[0_0_20px_rgba(255,0,0,0.5)] transition-all w-full h-full [container-type:inline-size]">
                     <CardContent className="p-[clamp(1.25rem,6cqw,3rem)] flex flex-col items-center gap-6">

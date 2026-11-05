@@ -1,6 +1,7 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { hoverTapProps } from "@/lib/motion";
 
 interface RetroButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline";
@@ -10,7 +11,8 @@ interface RetroButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const RetroButton = forwardRef<HTMLButtonElement, RetroButtonProps>(
   ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
     const { onAnimationStart, onAnimationEnd, onAnimationIteration, onDragStart, onDragEnd, onDrag, ...motionProps } = props;
-    
+    const reducedMotion = useReducedMotion();
+
     const variants = {
       primary: "bg-primary text-primary-foreground border-2 border-primary hover:bg-red-600",
       secondary: "bg-secondary text-secondary-foreground border-2 border-primary hover:bg-zinc-800",
@@ -26,8 +28,7 @@ export const RetroButton = forwardRef<HTMLButtonElement, RetroButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.95 }}
+        {...hoverTapProps(reducedMotion, { scale: 1.02 }, { scale: 0.95 })}
         className={cn(
           "relative uppercase transition-colors duration-100",
           "focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black",

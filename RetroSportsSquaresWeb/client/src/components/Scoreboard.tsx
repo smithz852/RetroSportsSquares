@@ -1,7 +1,8 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Trophy, Clock, Info } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { entranceProps } from "@/lib/motion";
 
 interface TeamData {
   name: string;
@@ -65,6 +66,7 @@ export function Scoreboard({
 
   const [hasGameStarted, setHasGameStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const reducedMotion = useReducedMotion();
 
   const sportType = scoreData?.sportType as string | undefined;
   const expectedPeriods = getExpectedPeriods(sportType);
@@ -175,8 +177,7 @@ export function Scoreboard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+      {...entranceProps(reducedMotion, { opacity: 0, y: -20 }, { opacity: 1, y: 0 })}
       className="w-full max-w-[60rem] mx-auto bg-black border-4 border-red-900 shadow-[0_0_30px_rgba(255,0,0,0.3)] font-pixel"
     >
       {/* Header */}

@@ -6,8 +6,8 @@ export default function NotFound() {
   return (
     <div className="min-h-[80vh] w-full flex flex-col items-center justify-center bg-black text-center px-4">
       <div className="mb-8 relative">
-        <AlertTriangle className="h-32 w-32 text-red-600 animate-pulse" />
-        <div className="absolute inset-0 border-4 border-red-600 animate-ping opacity-20"></div>
+        <AlertTriangle className="h-32 w-32 text-red-600 animate-pulse motion-reduce:animate-none" />
+        <div className="absolute inset-0 border-4 border-red-600 animate-ping motion-reduce:animate-none opacity-20"></div>
       </div>
       
       <h1 className="text-4xl md:text-6xl font-['Press_Start_2P'] text-red-600 mb-6 text-shadow-retro">

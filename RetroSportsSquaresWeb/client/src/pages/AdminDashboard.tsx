@@ -28,7 +28,7 @@ function LoadingRow() {
   return (
     <div className="flex items-center justify-center gap-3 py-10">
       <Loader2 className="h-6 w-6 text-primary animate-spin" />
-      <span className="font-['Press_Start_2P'] text-primary text-xs animate-pulse">LOADING...</span>
+      <span className="font-['Press_Start_2P'] text-primary text-xs animate-pulse motion-reduce:animate-none">LOADING...</span>
     </div>
   );
 }
