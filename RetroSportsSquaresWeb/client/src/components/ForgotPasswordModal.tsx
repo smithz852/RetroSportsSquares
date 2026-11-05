@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RetroButton } from "@/components/RetroButton";
@@ -15,10 +15,13 @@ export function ForgotPasswordModal({ open, onClose }: Props) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const handleSend = async () => {
     if (!email.trim()) {
       setError("EMAIL IS REQUIRED");
+      emailRef.current?.focus();
       return;
     }
     setError(null);
@@ -33,6 +36,7 @@ export function ForgotPasswordModal({ open, onClose }: Props) {
       setSent(true);
     } catch {
       setError("SOMETHING WENT WRONG. PLEASE TRY AGAIN.");
+      errorRef.current?.focus();
     } finally {
       setSending(false);
     }
@@ -72,6 +76,7 @@ export function ForgotPasswordModal({ open, onClose }: Props) {
                 ENTER YOUR EMAIL AND WE'LL SEND A PASSWORD RESET LINK.
               </p>
               <Input
+                ref={emailRef}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -81,7 +86,15 @@ export function ForgotPasswordModal({ open, onClose }: Props) {
                 className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
               />
               {error && (
-                <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
+                <p
+                  ref={errorRef}
+                  role="alert"
+                  aria-live="polite"
+                  tabIndex={-1}
+                  className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4"
+                >
+                  {error}
+                </p>
               )}
               <RetroButton
                 variant="primary"

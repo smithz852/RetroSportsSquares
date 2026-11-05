@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RetroButton } from "@/components/RetroButton";
@@ -15,11 +15,15 @@ export function EmailChangeModal({ open, onClose }: Props) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const newEmailRef = useRef<HTMLInputElement>(null);
+  const currentPasswordRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const handleSubmit = async () => {
     setError(null);
     if (!form.newEmail || !form.currentPassword) {
       setError("ALL FIELDS ARE REQUIRED");
+      (form.newEmail ? currentPasswordRef : newEmailRef).current?.focus();
       return;
     }
     setSending(true);
@@ -40,6 +44,7 @@ export function EmailChangeModal({ open, onClose }: Props) {
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "SOMETHING WENT WRONG");
+      errorRef.current?.focus();
     } finally {
       setSending(false);
     }
@@ -76,12 +81,13 @@ export function EmailChangeModal({ open, onClose }: Props) {
           ) : (
             <>
               {[
-                { label: "NEW EMAIL ADDRESS", key: "newEmail" as const, type: "email" },
-                { label: "CURRENT PASSWORD", key: "currentPassword" as const, type: "password" },
-              ].map(({ label, key, type }) => (
+                { label: "NEW EMAIL ADDRESS", key: "newEmail" as const, type: "email", ref: newEmailRef },
+                { label: "CURRENT PASSWORD", key: "currentPassword" as const, type: "password", ref: currentPasswordRef },
+              ].map(({ label, key, type, ref }) => (
                 <div key={key} className="flex flex-col gap-1">
                   <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
                   <Input
+                    ref={ref}
                     type={type}
                     value={form[key]}
                     onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
@@ -94,7 +100,15 @@ export function EmailChangeModal({ open, onClose }: Props) {
               ))}
 
               {error && (
-                <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
+                <p
+                  ref={errorRef}
+                  role="alert"
+                  aria-live="polite"
+                  tabIndex={-1}
+                  className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4"
+                >
+                  {error}
+                </p>
               )}
 
               <RetroButton

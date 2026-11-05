@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RetroButton } from "@/components/RetroButton";
 import { Loader2 } from "lucide-react";
@@ -15,6 +15,7 @@ export function PasswordChangeModal({ open, onClose }: Props) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const handleSend = async () => {
     if (!user?.email) return;
@@ -30,6 +31,7 @@ export function PasswordChangeModal({ open, onClose }: Props) {
       setSent(true);
     } catch {
       setError("SOMETHING WENT WRONG. PLEASE TRY AGAIN.");
+      errorRef.current?.focus();
     } finally {
       setSending(false);
     }
@@ -69,7 +71,15 @@ export function PasswordChangeModal({ open, onClose }: Props) {
               </p>
               <p className="font-['VT323'] text-primary text-xl">{user?.email?.toUpperCase()}</p>
               {error && (
-                <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
+                <p
+                  ref={errorRef}
+                  role="alert"
+                  aria-live="polite"
+                  tabIndex={-1}
+                  className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4"
+                >
+                  {error}
+                </p>
               )}
               <RetroButton
                 variant="primary"

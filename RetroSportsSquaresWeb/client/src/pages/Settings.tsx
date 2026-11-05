@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,6 +25,7 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const draftRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async () => {
     setError(null);
@@ -34,6 +35,7 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
       setEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "SAVE FAILED");
+      draftRef.current?.focus();
     } finally {
       setSaving(false);
     }
@@ -50,6 +52,7 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
       <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
       <div className="flex items-center gap-2">
         <Input
+          ref={draftRef}
           type={inputType}
           value={draft}
           disabled={!editing}
@@ -90,7 +93,13 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
         )}
       </div>
       {error && (
-        <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4 mt-1">{error}</p>
+        <p
+          role="alert"
+          aria-live="polite"
+          className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4 mt-1"
+        >
+          {error}
+        </p>
       )}
     </div>
   );

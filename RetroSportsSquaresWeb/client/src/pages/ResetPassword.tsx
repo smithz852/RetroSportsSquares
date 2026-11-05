@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
@@ -16,6 +16,9 @@ export default function ResetPassword() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const newPasswordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   if (!token || !email) {
     return (
@@ -35,10 +38,12 @@ export default function ResetPassword() {
     setError(null);
     if (!form.newPassword || !form.confirmPassword) {
       setError("ALL FIELDS ARE REQUIRED");
+      (form.newPassword ? confirmPasswordRef : newPasswordRef).current?.focus();
       return;
     }
     if (form.newPassword !== form.confirmPassword) {
       setError("PASSWORDS DO NOT MATCH");
+      confirmPasswordRef.current?.focus();
       return;
     }
     setSubmitting(true);
@@ -57,6 +62,7 @@ export default function ResetPassword() {
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "SOMETHING WENT WRONG");
+      errorRef.current?.focus();
     } finally {
       setSubmitting(false);
     }
@@ -87,12 +93,13 @@ export default function ResetPassword() {
 
         <div className="flex flex-col gap-4 px-6 py-5">
           {[
-            { label: "NEW PASSWORD", key: "newPassword" as const },
-            { label: "CONFIRM NEW PASSWORD", key: "confirmPassword" as const },
-          ].map(({ label, key }) => (
+            { label: "NEW PASSWORD", key: "newPassword" as const, ref: newPasswordRef },
+            { label: "CONFIRM NEW PASSWORD", key: "confirmPassword" as const, ref: confirmPasswordRef },
+          ].map(({ label, key, ref }) => (
             <div key={key} className="flex flex-col gap-1">
               <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
               <Input
+                ref={ref}
                 type="password"
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
@@ -106,7 +113,15 @@ export default function ResetPassword() {
           ))}
 
           {error && (
-            <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
+            <p
+              ref={errorRef}
+              role="alert"
+              aria-live="polite"
+              tabIndex={-1}
+              className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4"
+            >
+              {error}
+            </p>
           )}
 
           <RetroButton
