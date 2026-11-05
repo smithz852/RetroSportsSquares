@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,11 +18,15 @@ export function DeleteAccountModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const currentPasswordRef = useRef<HTMLInputElement>(null);
+  const confirmTextRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const handleSubmit = async () => {
     setError(null);
     if (!form.currentPassword || form.confirmText !== "DELETE") {
       setError("ENTER YOUR PASSWORD AND TYPE DELETE TO CONFIRM");
+      (form.currentPassword ? confirmTextRef : currentPasswordRef).current?.focus();
       return;
     }
     setSubmitting(true);
@@ -46,6 +50,7 @@ export function DeleteAccountModal({ open, onClose }: Props) {
       setLocation("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "SOMETHING WENT WRONG");
+      errorRef.current?.focus();
       setSubmitting(false);
     }
   };
@@ -76,6 +81,7 @@ export function DeleteAccountModal({ open, onClose }: Props) {
           <div className="flex flex-col gap-1">
             <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">CURRENT PASSWORD</span>
             <Input
+              ref={currentPasswordRef}
               type="password"
               value={form.currentPassword}
               onChange={e => setForm(prev => ({ ...prev, currentPassword: e.target.value }))}
@@ -89,6 +95,7 @@ export function DeleteAccountModal({ open, onClose }: Props) {
           <div className="flex flex-col gap-1">
             <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">TYPE DELETE TO CONFIRM</span>
             <Input
+              ref={confirmTextRef}
               type="text"
               value={form.confirmText}
               onChange={e => setForm(prev => ({ ...prev, confirmText: e.target.value }))}
@@ -100,7 +107,15 @@ export function DeleteAccountModal({ open, onClose }: Props) {
           </div>
 
           {error && (
-            <p className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">{error}</p>
+            <p
+              ref={errorRef}
+              role="alert"
+              aria-live="polite"
+              tabIndex={-1}
+              className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4"
+            >
+              {error}
+            </p>
           )}
 
           <RetroButton
