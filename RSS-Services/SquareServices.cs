@@ -19,13 +19,13 @@ namespace RSS_Services
         private AppDbContext _appDbContext;
         private readonly Random _random = new();
         private readonly IGameHubNotifier _hubNotifier;
-        private readonly WalletService _walletService;
+        private readonly CoinWalletService _coinWalletService;
 
-        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier, WalletService walletService)
+        public SquareServices(AppDbContext appDbContext, IGameHubNotifier hubNotifier, CoinWalletService coinWalletService)
         {
             _appDbContext = appDbContext;
             _hubNotifier = hubNotifier;
-            _walletService = walletService;
+            _coinWalletService = coinWalletService;
         }
 
         // Row-locks the game for the rest of the current transaction (released on commit/rollback).
@@ -77,7 +77,7 @@ namespace RSS_Services
                 // Charge only for the squares actually assigned — partial selections
                 // throw below and the player re-picks the remainder.
                 if (game != null && game.IsPublic)
-                    await _walletService.WagerAsync(userId, gameIdGuid, game.PricePerSquare * availableSquares.Count);
+                    await _coinWalletService.WagerAsync(userId, gameIdGuid, game.PricePerSquare * availableSquares.Count);
 
                 var savedSquares = await _appDbContext.SaveChangesAsync();
 
@@ -343,7 +343,7 @@ namespace RSS_Services
         // (past the board's final period), backfilling unresolved periods as null.
         // Completion is driven by game status rather than the final winner save, so
         // an unclaimed final square can't leave the game hanging until the next-day
-        // stale sweep. Unclaimed periods already pay 0 via PayoutCalculator.
+        // stale sweep. Unclaimed periods already pay 0 via SettlementCalculator.
         public async Task CompleteGameAsync(Guid squareGameId)
         {
             var game = await _appDbContext.SquareGames.FindAsync(squareGameId);

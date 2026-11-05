@@ -41,7 +41,7 @@ namespace RSS_Services
 
                 var squareCountsByUser = GetSquareCountsByUser(game);
                 var lines = SettlementEngine.ComputeSettlement(
-                    game.PayoutMode, game.PeriodWinners, game.PeriodCount, game.PricePerSquare, squareCountsByUser);
+                    game.SettlementMode, game.PeriodWinners, game.PeriodCount, game.PricePerSquare, squareCountsByUser);
 
                 var hasEscrow = game.IsPublic && await _appDbContext.CoinTransactions
                     .AnyAsync(t => t.SquareGameId == game.Id && t.Type == CoinTransactionTypes.Wager);
@@ -54,7 +54,7 @@ namespace RSS_Services
                     // Thief: make sure every arrow victim carries the flag — mid-game
                     // eliminations were flagged live, but a game-end arrow (trailing
                     // null periods) only resolves here.
-                    if (game.PayoutMode == PayoutModes.Thief)
+                    if (game.SettlementMode == SettlementModes.Thief)
                     {
                         var victims = ThiefWalk.Analyze(game.PeriodWinners, game.PeriodCount)
                             .Where(e => e.Type == ThiefEventType.Elimination)
@@ -88,7 +88,7 @@ namespace RSS_Services
 
                     _logger.LogInformation(
                         "Settled game {GameId} ({Mode}): {LineCount} lines totaling {Total}, coins credited: {Credited}",
-                        game.Id, game.PayoutMode, lines.Count, lines.Sum(l => l.Amount), hasEscrow);
+                        game.Id, game.SettlementMode, lines.Count, lines.Sum(l => l.Amount), hasEscrow);
                 }
                 catch
                 {

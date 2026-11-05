@@ -28,20 +28,20 @@ namespace RSS_Services.Helpers
     public static class SettlementEngine
     {
         public static List<SettlementLine> ComputeSettlement(
-            string payoutMode,
+            string settlementMode,
             IReadOnlyDictionary<int, string?> periodWinners,
             int periodCount,
             decimal pricePerSquare,
             IReadOnlyDictionary<string, int> squareCountsByUser)
         {
-            var lines = payoutMode switch
+            var lines = settlementMode switch
             {
-                PayoutModes.Default => ComputeDefault(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
-                PayoutModes.Fair => ComputeFair(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
-                PayoutModes.Push => ComputePush(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
-                PayoutModes.Destruction => ComputeDestruction(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
-                PayoutModes.Thief => ComputeThief(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
-                _ => throw new NotSupportedException($"Payout mode '{payoutMode}' has no settlement implementation."),
+                SettlementModes.Default => ComputeDefault(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                SettlementModes.Fair => ComputeFair(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                SettlementModes.Push => ComputePush(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                SettlementModes.Destruction => ComputeDestruction(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                SettlementModes.Thief => ComputeThief(periodWinners, periodCount, pricePerSquare, squareCountsByUser),
+                _ => throw new NotSupportedException($"Settlement mode '{settlementMode}' has no settlement implementation."),
             };
 
             if (!IsFullyResolved(periodWinners, periodCount))
@@ -75,11 +75,11 @@ namespace RSS_Services.Helpers
         public static decimal GetPool(decimal pricePerSquare, IReadOnlyDictionary<string, int> squareCountsByUser)
             => pricePerSquare * squareCountsByUser.Values.Sum();
 
-        // Dashboard convenience: one player's prize money (period wins + pushes).
+        // Dashboard convenience: one player's coin total (period wins + pushes).
         // Pro-rata refunds are returned stakes, not winnings, so Redistribution
         // lines are excluded. Only meaningful for completed games.
-        public static decimal GetUserPrizeTotal(
-            string payoutMode,
+        public static decimal GetUserCoinTotal(
+            string settlementMode,
             IReadOnlyDictionary<int, string?> periodWinners,
             int periodCount,
             decimal pricePerSquare,
@@ -90,7 +90,7 @@ namespace RSS_Services.Helpers
                 .GroupBy(o => o)
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            return ComputeSettlement(payoutMode, periodWinners, periodCount, pricePerSquare, squareCounts)
+            return ComputeSettlement(settlementMode, periodWinners, periodCount, pricePerSquare, squareCounts)
                 .Where(l => l.UserId == userId && l.Type != CoinTransactionTypes.Redistribution)
                 .Sum(l => l.Amount);
         }

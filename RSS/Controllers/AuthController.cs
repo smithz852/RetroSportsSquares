@@ -20,7 +20,7 @@ namespace RSS.Controllers
         private readonly IConfiguration _config;
         private readonly TokenService _tokenService;
         private readonly IMemoryCache _cache;
-        private readonly WalletService _walletService;
+        private readonly CoinWalletService _coinWalletService;
         private readonly ILogger<AuthController> _logger;
 
         // Version of the Terms of Service / Privacy Policy presented at signup.
@@ -29,14 +29,14 @@ namespace RSS.Controllers
         private const string CurrentTermsVersion = "2026-11-03";
         private const int MinimumAge = 18;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, WalletService walletService, ILogger<AuthController> logger)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, CoinWalletService coinWalletService, ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _config = config;
             _tokenService = tokenService;
             _cache = cache;
-            _walletService = walletService;
+            _coinWalletService = coinWalletService;
             _logger = logger;
         }
 
@@ -53,7 +53,7 @@ namespace RSS.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
-            var coinBalance = await _walletService.EnsureDailyGrantAsync(user.Id);
+            var coinBalance = await _coinWalletService.EnsureDailyGrantAsync(user.Id);
             return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome } });
         }
 
@@ -70,7 +70,7 @@ namespace RSS.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             // The daily coin grant rides on /me since it runs on every app load;
             // idempotent per PST day, so repeated calls are cheap no-ops.
-            var coinBalance = await _walletService.EnsureDailyGrantAsync(user.Id);
+            var coinBalance = await _coinWalletService.EnsureDailyGrantAsync(user.Id);
             return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome });
         }
 

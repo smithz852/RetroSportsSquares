@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Circle, Handshake, Hand, BowArrow, Bomb, type LucideIcon } from "lucide-react";
 import type { InfoModalPage } from "@/components/InfoModal";
-import type { PayoutMode } from "@shared/schema";
+import type { SettlementMode } from "@shared/schema";
 
 // Placeholder copy, condensed from GAME_MODES.md — wording to be refined by product owner.
 export const REFRESH_NOTE =
@@ -9,13 +9,13 @@ export const REFRESH_NOTE =
 
 // The stored/compared value everywhere else in the app stays "Default" (DB + settlement
 // logic) — this only controls what players see it called.
-export function getPayoutModeLabel(mode: PayoutMode | null | undefined): string {
+export function getSettlementModeLabel(mode: SettlementMode | null | undefined): string {
   const resolved = mode ?? "Default";
   return resolved === "Default" ? "STANDARD" : resolved.toUpperCase();
 }
 
 // Board-cell icon shown on unclaimed squares once a game has started, in place of "OPEN".
-const PAYOUT_MODE_ICONS: Record<PayoutMode, LucideIcon> = {
+const SETTLEMENT_MODE_ICONS: Record<SettlementMode, LucideIcon> = {
   Default: Circle,
   Fair: Handshake,
   Push: Hand,
@@ -23,8 +23,8 @@ const PAYOUT_MODE_ICONS: Record<PayoutMode, LucideIcon> = {
   Destruction: Bomb,
 };
 
-export function getPayoutModeIcon(mode: PayoutMode | null | undefined): LucideIcon {
-  return PAYOUT_MODE_ICONS[mode ?? "Default"] ?? PAYOUT_MODE_ICONS.Default;
+export function getSettlementModeIcon(mode: SettlementMode | null | undefined): LucideIcon {
+  return SETTLEMENT_MODE_ICONS[mode ?? "Default"] ?? SETTLEMENT_MODE_ICONS.Default;
 }
 
 const GENERAL_INTRO_PAGE: InfoModalPage = {
@@ -56,9 +56,9 @@ const GENERAL_INTRO_PAGE: InfoModalPage = {
 
 type ModeContent = { title: string; body: ReactNode };
 
-const MODE_CONTENT: Record<PayoutMode, ModeContent> = {
+const MODE_CONTENT: Record<SettlementMode, ModeContent> = {
   Default: {
-    title: getPayoutModeLabel("Default"),
+    title: getSettlementModeLabel("Default"),
     body: (
       <>
         <p className="italic text-red-400">The classic. Steady payouts, no surprises.</p>
@@ -144,14 +144,14 @@ const MODE_CONTENT: Record<PayoutMode, ModeContent> = {
   },
 };
 
-export function getGameRulesPages(mode: PayoutMode | null | undefined): InfoModalPage[] {
+export function getGameRulesPages(mode: SettlementMode | null | undefined): InfoModalPage[] {
   const content = MODE_CONTENT[mode ?? "Default"] ?? MODE_CONTENT.Default;
   return [GENERAL_INTRO_PAGE, { heading: content.title, body: content.body }];
 }
 
 // Mode-only, no square-selection mechanics — for previewing a mode before a game
 // (and its squares) exist, e.g. the CreateGameDialog picker.
-export function getModeDetailPage(mode: PayoutMode | null | undefined): InfoModalPage[] {
+export function getModeDetailPage(mode: SettlementMode | null | undefined): InfoModalPage[] {
   const content = MODE_CONTENT[mode ?? "Default"] ?? MODE_CONTENT.Default;
   return [{ heading: content.title, body: content.body }];
 }

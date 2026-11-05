@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace RSS_DB.Entities
 {
-    // Payout mode names stored on SquareGames.PayoutMode. All modes split the pool
+    // Settlement mode names stored on SquareGames.SettlementMode. All modes split the pool
     // evenly per period; they differ in what an unclaimed ("null-square") period does.
-    public static class PayoutModes
+    public static class SettlementModes
     {
         public const string Default = "Default";
         public const string Fair = "Fair";

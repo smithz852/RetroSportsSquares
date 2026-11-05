@@ -30,34 +30,34 @@ namespace RSS_Tests
         [Fact]
         public void Live_Fair_ShareRisesAsPeriodsGoUnclaimed_AndConvergesToSettlement()
         {
-            Assert.Equal(5m, Total(Live(PayoutModes.Fair, A), A));            // 20 / 4
-            Assert.Equal(6.67m, Total(Live(PayoutModes.Fair, A, null), A));   // 20 / 3
-            var afterB = Live(PayoutModes.Fair, A, null, B);
+            Assert.Equal(5m, Total(Live(SettlementModes.Fair, A), A));            // 20 / 4
+            Assert.Equal(6.67m, Total(Live(SettlementModes.Fair, A, null), A));   // 20 / 3
+            var afterB = Live(SettlementModes.Fair, A, null, B);
             Assert.Equal(6.67m, Total(afterB, A));
             Assert.Equal(6.67m, Total(afterB, B));
 
-            var final = Live(PayoutModes.Fair, A, null, B, C);
+            var final = Live(SettlementModes.Fair, A, null, B, C);
             Assert.Equal(20m, final.Sum(l => l.Amount)); // residual applied once fully resolved
         }
 
         [Fact]
         public void Live_HoldsBackRefundsAndResidual()
         {
-            Assert.Empty(Live(PayoutModes.Default, (string?)null));
-            Assert.Empty(Live(PayoutModes.Fair, (string?)null));
-            Assert.DoesNotContain(Live(PayoutModes.Default, A, null), l => l.Type == CoinTransactionTypes.Redistribution);
+            Assert.Empty(Live(SettlementModes.Default, (string?)null));
+            Assert.Empty(Live(SettlementModes.Fair, (string?)null));
+            Assert.DoesNotContain(Live(SettlementModes.Default, A, null), l => l.Type == CoinTransactionTypes.Redistribution);
             // 20/3 rounds to 6.67 per win; the pennies aren't pinned on anyone mid-game
-            Assert.Equal(6.67m, Total(Live(PayoutModes.Fair, A, null), A));
+            Assert.Equal(6.67m, Total(Live(SettlementModes.Fair, A, null), A));
         }
 
         [Fact]
         public void Live_Push_PendingCarryIsNotPaidUntilAWinnerCollectsIt()
         {
-            var pending = Live(PayoutModes.Push, A, null);
+            var pending = Live(SettlementModes.Push, A, null);
             Assert.Equal(5m, Total(pending, A));
             Assert.DoesNotContain(pending, l => l.Type == CoinTransactionTypes.Push);
 
-            var collected = Live(PayoutModes.Push, A, null, B);
+            var collected = Live(SettlementModes.Push, A, null, B);
             Assert.Equal(10m, Total(collected, B)); // own 5 + carried 5
             Assert.Equal(5m, Total(collected, A));
         }
@@ -65,11 +65,11 @@ namespace RSS_Tests
         [Fact]
         public void Live_Destruction_BombZeroesPot_ButSalvageAndLootWaitForTheEnd()
         {
-            var live = Live(PayoutModes.Destruction, A, null);
+            var live = Live(SettlementModes.Destruction, A, null);
             Assert.Equal(0m, Total(live, A));
             Assert.DoesNotContain(live, l => l.Type == CoinTransactionTypes.Salvage);
 
-            var collected = Live(PayoutModes.Destruction, A, null, B);
+            var collected = Live(SettlementModes.Destruction, A, null, B);
             Assert.Equal(10m, Total(collected, B)); // own 5 + A's looted 5
             Assert.Equal(0m, Total(collected, A));
         }
@@ -77,11 +77,11 @@ namespace RSS_Tests
         [Fact]
         public void Live_Thief_ArrowFiresOnlyOnAResolvedWinner_NotOnUnresolvedTail()
         {
-            var armed = Live(PayoutModes.Thief, A, null);
+            var armed = Live(SettlementModes.Thief, A, null);
             Assert.Equal(6.67m, Total(armed, A));              // 20 / 3, nothing stolen yet
             Assert.DoesNotContain(armed, l => l.Type == CoinTransactionTypes.Steal);
 
-            var hit = Live(PayoutModes.Thief, A, null, B);
+            var hit = Live(SettlementModes.Thief, A, null, B);
             Assert.Equal(13.34m, Total(hit, A));               // A stole B's pot
             Assert.Equal(0m, Total(hit, B));
         }
@@ -90,7 +90,7 @@ namespace RSS_Tests
         public void Live_NonNegativeModes_EarningsOnlyRiseAsPeriodsResolve()
         {
             var rng = new Random(2026);
-            string[] modes = { PayoutModes.Default, PayoutModes.Fair, PayoutModes.Push };
+            string[] modes = { SettlementModes.Default, SettlementModes.Fair, SettlementModes.Push };
             for (int i = 0; i < 300; i++)
             {
                 var periodCount = rng.Next(2, 7);
@@ -122,7 +122,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 5, [B] = 5 };
             // pool = 2 * 10 = 20, per period = 5
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(A, B, A, B), 4, 2m, squares);
+                SettlementModes.Default, Periods(A, B, A, B), 4, 2m, squares);
 
             Assert.Equal(4, lines.Count);
             Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.PeriodWin, l.Type));
@@ -136,7 +136,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 6, [B] = 2 };
             // pool = 8 * 1 = 8, per period = 2, one null period -> 2 coins refunded pro-rata
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(A, B, null, A), 4, 1m, squares);
+                SettlementModes.Default, Periods(A, B, null, A), 4, 1m, squares);
 
             // A: two period wins (4) + refund 0.25 * 6 = 1.50
             Assert.Equal(5.50m, Total(lines, A));
@@ -151,7 +151,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 7, [B] = 1, [C] = 2 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(null, null, null, null), 4, 3m, squares);
+                SettlementModes.Default, Periods(null, null, null, null), 4, 3m, squares);
 
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.PeriodWin);
             Assert.Equal(21m, Total(lines, A));
@@ -164,7 +164,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 4 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(A, null, A, null), 4, 1m, squares);
+                SettlementModes.Default, Periods(A, null, A, null), 4, 1m, squares);
 
             var winPeriods = lines.Where(l => l.Type == CoinTransactionTypes.PeriodWin)
                 .Select(l => l.Period).ToList();
@@ -179,7 +179,7 @@ namespace RSS_Tests
             // pool = 10, 3 periods -> per period 3.333...
             var squares = new Dictionary<string, int> { [A] = 6, [B] = 4 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(A, B, null), 3, 1m, squares);
+                SettlementModes.Default, Periods(A, B, null), 3, 1m, squares);
 
             Assert.Equal(10m, lines.Sum(l => l.Amount));
             Assert.All(lines, l => Assert.True(l.Amount > 0));
@@ -190,7 +190,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 0 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(null, null), 2, 1m, squares);
+                SettlementModes.Default, Periods(null, null), 2, 1m, squares);
 
             Assert.DoesNotContain(lines, l => l.UserId == B);
         }
@@ -200,7 +200,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 5 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Default, Periods(A, null), 2, 0m, squares);
+                SettlementModes.Default, Periods(A, null), 2, 0m, squares);
 
             Assert.Empty(lines);
         }
@@ -219,7 +219,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 6, [B] = 6 };
             // pool = 12, one null of 4 -> 3 winning periods pay 12/3 = 4 (not 3)
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Fair, Periods(A, B, null, A), 4, 1m, squares);
+                SettlementModes.Fair, Periods(A, B, null, A), 4, 1m, squares);
 
             Assert.Equal(3, lines.Count);
             Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.PeriodWin, l.Type));
@@ -233,7 +233,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Fair, Periods(A, B, A, B), 4, 1m, squares);
+                SettlementModes.Fair, Periods(A, B, A, B), 4, 1m, squares);
 
             Assert.All(lines, l => Assert.Equal(2m, l.Amount));
         }
@@ -243,7 +243,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 3, [B] = 5 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Fair, Periods(null, null), 2, 2m, squares);
+                SettlementModes.Fair, Periods(null, null), 2, 2m, squares);
 
             Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
             Assert.Equal(6m, Total(lines, A));
@@ -256,7 +256,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 5, [B] = 5 };
             // pool = 10, per period 2.5; P2 null -> P3 winner gets 2.5 + 2.5 push
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Push, Periods(A, null, B, A), 4, 1m, squares);
+                SettlementModes.Push, Periods(A, null, B, A), 4, 1m, squares);
 
             var pushLines = lines.Where(l => l.Type == CoinTransactionTypes.Push).ToList();
             Assert.Single(pushLines);
@@ -273,7 +273,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 8 };
             // pool = 8, per period 2; P1+P2 null -> P3 winner gets 2 + 4 push
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Push, Periods(null, null, A, A), 4, 1m, squares);
+                SettlementModes.Push, Periods(null, null, A, A), 4, 1m, squares);
 
             var push = lines.Single(l => l.Type == CoinTransactionTypes.Push);
             Assert.Equal(4m, push.Amount);
@@ -287,7 +287,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
             // pool = 8, per period 2; P4 null -> trailing 2 goes to A (earliest winner)
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Push, Periods(A, B, B, null), 4, 1m, squares);
+                SettlementModes.Push, Periods(A, B, B, null), 4, 1m, squares);
 
             var push = lines.Single(l => l.Type == CoinTransactionTypes.Push);
             Assert.Equal(A, push.UserId);
@@ -302,7 +302,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 2, [B] = 6 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Push, Periods(null, null, null, null), 4, 1m, squares);
+                SettlementModes.Push, Periods(null, null, null, null), 4, 1m, squares);
 
             Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
             Assert.Equal(2m, Total(lines, A));
@@ -316,7 +316,7 @@ namespace RSS_Tests
             // pool = 8, per period 2. P2 bomb loots A's 2 -> B collects at P3.
             // Bomb share (2) salvages to first winner A.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Destruction, Periods(A, null, B, A), 4, 1m, squares);
+                SettlementModes.Destruction, Periods(A, null, B, A), 4, 1m, squares);
 
             var negDestroy = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount < 0);
             Assert.Equal(A, negDestroy.UserId);
@@ -342,7 +342,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
             // pool = 8; P1 bomb has no previous winner -> no loot, share salvages to A.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Destruction, Periods(null, A, B, B), 4, 1m, squares);
+                SettlementModes.Destruction, Periods(null, A, B, B), 4, 1m, squares);
 
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
             var salvage = lines.Single(l => l.Type == CoinTransactionTypes.Salvage);
@@ -357,7 +357,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
             // pool = 8, per 2. P4 bomb loots B's 4 -> no later winner -> first winner A.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Destruction, Periods(A, B, B, null), 4, 1m, squares);
+                SettlementModes.Destruction, Periods(A, B, B, null), 4, 1m, squares);
 
             var fallback = lines.Single(l => l.Type == CoinTransactionTypes.Destroy && l.Amount > 0);
             Assert.Equal(A, fallback.UserId);
@@ -373,7 +373,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
             // pool = 8, per 2. P2 bomb loots A; P3 bomb finds A's pot empty -> nothing.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Destruction, Periods(A, null, null, B), 4, 1m, squares);
+                SettlementModes.Destruction, Periods(A, null, null, B), 4, 1m, squares);
 
             Assert.Single(lines.Where(l => l.Type == CoinTransactionTypes.Destroy && l.Amount < 0));
             Assert.Equal(4m, Total(lines, B)); // 2 win + 2 loot
@@ -386,7 +386,7 @@ namespace RSS_Tests
             var squares = new Dictionary<string, int> { [A] = 4, [B] = 4 };
             // P2 bomb loots A, then A wins P3 and collects their own loot.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Destruction, Periods(A, null, A, B), 4, 1m, squares);
+                SettlementModes.Destruction, Periods(A, null, A, B), 4, 1m, squares);
 
             Assert.Equal(6m, Total(lines, A)); // 2 - 2 + 2 + 2(own loot) + 2 salvage
             Assert.Equal(2m, Total(lines, B));
@@ -397,7 +397,7 @@ namespace RSS_Tests
         {
             var squares = new Dictionary<string, int> { [A] = 3, [B] = 5 };
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Destruction, Periods(null, null, null, null), 4, 1m, squares);
+                SettlementModes.Destruction, Periods(null, null, null, null), 4, 1m, squares);
 
             Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
             Assert.Equal(3m, Total(lines, A));
@@ -413,7 +413,7 @@ namespace RSS_Tests
             // The example from the original design: A wins P1, B wins P2, arrow at
             // P3 (armed by B), A wins P4 -> A is eliminated, B takes A's coins.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, B, null, A), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, B, null, A), 4, 1m, ThiefSquares);
 
             // perWin = 9 / 3 claimed periods = 3
             var steals = lines.Where(l => l.Type == CoinTransactionTypes.Steal).ToList();
@@ -430,7 +430,7 @@ namespace RSS_Tests
             // A arms at P2, wins P3 (self-hit): pot (6) becomes a bounty; B wins P4
             // and collects it on top of their own win.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, null, A, B), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, null, A, B), 4, 1m, ThiefSquares);
 
             var bombs = lines.Where(l => l.Type == CoinTransactionTypes.Destroy).ToList();
             Assert.Contains(bombs, l => l.UserId == A && l.Amount == -6m && l.Period == 3);
@@ -446,7 +446,7 @@ namespace RSS_Tests
             // B is the shooter (most recent winner) when the game ends with an
             // arrow in flight; earliest survivor A gets eliminated, coins only.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, B, B, null), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, B, B, null), 4, 1m, ThiefSquares);
 
             var steals = lines.Where(l => l.Type == CoinTransactionTypes.Steal).ToList();
             Assert.Contains(steals, l => l.UserId == A && l.Amount == -3m && l.Period == null);
@@ -462,7 +462,7 @@ namespace RSS_Tests
             // winner; B also survives. User-confirmed rule: the game-end arrow does
             // NOT seek the next surviving winner — it's a dud and B is safe.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, B, A, null), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, B, A, null), 4, 1m, ThiefSquares);
 
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
@@ -474,7 +474,7 @@ namespace RSS_Tests
         public void Thief_TrailingArrow_SoleSurvivingWinner_IsADud()
         {
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, null, null, null), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, null, null, null), 4, 1m, ThiefSquares);
 
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
@@ -486,7 +486,7 @@ namespace RSS_Tests
         {
             // A arms at P3 and wins the FINAL period: no bounty, no transfer.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(B, A, null, A), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(B, A, null, A), 4, 1m, ThiefSquares);
 
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Destroy);
             Assert.DoesNotContain(lines, l => l.Type == CoinTransactionTypes.Steal);
@@ -500,7 +500,7 @@ namespace RSS_Tests
             // A eliminates B at P3 (arrow from P2), P4 arrow re-arms for A but A is
             // the only survivor -> dud. A holds everything.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, null, B, null), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, null, B, null), 4, 1m, ThiefSquares);
 
             Assert.Equal(9m, Total(lines, A)); // 4.5 win + 4.5 stolen from B
             Assert.Equal(0m, Total(lines, B));
@@ -512,7 +512,7 @@ namespace RSS_Tests
             // A self-hits at P3 (bounty = 9), nobody wins after; the bounty falls
             // back to the earliest survivor — A themselves.
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(A, null, A, null), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(A, null, A, null), 4, 1m, ThiefSquares);
 
             var bombs = lines.Where(l => l.Type == CoinTransactionTypes.Destroy).ToList();
             Assert.Equal(2, bombs.Count); // -9 self-hit, +9 return
@@ -523,7 +523,7 @@ namespace RSS_Tests
         public void Thief_AllNull_RefundsExactWagers()
         {
             var lines = SettlementEngine.ComputeSettlement(
-                PayoutModes.Thief, Periods(null, null, null, null), 4, 1m, ThiefSquares);
+                SettlementModes.Thief, Periods(null, null, null, null), 4, 1m, ThiefSquares);
 
             Assert.All(lines, l => Assert.Equal(CoinTransactionTypes.Redistribution, l.Type));
             Assert.Equal(5m, Total(lines, A));
@@ -533,11 +533,11 @@ namespace RSS_Tests
         // Pool conservation is the core invariant of every mode: whatever the
         // period sequence, the settlement lines redistribute exactly the pool.
         [Theory]
-        [InlineData(PayoutModes.Default)]
-        [InlineData(PayoutModes.Fair)]
-        [InlineData(PayoutModes.Push)]
-        [InlineData(PayoutModes.Destruction)]
-        [InlineData(PayoutModes.Thief)]
+        [InlineData(SettlementModes.Default)]
+        [InlineData(SettlementModes.Fair)]
+        [InlineData(SettlementModes.Push)]
+        [InlineData(SettlementModes.Destruction)]
+        [InlineData(SettlementModes.Thief)]
         public void RandomizedGames_AlwaysConserveThePool(string mode)
         {
             var rng = new Random(20260718);
@@ -566,8 +566,8 @@ namespace RSS_Tests
                 // ever leave a game having lost more than they won in it.
                 Assert.All(lines, l => Assert.True(
                     l.Amount > 0
-                        || (mode == PayoutModes.Destruction && l.Type == CoinTransactionTypes.Destroy)
-                        || (mode == PayoutModes.Thief && (l.Type == CoinTransactionTypes.Destroy || l.Type == CoinTransactionTypes.Steal)),
+                        || (mode == SettlementModes.Destruction && l.Type == CoinTransactionTypes.Destroy)
+                        || (mode == SettlementModes.Thief && (l.Type == CoinTransactionTypes.Destroy || l.Type == CoinTransactionTypes.Steal)),
                     $"unexpected non-positive line in iteration {i}"));
                 var perUser = lines.GroupBy(l => l.UserId).Select(g => g.Sum(l => l.Amount));
                 Assert.All(perUser, total => Assert.True(total >= 0, $"negative net in iteration {i}"));

@@ -13,6 +13,6 @@ namespace RSS.DTOs
         public bool IsPublic { get; set; } = true;
         public string DailySportsGameId { get; set; }
         // Null/omitted means Default (pre-picker clients)
-        public string? PayoutMode { get; set; }
+        public string? SettlementMode { get; set; }
     }
 }

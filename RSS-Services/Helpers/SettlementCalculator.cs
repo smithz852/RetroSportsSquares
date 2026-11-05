@@ -1,11 +1,11 @@
 namespace RSS_Services.Helpers
 {
-    public static class PayoutCalculator
+    public static class SettlementCalculator
     {
-        // Canonical payout formula: the total pool is split evenly across all periods.
+        // Canonical settlement formula: the total pool is split evenly across all periods.
         // Periods with no claimed winning square simply pay out nothing — their share
         // is not redistributed to other winners.
-        public static decimal GetPayoutPerPeriod(decimal pricePerSquare, int claimedSquareCount, int periodCount)
+        public static decimal GetCoinsPerPeriod(decimal pricePerSquare, int claimedSquareCount, int periodCount)
         {
             if (periodCount <= 0) return 0;
             return (pricePerSquare * claimedSquareCount) / periodCount;

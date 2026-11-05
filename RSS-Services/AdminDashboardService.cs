@@ -141,7 +141,7 @@ namespace RSS_Services
                     gp.Game.PricePerSquare,
                     gp.Game.PeriodWinners,
                     gp.Game.PeriodCount,
-                    gp.Game.PayoutMode,
+                    gp.Game.SettlementMode,
                     gp.Game.IsCompleted,
                     PlayerSquaresCount = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
                     TotalGameSquaresCount = gp.Game.GameSquares.Count(gs => gs.GamePlayerId != null),
@@ -166,10 +166,10 @@ namespace RSS_Services
                     var wagersWon = group.Sum(g =>
                     {
                         if (g.IsCompleted)
-                            return SettlementEngine.GetUserPrizeTotal(g.PayoutMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
+                            return SettlementEngine.GetUserCoinTotal(g.SettlementMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
 
                         var won = g.PeriodWinners.Values.Count(v => v == userId);
-                        return won * PayoutCalculator.GetPayoutPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
+                        return won * SettlementCalculator.GetCoinsPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
                     });
 
                     return new AdminPlayerStatsDTO

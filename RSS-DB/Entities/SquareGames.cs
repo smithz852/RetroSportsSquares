@@ -40,7 +40,7 @@ namespace RSS_DB.Entities
         public int PeriodCount { get; set; } = 4;
         [Required]
         [MaxLength(20)]
-        public string PayoutMode { get; set; } = PayoutModes.Default;
+        public string SettlementMode { get; set; } = SettlementModes.Default;
         public bool IsCompleted { get; set; } = false;
         public bool RecapEmailSent { get; set; } = false;
         // End-of-game coin settlement ran (at-most-once guard, like RecapEmailSent)

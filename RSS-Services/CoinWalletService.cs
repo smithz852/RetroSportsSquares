@@ -13,14 +13,14 @@ namespace RSS_Services
     // only ever changed via ExecuteUpdate arithmetic so concurrent requests cannot
     // clobber each other; every balance change is paired with a CoinTransactions
     // ledger row, which is the auditable source of truth.
-    public class WalletService
+    public class CoinWalletService
     {
         public const decimal DailyGrantAmount = 15m;
 
         private readonly AppDbContext _appDbContext;
         private readonly TimeHelpers _timeHelpers;
 
-        public WalletService(AppDbContext appDbContext, TimeHelpers timeHelpers)
+        public CoinWalletService(AppDbContext appDbContext, TimeHelpers timeHelpers)
         {
             _appDbContext = appDbContext;
             _timeHelpers = timeHelpers;

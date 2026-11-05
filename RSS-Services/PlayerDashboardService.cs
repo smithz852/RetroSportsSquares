@@ -24,7 +24,7 @@ namespace RSS_Services
                     gp.Game.PricePerSquare,
                     gp.Game.PeriodWinners,
                     gp.Game.PeriodCount,
-                    gp.Game.PayoutMode,
+                    gp.Game.SettlementMode,
                     gp.Game.IsCompleted,
                     // Wager stats count the original buyer — Thief eliminations
                     // reassign GamePlayerId but never rewrite who paid.
@@ -49,10 +49,10 @@ namespace RSS_Services
             var wagersWon = gameData.Sum(g =>
             {
                 if (g.IsCompleted)
-                    return SettlementEngine.GetUserPrizeTotal(g.PayoutMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
+                    return SettlementEngine.GetUserCoinTotal(g.SettlementMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
 
                 var won = g.PeriodWinners.Values.Count(v => v == userId);
-                return won * PayoutCalculator.GetPayoutPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
+                return won * SettlementCalculator.GetCoinsPerPeriod(g.PricePerSquare, g.TotalGameSquaresCount, g.PeriodCount);
             });
 
             var totalPeriodsPlayed = gameData.Sum(g =>
@@ -106,7 +106,7 @@ namespace RSS_Services
                     gp.Game.CreatedAt,
                     gp.Game.PeriodWinners,
                     gp.Game.PeriodCount,
-                    gp.Game.PayoutMode,
+                    gp.Game.SettlementMode,
                     PlayerSquaresCount = gp.Game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == gp.Id),
                     ClaimedSquareOwners = gp.Game.GameSquares
                         .Where(gs => gs.GamePlayerId != null)
@@ -119,7 +119,7 @@ namespace RSS_Services
             {
                 var periodsWon = g.PeriodWinners.Values.Count(v => v == userId);
                 // Past games are completed, so the engine gives exact, mode-correct amounts.
-                var totalWon = SettlementEngine.GetUserPrizeTotal(g.PayoutMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
+                var totalWon = SettlementEngine.GetUserCoinTotal(g.SettlementMode, g.PeriodWinners, g.PeriodCount, g.PricePerSquare, g.ClaimedSquareOwners, userId);
 
                 return new PastGameSummaryDTO
                 {
