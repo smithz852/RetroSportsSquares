@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { API_BASE_URL, endpoints } from "@shared/routes";
+import { endpoints } from "@shared/routes";
+import { apiFetch } from "@/lib/api-client";
 import {
   BoardSquare,
   CreateOutsideSquareNumbersRequest,
@@ -12,12 +13,8 @@ import {
 export function useJoinGame() {
   return useMutation({
     mutationFn: async (gameId: string): Promise<{ isHost: boolean }> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Please login to join a game");
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.join(gameId)}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (!localStorage.getItem("token")) throw new Error("Please login to join a game");
+      const res = await apiFetch(endpoints.games.join(gameId), { method: "POST" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         throw new Error(text || "Failed to join game");
@@ -30,12 +27,8 @@ export function useJoinGame() {
 export function useLeaveGame() {
   return useMutation({
     mutationFn: async (gameId: string): Promise<void> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Please login to leave a game");
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.leave(gameId)}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (!localStorage.getItem("token")) throw new Error("Please login to leave a game");
+      const res = await apiFetch(endpoints.games.leave(gameId), { method: "POST" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         throw new Error(text || "Failed to leave game");
@@ -51,15 +44,11 @@ export function usePostSquareSelection(gameId: string) {
     mutationFn: async (
       data: CreateSquareSelectionRequest,
     ): Promise<SquareSelectionResponse> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Please login to create a game");
+      if (!localStorage.getItem("token")) throw new Error("Please login to create a game");
       console.log("Squaredata:", data);
-      const res = await fetch(`${API_BASE_URL}${endpoints.selections.create(gameId)}`, {
+      const res = await apiFetch(endpoints.selections.create(gameId), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           selections: data.selections.map((s) => s.squareId),
         }),
@@ -101,7 +90,7 @@ export function useGetBoardSquares(gameId: string, refetchInterval?: number | fa
   return useQuery({
     queryKey: ["boardSquares", gameId],
     queryFn: async (): Promise<BoardSquare[]> => {
-      const res = await fetch(`${API_BASE_URL}${endpoints.selections.getBoard(gameId)}`);
+      const res = await apiFetch(endpoints.selections.getBoard(gameId));
       if (!res.ok) throw new Error("Failed to fetch board squares");
       const data = await res.json();
       // console.log("BoardSquares:", data);
@@ -119,15 +108,11 @@ export function useSetOutsideSquareNumbers(gameId: string) {
     mutationFn: async (
       data: CreateOutsideSquareNumbersRequest,
     ): Promise<OutsideSquareNumbersResponse> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Please login to start a game");
+      if (!localStorage.getItem("token")) throw new Error("Please login to start a game");
       console.log("OutsideSquareData:", data);
-      const res = await fetch(`${API_BASE_URL}${endpoints.selections.setGameNumbers(gameId)}`, {
+      const res = await apiFetch(endpoints.selections.setGameNumbers(gameId), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           OutsideSquares: data.outsideSquares.map((s) => ({
             SquareName: s.squareName,
@@ -170,7 +155,7 @@ export function useGetOutsideSquares(gameId: string) {
   return useQuery({
     queryKey: ["OutsideSquares", gameId], 
     queryFn: async (): Promise<OutsideSquare> => {
-      const res = await fetch(`${API_BASE_URL}${endpoints.selections.getGameNumbers(gameId)}`);
+      const res = await apiFetch(endpoints.selections.getGameNumbers(gameId));
       if (!res.ok) throw new Error("Failed to fetch outside squares");
       const data = await res.json();
       console.log("OutsideSquareData:", data);

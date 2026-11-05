@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { API_BASE_URL, endpoints } from "@shared/routes";
+import { endpoints } from "@shared/routes";
 import { type ChatMessage } from "@shared/schema";
+import { apiFetch } from "@/lib/api-client";
 
 // Appends a message to the cached list, skipping duplicates by id.
 // The sender receives the message twice (mutation response + hub broadcast).
@@ -16,11 +17,8 @@ export function useChatMessages(gameId: string) {
   return useQuery({
     queryKey: ["chat", gameId],
     queryFn: async (): Promise<ChatMessage[]> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Please login to view chat");
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.chat(gameId)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (!localStorage.getItem("token")) throw new Error("Please login to view chat");
+      const res = await apiFetch(endpoints.games.chat(gameId));
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         throw new Error(text || "Failed to load chat");
@@ -36,14 +34,10 @@ export function useSendChatMessage(gameId: string) {
 
   return useMutation({
     mutationFn: async (message: string): Promise<ChatMessage> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Please login to chat");
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.chat(gameId)}`, {
+      if (!localStorage.getItem("token")) throw new Error("Please login to chat");
+      const res = await apiFetch(endpoints.games.chat(gameId), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
       if (!res.ok) {

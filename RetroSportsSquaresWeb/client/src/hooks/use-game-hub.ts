@@ -5,6 +5,12 @@ import { useLocation } from "wouter";
 import { API_BASE_URL } from "@shared/routes";
 import { type ChatMessage } from "@shared/schema";
 import { appendChatMessage } from "./use-chat";
+import { handleSessionExpired } from "@/lib/api-client";
+
+const isAuthError = (err: unknown): boolean =>
+  err instanceof signalR.HttpError
+    ? err.statusCode === 401
+    : /\b401\b|unauthorized/i.test(err instanceof Error ? err.message : String(err));
 
 export function useGameHub(gameId: string) {
   const queryClient = useQueryClient();
@@ -68,10 +74,19 @@ export function useGameHub(gameId: string) {
       );
     });
 
+    // Token expired before negotiate, or expired mid-session and automatic
+    // reconnect's negotiate fails too — either way, treat it as a session expiry.
+    connection.onclose((err) => {
+      if (isAuthError(err)) handleSessionExpired();
+    });
+
     connection
       .start()
       .then(() => connection.invoke("JoinGame", gameId))
-      .catch(console.error);
+      .catch((err) => {
+        if (isAuthError(err)) handleSessionExpired();
+        else console.error(err);
+      });
 
     connectionRef.current = connection;
 

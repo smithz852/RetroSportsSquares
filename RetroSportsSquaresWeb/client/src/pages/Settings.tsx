@@ -9,7 +9,8 @@ import { PasswordChangeModal } from "@/components/PasswordChangeModal";
 import { EmailChangeModal } from "@/components/EmailChangeModal";
 import { DeleteAccountModal } from "@/components/DeleteAccountModal";
 import { Pencil, Check, Loader2, ArrowLeft } from "lucide-react";
-import { API_BASE_URL, endpoints } from "@shared/routes";
+import { endpoints } from "@shared/routes";
+import { apiFetch } from "@/lib/api-client";
 
 type EditableFieldProps = {
   label: string;
@@ -96,13 +97,9 @@ function EditableField({ label, value, inputType = "text", maxLength, onSave }: 
 }
 
 async function patchUserField(endpoint: string, body: object): Promise<void> {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await apiFetch(endpoint, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
