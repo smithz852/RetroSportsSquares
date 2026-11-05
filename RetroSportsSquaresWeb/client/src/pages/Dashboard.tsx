@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
 import { useState, useMemo, useEffect } from "react";
-import { API_BASE_URL, endpoints } from "@shared/routes";
+import { endpoints } from "@shared/routes";
+import { apiFetch } from "@/lib/api-client";
 import { useJoinGame } from "@/hooks/use-gameplay";
 import { useDeleteGame } from "@/hooks/use-games";
 import { getSettlementModeLabel } from "@/content/gameModeRules";
@@ -76,13 +77,10 @@ export default function Dashboard() {
   async function handleJoinById(e: React.FormEvent) {
     e.preventDefault();
     const input = joinIdInput.trim().toLowerCase();
-    const token = localStorage.getItem("token");
 
     let fullGameId: string;
     try {
-      const res = await fetch(`${API_BASE_URL}${endpoints.games.findByShortId(input)}`, {
-        headers: { Authorization: `Bearer ${token ?? ""}` },
-      });
+      const res = await apiFetch(endpoints.games.findByShortId(input));
       if (!res.ok) {
         setJoinError("GAME NOT FOUND");
         return;

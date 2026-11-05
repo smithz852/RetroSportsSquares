@@ -1,16 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import { type LoginRequest, type User, type LoginResponse, type SignupRequest } from "@shared/schema";
+import { apiFetch } from "@/lib/api-client";
 
 
 
 async function fetchUser(): Promise<User | null> {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-  
-  const response = await fetch(`${API_BASE_URL}${endpoints.auth.getUser}`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
+  if (!localStorage.getItem('token')) return null;
+
+  const response = await apiFetch(endpoints.auth.getUser);
   if (!response.ok) return null;
   return response.json();
 }
@@ -115,12 +113,8 @@ export function useMarkWelcomeSeen() {
 
   return useMutation({
     mutationFn: async (): Promise<void> => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      await fetch(`${API_BASE_URL}${endpoints.user.markWelcomeSeen}`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (!localStorage.getItem("token")) return;
+      await apiFetch(endpoints.user.markWelcomeSeen, { method: "PATCH" });
     },
     onSuccess: () => {
       queryClient.setQueryData<User | null>(["currentUser"], (prev) =>
