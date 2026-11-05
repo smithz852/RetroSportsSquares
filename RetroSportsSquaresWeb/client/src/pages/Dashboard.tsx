@@ -3,7 +3,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { RetroCard } from "@/components/RetroCard";
 import { CreateGameDialog } from "@/components/CreateGameDialog";
 import { Loader2, Calendar, User, Trophy, X, Search, LogIn, Coins, Hash } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { entranceProps } from "@/lib/motion";
 import { format } from "date-fns";
 import { useLocation, useParams } from "wouter";
 import { useState, useMemo, useEffect } from "react";
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const { data: allGames, isLoading: gamesLoading, error } = useGames();
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -126,7 +128,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
         <Loader2 className="h-16 w-16 text-primary animate-spin" />
-        <p className="font-['Press_Start_2P'] text-primary animate-pulse">LOADING DATA...</p>
+        <p className="font-['Press_Start_2P'] text-primary animate-pulse motion-reduce:animate-none">LOADING DATA...</p>
       </div>
     );
   }
@@ -185,9 +187,7 @@ export default function Dashboard() {
           {displayedGames.map((game, i) => (
             <motion.div
               key={game.gameId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              {...entranceProps(reducedMotion, { opacity: 0, y: 20 }, { opacity: 1, y: 0 }, { delay: i * 0.1 })}
               onClick={() => !isJoining && handleGameClick(game.gameId)}
             >
               <RetroCard title={`ID: ${formatId(game.gameId)}`} className={`h-full hover:border-white transition-colors cursor-pointer group ${joiningGameId === game.gameId ? "opacity-60 pointer-events-none" : ""}`}>

@@ -6,7 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSignup } from "@/hooks/use-auth";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { entranceProps } from "@/lib/motion";
 
 const MINIMUM_AGE = 18;
 
@@ -41,6 +42,7 @@ export default function Signup() {
   });
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const validatePassword = (password: string) => {
     const minLength = password.length >= 8;
@@ -122,8 +124,7 @@ export default function Signup() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        {...entranceProps(reducedMotion, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1 })}
         className="w-full max-w-md"
       >
         <Card className="bg-black border-4 border-primary rounded-none shadow-[0_0_30px_rgba(255,0,0,0.2)]">

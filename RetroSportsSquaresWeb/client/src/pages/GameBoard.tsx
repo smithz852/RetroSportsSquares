@@ -3,7 +3,8 @@ import { useParams, Link, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { RetroButton } from "@/components/RetroButton";
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { entranceProps } from "@/lib/motion";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins } from "lucide-react";
@@ -20,6 +21,7 @@ import { getGameRulesPages, getSettlementModeLabel, getSettlementModeIcon } from
 
 export default function GameBoard() {
   const { user, isLoading: authLoading } = useAuth();
+  const reducedMotion = useReducedMotion();
   const params = useParams();
   const id = params.id as string;
   const { toast } = useToast();
@@ -316,7 +318,7 @@ useEffect(() => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <h2 className="text-primary font-pixel animate-pulse">
+        <h2 className="text-primary font-pixel animate-pulse motion-reduce:animate-none">
           AUTHENTICATING...
         </h2>
       </div>
@@ -467,7 +469,7 @@ useEffect(() => {
   if (gameLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <h2 className="text-primary font-pixel animate-pulse">
+        <h2 className="text-primary font-pixel animate-pulse motion-reduce:animate-none">
           LOADING GAME...
         </h2>
       </div>
@@ -542,24 +544,24 @@ useEffect(() => {
           {scoreData?.settlementMode && scoreData.settlementMode !== "Default" && (
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
               {scoreData.settlementMode === "Push" && pushCarry > 0 && (
-                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse motion-reduce:animate-none">
                   <Coins size={16} />
                   POT: {(pushCarry + (scoreData.coinsPerPeriod ?? 0)).toFixed(2)} ON THE NEXT PERIOD!
                 </span>
               )}
               {scoreData.settlementMode === "Destruction" && destructionLoot > 0 && (
-                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse">
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 flex items-center gap-2 animate-pulse motion-reduce:animate-none">
                   <Coins size={16} />
                   LOOT: {destructionLoot.toFixed(2)} TO THE NEXT WINNER!
                 </span>
               )}
               {thiefState?.armed && thiefState.shooter && (
-                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 animate-pulse">
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 animate-pulse motion-reduce:animate-none">
                   ARROW ARMED BY {thiefState.shooter.toUpperCase()} — NEXT WINNER GETS ROBBED!
                 </span>
               )}
               {thiefState?.bountyOwner && (
-                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 animate-pulse">
+                <span className="px-2 py-1 font-['VT323'] text-xl text-yellow-400 border-2 border-yellow-400/40 bg-yellow-400/5 animate-pulse motion-reduce:animate-none">
                   {thiefState.bountyOwner.toUpperCase()}'S WINNINGS UP FOR GRABS!
                 </span>
               )}
@@ -588,7 +590,7 @@ useEffect(() => {
                     <Button
                       onClick={() => beginSelections()}
                       disabled={isBeginPending}
-                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse motion-reduce:animate-none"
                     >
                       BEGIN SELECTIONS
                     </Button>
@@ -597,7 +599,7 @@ useEffect(() => {
                   {isHost && !gameStarted && (
                     <Button
                       onClick={handleStartGame}
-                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                      className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse motion-reduce:animate-none"
                     >
                       INSERT COIN / START GAME
                     </Button>
@@ -617,7 +619,7 @@ useEffect(() => {
                     <Button
                       onClick={handleSubmit}
                       disabled={isPending}
-                      className="bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse"
+                      className="bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse motion-reduce:animate-none"
                     >
                       {countdown !== null ? `SUBMIT (${countdown}s)` : "Submit"}
                     </Button>
@@ -665,7 +667,7 @@ useEffect(() => {
                   }
                   className={`w-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] h-[clamp(1.25rem,8.2cqw_-_0.39rem,4.5rem)] p-0 border-2 border-red-900 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
                     !gameStarted && !isSpectator
-                      ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] hover:bg-red-500"
+                      ? "bg-red-600 cursor-pointer animate-[pulse_2s_infinite] motion-reduce:animate-none hover:bg-red-500"
                       : "bg-red-900/20 cursor-default"
                   }`}
                 >
@@ -783,11 +785,10 @@ useEffect(() => {
                         return (
                           <motion.div
                             key={p.userId}
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            {...entranceProps(reducedMotion, { opacity: 0, x: 10 }, { opacity: 1, x: 0 })}
                             className={`flex items-center gap-3 p-2 border ${
                               isCurrent
-                                ? "border-red-500 bg-red-900/20 animate-pulse"
+                                ? "border-red-500 bg-red-900/20 animate-pulse motion-reduce:animate-none"
                                 : p.hasHadTurn
                                 ? "border-red-900/20 opacity-40"
                                 : "border-red-900/40"
@@ -870,8 +871,7 @@ useEffect(() => {
                       Object.entries(playerStats).map(([name, count]) => (
                         <motion.div
                           key={name}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          {...entranceProps(reducedMotion, { opacity: 0, x: 10 }, { opacity: 1, x: 0 })}
                           className="grid grid-cols-4 text-s font-pixel text-red-500 items-center"
                         >
                           <span className="truncate pr-1">{name}</span>

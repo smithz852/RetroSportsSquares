@@ -10,7 +10,7 @@ export default function Home() {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-black gap-6">
         <Loader2 className="h-16 w-16 text-primary animate-spin" />
-        <h2 className="text-primary font-['Press_Start_2P'] text-xl animate-pulse">LOADING SYSTEM...</h2>
+        <h2 className="text-primary font-['Press_Start_2P'] text-xl animate-pulse motion-reduce:animate-none">LOADING SYSTEM...</h2>
       </div>
     );
   }

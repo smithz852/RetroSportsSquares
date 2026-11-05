@@ -356,7 +356,7 @@ export function CreateGameDialog() {
               {isLoading ? (
                 <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4">
                   <Loader2 className="h-16 w-16 text-primary animate-spin" />
-                  <p className="font-['Press_Start_2P'] text-primary animate-pulse">
+                  <p className="font-['Press_Start_2P'] text-primary animate-pulse motion-reduce:animate-none">
                     LOADING DATA...
                   </p>
                 </div>
