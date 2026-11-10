@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RSS.Helpers;
 using RSS_DB.Entities;
 using RSS_Services;
 using System.Security.Claims;
@@ -116,6 +117,10 @@ namespace RSS.Controllers
                 return BadRequest(result.Errors);
 
             await _userManager.SetUserNameAsync(user, dto.NewEmail);
+
+            // The JWT's email claim is now stale; end the session so the user logs back in
+            // and gets a token reflecting the new email (mirrors the old localStorage-clear).
+            AuthCookieHelper.ClearAuthCookies(HttpContext);
             return Ok(new { message = "Email address updated successfully." });
         }
 
@@ -137,6 +142,7 @@ namespace RSS.Controllers
             try
             {
                 await _accountDeletionService.DeleteAccountAsync(user);
+                AuthCookieHelper.ClearAuthCookies(HttpContext);
                 return Ok(new { message = "Your account has been deleted." });
             }
             catch (Exception ex)

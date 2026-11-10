@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using RSS.Helpers;
 using RSS_DB.Entities;
 using RSS_Services;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,6 +24,7 @@ namespace RSS.Controllers
         private readonly IMemoryCache _cache;
         private readonly CoinWalletService _coinWalletService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IAntiforgery _antiforgery;
 
         // Version of the Terms of Service / Privacy Policy presented at signup.
         // Bump this if the legal text changes materially, so AcceptedTermsAt/TermsVersion
@@ -29,7 +32,7 @@ namespace RSS.Controllers
         private const string CurrentTermsVersion = "2026-11-03";
         private const int MinimumAge = 18;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, CoinWalletService coinWalletService, ILogger<AuthController> logger)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration config, TokenService tokenService, IMemoryCache cache, CoinWalletService coinWalletService, ILogger<AuthController> logger, IAntiforgery antiforgery)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -38,6 +41,7 @@ namespace RSS.Controllers
             _cache = cache;
             _coinWalletService = coinWalletService;
             _logger = logger;
+            _antiforgery = antiforgery;
         }
 
         [HttpPost("login")]
@@ -52,9 +56,10 @@ namespace RSS.Controllers
                 return Unauthorized();
 
             var roles = await _userManager.GetRolesAsync(user);
-            var token = GenerateJwtToken(user, roles);
+            var (token, expires) = GenerateJwtToken(user, roles);
+            AuthCookieHelper.SetAuthCookies(HttpContext, _antiforgery, token, expires);
             var coinBalance = await _coinWalletService.EnsureDailyGrantAsync(user.Id);
-            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome } });
+            return Ok(new { user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome } });
         }
 
         [HttpGet("me")]
@@ -89,6 +94,7 @@ namespace RSS.Controllers
             // revocation takes effect immediately instead of after the 30s TTL
             await _userManager.UpdateSecurityStampAsync(user);
             _cache.Remove($"stamp_{userId}");
+            AuthCookieHelper.ClearAuthCookies(HttpContext);
 
             return Ok(new { message = "Logged out." });
         }
@@ -160,7 +166,7 @@ namespace RSS.Controllers
             return Ok(new { message = "Password reset successfully." });
         }
 
-        private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
+        private (string Token, DateTime Expires) GenerateJwtToken(ApplicationUser user, IList<string> roles)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -185,8 +191,9 @@ namespace RSS.Controllers
                 expires: expires,
                 signingCredentials: creds);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return (new JwtSecurityTokenHandler().WriteToken(token), expires);
         }
+
     }
 
     public record RegisterDto(string Email, string Password, string Name, string? GamerTag, DateOnly DateOfBirth, bool AgeConfirmed, bool AcceptedTerms);

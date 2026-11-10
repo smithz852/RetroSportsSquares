@@ -21,8 +21,6 @@ export function useCreateGame() {
 
   return useMutation({
     mutationFn: async (data: CreateSquareGameRequest): Promise<SquareGame> => {
-      if (!localStorage.getItem('token')) throw new Error("Please login to create a game");
-
       console.log(data);
       const res = await apiFetch(endpoints.games.create, {
         method: "POST",
@@ -81,7 +79,6 @@ export function useStartGame(gameId: string) {
 
   return useMutation({
     mutationFn: async (): Promise<void> => {
-      if (!localStorage.getItem('token')) throw new Error('Please login to start a game');
       const res = await apiFetch(endpoints.games.start(gameId), { method: 'POST' });
       if (!res.ok) throw new Error('Failed to start game');
     },
@@ -106,7 +103,6 @@ export function useBeginSelections(gameId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (): Promise<TurnStatus> => {
-      if (!localStorage.getItem('token')) throw new Error('Not authenticated');
       const res = await apiFetch(endpoints.games.beginSelections(gameId), { method: 'POST' });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -126,7 +122,6 @@ export function useSkipPlayer(gameId: string) {
   return useMutation({
     // expectedUserId = the player the host is skipping; the server ignores the skip if the turn already moved
     mutationFn: async (expectedUserId: string): Promise<TurnStatus> => {
-      if (!localStorage.getItem('token')) throw new Error('Not authenticated');
       const res = await apiFetch(`${endpoints.games.skipPlayer(gameId)}?expectedUserId=${encodeURIComponent(expectedUserId)}`, {
         method: 'POST',
       });
@@ -142,7 +137,6 @@ export function useDeleteGame() {
 
   return useMutation({
     mutationFn: async (gameId: string): Promise<void> => {
-      if (!localStorage.getItem('token')) throw new Error('Please login to delete a game');
       const res = await apiFetch(endpoints.games.delete(gameId), { method: 'DELETE' });
       if (!res.ok) {
         const text = await res.text().catch(() => '');

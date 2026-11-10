@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { RetroButton } from "@/components/RetroButton";
 import { Loader2 } from "lucide-react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
+import { getCsrfToken } from "@/lib/api-client";
 
 type Props = {
   open: boolean;
@@ -28,12 +29,13 @@ export function EmailChangeModal({ open, onClose }: Props) {
     }
     setSending(true);
     try {
-      const token = localStorage.getItem("token");
+      const csrfToken = getCsrfToken();
       const res = await fetch(`${API_BASE_URL}${endpoints.user.requestEmailChange}`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
         },
         body: JSON.stringify({ newEmail: form.newEmail, currentPassword: form.currentPassword }),
       });

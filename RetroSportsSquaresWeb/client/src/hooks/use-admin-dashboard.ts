@@ -15,7 +15,6 @@ import { apiFetch } from "@/lib/api-client";
 const ADMIN_STALE_TIME = 1000 * 30;
 
 async function adminFetch<T>(endpoint: string): Promise<T> {
-  if (!localStorage.getItem('token')) throw new Error("Not authenticated");
   const res = await apiFetch(endpoint);
   if (res.status === 403) throw new Error("Access denied: admin only");
   if (!res.ok) throw new Error("Failed to fetch admin data");
