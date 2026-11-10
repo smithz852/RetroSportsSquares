@@ -28,7 +28,7 @@ jobs:
         run: dotnet test RSS/RSS-API.csproj --configuration Release --no-build
 
       - name: Install EF Core tools
-        run: dotnet tool install --global dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 8.0.0
 
       - name: Run migrations (dev)
         run: dotnet ef database update --project RSS-DB --startup-project RSS --configuration Release --connection "${{ secrets.AZURE_MYSQL_DEV_CONNECTION }}"
