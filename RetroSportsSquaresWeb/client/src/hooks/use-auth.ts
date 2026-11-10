@@ -1,33 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import { type LoginRequest, type User, type LoginResponse, type SignupRequest } from "@shared/schema";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, getCsrfToken } from "@/lib/api-client";
 
 
 
 async function fetchUser(): Promise<User | null> {
-  if (!localStorage.getItem('token')) return null;
-
-  const response = await apiFetch(endpoints.auth.getUser);
+  // Bypasses apiFetch deliberately: the auth cookie is HttpOnly so there's no way to
+  // check client-side whether a session exists, and this runs on every page load
+  // (including anonymous ones). A 401 here just means "not logged in" — it must stay
+  // silent, not trigger apiFetch's session-expired toast + redirect.
+  const response = await fetch(`${API_BASE_URL}${endpoints.auth.getUser}`, { credentials: "include" });
   if (!response.ok) return null;
   return response.json();
 }
 
 async function logout(): Promise<void> {
-  const token = localStorage.getItem('token');
-  // Clear the local token first so logout succeeds even if the server call fails
-  localStorage.removeItem('token');
-  if (token) {
-    try {
-      // Best-effort server-side revocation (rotates the security stamp,
-      // invalidating this user's tokens on all devices)
-      await fetch(`${API_BASE_URL}${endpoints.auth.logout}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-    } catch {
-      // Local logout already happened; ignore network failures
-    }
+  try {
+    // Rotates the security stamp (invalidating this user's tokens on all devices)
+    // and clears the auth cookies server-side.
+    const csrfToken = getCsrfToken();
+    await fetch(`${API_BASE_URL}${endpoints.auth.logout}`, {
+      method: 'POST',
+      credentials: "include",
+      headers: csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : undefined,
+    });
+  } catch {
+    // Swallow network failures — the caller clears local state (query cache)
+    // regardless, so logout always appears to succeed from the user's perspective.
   }
 }
 
@@ -40,6 +40,7 @@ export function useLogin() {
         const response = await fetch(`${API_BASE_URL}${endpoints.auth.login}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: "include",
           body: JSON.stringify(credentials),
         });
 
@@ -58,8 +59,7 @@ export function useLogin() {
       }
     },
     onSuccess: (data) => {
-      // Store token and user data
-      localStorage.setItem('token', data.token);
+      // The JWT itself arrives as an HttpOnly cookie (set by the server), not in this body
       queryClient.setQueryData(["currentUser"], data.user);
     },
   });
@@ -113,7 +113,6 @@ export function useMarkWelcomeSeen() {
 
   return useMutation({
     mutationFn: async (): Promise<void> => {
-      if (!localStorage.getItem("token")) return;
       await apiFetch(endpoints.user.markWelcomeSeen, { method: "PATCH" });
     },
     onSuccess: () => {
