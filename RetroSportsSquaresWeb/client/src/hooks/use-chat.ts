@@ -17,6 +17,7 @@ export function useChatMessages(gameId: string) {
   return useQuery({
     queryKey: ["chat", gameId],
     queryFn: async (): Promise<ChatMessage[]> => {
+      if (!localStorage.getItem("token")) throw new Error("Please login to view chat");
       const res = await apiFetch(endpoints.games.chat(gameId));
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -33,6 +34,7 @@ export function useSendChatMessage(gameId: string) {
 
   return useMutation({
     mutationFn: async (message: string): Promise<ChatMessage> => {
+      if (!localStorage.getItem("token")) throw new Error("Please login to chat");
       const res = await apiFetch(endpoints.games.chat(gameId), {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { RetroButton } from "@/components/RetroButton";
 import { API_BASE_URL, endpoints } from "@shared/routes";
-import { getCsrfToken } from "@/lib/api-client";
 
 export default function ConfirmEmailChange() {
   const [status, setStatus] = useState<"loading" | "success" | "unauthorized" | "error">("loading");
@@ -20,13 +19,17 @@ export default function ConfirmEmailChange() {
       return;
     }
 
-    const csrfToken = getCsrfToken();
+    const jwt = localStorage.getItem("token");
+    if (!jwt) {
+      setStatus("unauthorized");
+      return;
+    }
+
     fetch(`${API_BASE_URL}${endpoints.user.confirmEmailChange}`, {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        Authorization: `Bearer ${jwt}`,
       },
       body: JSON.stringify({ newEmail, token }),
     })
@@ -38,6 +41,7 @@ export default function ConfirmEmailChange() {
           setErrorMsg(data.message ?? "CONFIRMATION FAILED. THE LINK MAY HAVE EXPIRED.");
           setStatus("error");
         } else {
+          localStorage.removeItem("token");
           setStatus("success");
         }
       })

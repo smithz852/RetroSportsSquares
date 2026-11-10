@@ -13,6 +13,7 @@ import {
 export function useJoinGame() {
   return useMutation({
     mutationFn: async (gameId: string): Promise<{ isHost: boolean }> => {
+      if (!localStorage.getItem("token")) throw new Error("Please login to join a game");
       const res = await apiFetch(endpoints.games.join(gameId), { method: "POST" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -26,6 +27,7 @@ export function useJoinGame() {
 export function useLeaveGame() {
   return useMutation({
     mutationFn: async (gameId: string): Promise<void> => {
+      if (!localStorage.getItem("token")) throw new Error("Please login to leave a game");
       const res = await apiFetch(endpoints.games.leave(gameId), { method: "POST" });
       if (!res.ok) {
         const text = await res.text().catch(() => "");
@@ -42,6 +44,7 @@ export function usePostSquareSelection(gameId: string) {
     mutationFn: async (
       data: CreateSquareSelectionRequest,
     ): Promise<SquareSelectionResponse> => {
+      if (!localStorage.getItem("token")) throw new Error("Please login to create a game");
       console.log("Squaredata:", data);
       const res = await apiFetch(endpoints.selections.create(gameId), {
         method: "POST",
@@ -105,6 +108,7 @@ export function useSetOutsideSquareNumbers(gameId: string) {
     mutationFn: async (
       data: CreateOutsideSquareNumbersRequest,
     ): Promise<OutsideSquareNumbersResponse> => {
+      if (!localStorage.getItem("token")) throw new Error("Please login to start a game");
       console.log("OutsideSquareData:", data);
       const res = await apiFetch(endpoints.selections.setGameNumbers(gameId), {
         method: "POST",

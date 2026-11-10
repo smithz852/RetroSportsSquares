@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Resend;
 using RSS;
-using RSS.Helpers;
 using RSS.Middleware;
 using RSS.SportsDataAutomation;
 using RSS_DB;
@@ -79,18 +78,14 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
-    // The JWT lives in an HttpOnly cookie (not the Authorization header) so it's
-    // never reachable from JS. This covers both regular API calls and SignalR's
-    // negotiate/websocket requests, since the browser attaches cookies to all of
-    // them automatically when the client uses credentials. Falling through to the
-    // default Authorization-header lookup when there's no cookie keeps Swagger's
-    // manual bearer-token flow working for local testing.
+    // SignalR sends the token via query string on the WebSocket handshake
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = ctx =>
         {
-            var token = ctx.Request.Cookies[AuthCookieHelper.AuthCookieName];
-            if (!string.IsNullOrEmpty(token))
+            var token = ctx.Request.Query["access_token"];
+            if (!string.IsNullOrEmpty(token) &&
+                ctx.Request.Path.StartsWithSegments("/hubs"))
                 ctx.Token = token;
             return Task.CompletedTask;
         },
@@ -127,24 +122,6 @@ builder.Services.AddAuthentication(options =>
                 ctx.Fail("Security stamp mismatch");
         }
     };
-});
-
-// Double-submit CSRF defense (see CsrfProtectionMiddleware + AuthCookieHelper). The
-// internal "cookie token" cookie is HttpOnly and only used by the Antiforgery system
-// itself to validate the paired RequestToken, which AuthCookieHelper separately exposes
-// via its own JS-readable __Host-XSRF-TOKEN cookie. Expiration is pinned to 7 days to
-// match the longer of the two JWT lifetimes (player); outliving a shorter-lived admin
-// auth cookie by a few days is harmless since CsrfProtectionMiddleware only checks this
-// when the auth cookie is also present.
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN";
-    options.Cookie.Name = AuthCookieHelper.AntiforgeryCookieName;
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.Path = "/";
-    options.Cookie.Expiration = TimeSpan.FromDays(7);
 });
 
 // Your existing services
@@ -197,7 +174,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Login sets the JWT as an HttpOnly cookie, not in the response body. For manual testing here, call /auth/login, copy the '__Host-token' cookie's value from the response's Set-Cookie header (DevTools Network tab), and paste it below (no 'Bearer ' prefix needed)."
+        Description = "Paste the JWT from /auth/login (no 'Bearer ' prefix needed)"
     });
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
@@ -351,7 +328,6 @@ app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
 app.UseMiddleware<EmailExtractionMiddleware>(); // must run after auth so JWT claims are available
-app.UseMiddleware<CsrfProtectionMiddleware>();
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();

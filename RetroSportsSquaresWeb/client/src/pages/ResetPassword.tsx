@@ -57,6 +57,7 @@ export default function ResetPassword() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message ?? "RESET FAILED. THE LINK MAY HAVE EXPIRED.");
       }
+      localStorage.removeItem("token");
       queryClient.setQueryData(["currentUser"], null);
       setSuccess(true);
     } catch (err) {

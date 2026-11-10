@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { RetroButton } from "@/components/RetroButton";
 import { Loader2 } from "lucide-react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
-import { getCsrfToken } from "@/lib/api-client";
 
 type Props = {
   open: boolean;
@@ -32,13 +31,12 @@ export function DeleteAccountModal({ open, onClose }: Props) {
     }
     setSubmitting(true);
     try {
-      const csrfToken = getCsrfToken();
+      const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE_URL}${endpoints.user.deleteAccount}`, {
         method: "DELETE",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ currentPassword: form.currentPassword, confirmText: form.confirmText }),
       });
@@ -47,6 +45,7 @@ export function DeleteAccountModal({ open, onClose }: Props) {
         throw new Error(data.message ?? "DELETE FAILED");
       }
 
+      localStorage.removeItem("token");
       queryClient.setQueryData(["currentUser"], null);
       setLocation("/");
     } catch (err) {

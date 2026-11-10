@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { API_BASE_URL } from "@shared/routes";
 import { type ChatMessage } from "@shared/schema";
 import { appendChatMessage } from "./use-chat";
-import { getCsrfToken, handleSessionExpired } from "@/lib/api-client";
+import { handleSessionExpired } from "@/lib/api-client";
 
 const isAuthError = (err: unknown): boolean =>
   err instanceof signalR.HttpError
@@ -19,15 +19,9 @@ export function useGameHub(gameId: string) {
 
   useEffect(() => {
     if (!gameId) return;
-    // Negotiate is a plain POST, so it's subject to the same double-submit CSRF check as
-    // REST calls (see CsrfProtectionMiddleware) — the actual WebSocket upgrade afterward
-    // can't carry custom headers, but it's a GET and the hub's own connection is already
-    // authenticated by then, so only negotiate needs the header.
-    const csrfToken = getCsrfToken();
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/hubs/game`, {
-        withCredentials: true,
-        headers: csrfToken ? { "X-XSRF-TOKEN": csrfToken } : undefined,
+        accessTokenFactory: () => localStorage.getItem("token") ?? "",
       })
       .withAutomaticReconnect()
       .build();
