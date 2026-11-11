@@ -18,6 +18,7 @@ import Signup from "@/pages/SignUp";
 import Settings from "@/pages/Settings";
 import ConfirmEmailChange from "@/pages/ConfirmEmailChange";
 import ResetPassword from "@/pages/ResetPassword";
+import EmailPreferences from "@/pages/EmailPreferences";
 import AdminDashboard from "@/pages/AdminDashboard";
 import { AdminRoute } from "@/components/AdminRoute";
 import Support from "@/pages/Support";
@@ -52,6 +53,7 @@ function Router() {
           <Route path="/privacy" component={Privacy} />
           <Route path="/confirm-email-change" component={ConfirmEmailChange} />
           <Route path="/reset-password" component={ResetPassword} />
+          <Route path="/email-preferences" component={EmailPreferences} />
           <Route component={NotFound} />
         </Switch>
       </main>

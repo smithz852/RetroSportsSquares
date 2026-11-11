@@ -27,6 +27,12 @@ namespace RSS_DB.Entities
         public DateTimeOffset? AgeVerifiedAt { get; set; }
         public DateTimeOffset? AcceptedTermsAt { get; set; }
         public string? TermsVersion { get; set; }
+        // CAN-SPAM opt-out for end-of-game recap emails (the only non-transactional
+        // email type left — see GameNotificationService). UnsubscribeToken is
+        // lazily generated on first recap send and never expires, since the
+        // opt-out link embedded in emails must keep working for 30+ days.
+        public bool RecapEmailsOptedOut { get; set; } = false;
+        public Guid? UnsubscribeToken { get; set; }
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }

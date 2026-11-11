@@ -37,10 +37,8 @@ namespace RSS_Services
                 if (winner != null)
                 {
                     var result = await _squareServices.SaveQuarterlyWinner(winner, squareGame.Id);
-                    if (result != null) // null = unclaimed period or already resolved — no email
+                    if (result != null) // null = unclaimed period or already resolved
                     {
-                        await _notifications.SendPeriodWinEmailAsync(squareGame.Id, result.Period, result.WinnerApplicationUserId);
-
                         // Thief: if this win completed an arrow, the victim's squares
                         // move to the shooter NOW so later periods resolve against the
                         // new ownership. ThiefWalk is the same rules the settlement

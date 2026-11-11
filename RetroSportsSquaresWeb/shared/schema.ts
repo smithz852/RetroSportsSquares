@@ -127,6 +127,7 @@ export interface User {
   isAdmin: boolean;
   coinBalance: number;
   hasSeenWelcome: boolean;
+  recapEmailsOptedOut: boolean;
 }
 
 export interface LoginResponse {

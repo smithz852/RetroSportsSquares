@@ -56,6 +56,8 @@ export const endpoints = {
     confirmEmailChange: '/User/confirm-email-change',
     markWelcomeSeen: '/User/welcome-seen',
     deleteAccount: '/User/account',
+    updateEmailPreferences: '/User/email-preferences',
+    unsubscribe: '/User/unsubscribe',
   },
   support: {
     send: '/Support/send',
