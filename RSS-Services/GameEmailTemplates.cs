@@ -18,6 +18,7 @@ namespace RSS_Services
         public decimal CoinsWagered { get; set; }
         public decimal CoinsWon { get; set; }
         public decimal Net => CoinsWon - CoinsWagered;
+        public string UnsubscribeUrl { get; set; } = string.Empty;
     }
 
     public static class GameEmailTemplates
@@ -31,38 +32,6 @@ namespace RSS_Services
 
         // Amounts are coins, not currency — never format with a culture-dependent currency string
         public static string FormatCoins(decimal amount) => $"{amount:0.##} coins";
-
-        // coinsWon is null in modes where the amount isn't final until settlement
-        // (Fair/Push/…): the email announces the win, the recap states the coins.
-        public static (string Subject, string Text, string Html) BuildPeriodWin(
-            string gameName, string periodLabel, decimal? coinsWon)
-        {
-            var subject = $"You won {periodLabel} in {gameName}!";
-
-            var winningsText = coinsWon.HasValue
-                ? $"Winnings: {FormatCoins(coinsWon.Value)}\n\n"
-                : "Your final winnings will be tallied when the game ends.\n\n";
-
-            var text =
-                $"Congratulations!\n\n" +
-                $"Your square won {periodLabel} in \"{gameName}\".\n" +
-                winningsText +
-                $"Good luck the rest of the game!";
-
-            var winningsHtml = coinsWon.HasValue
-                ? $"<p style=\"font-size:18px\">Winnings: <strong>{FormatCoins(coinsWon.Value)}</strong></p>"
-                : $"<p style=\"color:#666\">Your final winnings will be tallied when the game ends.</p>";
-
-            var html =
-                $"<div style=\"font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#222\">" +
-                $"<h2 style=\"color:#c62828\">You won {Escape(periodLabel)}!</h2>" +
-                $"<p>Your square won <strong>{Escape(periodLabel)}</strong> in <strong>{Escape(gameName)}</strong>.</p>" +
-                winningsHtml +
-                $"<p style=\"color:#666\">Good luck the rest of the game!</p>" +
-                $"</div>";
-
-            return (subject, text, html);
-        }
 
         public static (string Subject, string Text, string Html) BuildRecap(RecapEmailModel model)
         {
@@ -82,6 +51,8 @@ namespace RSS_Services
             text.AppendLine($"  Net: {FormatCoins(model.Net)}");
             text.AppendLine();
             text.AppendLine("Thanks for playing!");
+            text.AppendLine();
+            text.AppendLine($"Don't want game recap emails? Unsubscribe: {model.UnsubscribeUrl}");
 
             var rows = new StringBuilder();
             foreach (var row in model.PeriodRows)
@@ -112,6 +83,8 @@ namespace RSS_Services
                 $"<p style=\"margin:4px 0\">Coins won: {FormatCoins(model.CoinsWon)}</p>" +
                 $"<p style=\"margin:4px 0\">Net: <strong style=\"color:{netColor}\">{FormatCoins(model.Net)}</strong></p>" +
                 $"<p style=\"color:#666;margin-top:24px\">Thanks for playing!</p>" +
+                $"<p style=\"color:#999;font-size:12px;margin-top:16px\">Don't want game recap emails? " +
+                $"<a href=\"{Escape(model.UnsubscribeUrl)}\" style=\"color:#999\">Unsubscribe</a></p>" +
                 $"</div>";
 
             return (subject, text.ToString(), html);

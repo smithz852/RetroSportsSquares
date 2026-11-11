@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RSS_DB;
 using RSS_DB.Entities;
 using RSS_Services.Helpers;
@@ -7,61 +8,23 @@ using ZlEmailProvider;
 
 namespace RSS_Services
 {
-    // Game-event emails (period wins, end-of-game recaps). Every send is best-effort:
-    // failures are logged and swallowed so a Resend outage or an undeliverable address
-    // can never break the score-refetch or stale-close automation loops.
+    // End-of-game recap emails — the single email a player receives for a finished
+    // game. Every send is best-effort: failures are logged and swallowed so a Resend
+    // outage or an undeliverable address can never break the score-refetch or
+    // stale-close automation loops.
     public class GameNotificationService
     {
         private readonly AppDbContext _appDbContext;
         private readonly IEmailService _emailService;
+        private readonly ResendOptions _resendOptions;
         private readonly ILogger<GameNotificationService> _logger;
 
-        public GameNotificationService(AppDbContext appDbContext, IEmailService emailService, ILogger<GameNotificationService> logger)
+        public GameNotificationService(AppDbContext appDbContext, IEmailService emailService, IOptions<ResendOptions> resendOptions, ILogger<GameNotificationService> logger)
         {
             _appDbContext = appDbContext;
             _emailService = emailService;
+            _resendOptions = resendOptions.Value;
             _logger = logger;
-        }
-
-        public async Task SendPeriodWinEmailAsync(Guid squareGameId, int period, string winnerApplicationUserId)
-        {
-            try
-            {
-                var game = await _appDbContext.SquareGames
-                    .Include(g => g.DailySportGame)
-                    .FirstOrDefaultAsync(g => g.Id == squareGameId);
-                if (game == null)
-                {
-                    _logger.LogWarning("Period-win email skipped: game {GameId} not found", squareGameId);
-                    return;
-                }
-
-                var user = await _appDbContext.Users.FindAsync(winnerApplicationUserId);
-                if (string.IsNullOrEmpty(user?.Email))
-                {
-                    _logger.LogWarning("Period-win email skipped: user {UserId} has no email (game {GameId})", winnerApplicationUserId, squareGameId);
-                    return;
-                }
-
-                // Only Default's per-period amount is final mid-game; other modes
-                // announce the win and leave exact coins to the settlement recap.
-                decimal? payout = null;
-                if (game.SettlementMode == SettlementModes.Default)
-                {
-                    var claimedSquares = await _appDbContext.GameSquares
-                        .CountAsync(gs => gs.SquareGamesId == squareGameId && gs.GamePlayerId != null);
-                    payout = SettlementCalculator.GetCoinsPerPeriod(game.PricePerSquare, claimedSquares, game.PeriodCount);
-                }
-                var periodLabel = GameEmailTemplates.GetPeriodLabel(period, game.PeriodCount);
-
-                var (subject, text, html) = GameEmailTemplates.BuildPeriodWin(game.GameName, periodLabel, payout);
-                await _emailService.SendAsync(user.Email, subject, text, html);
-                _logger.LogInformation("Period-win email sent to {Email} for game {GameId}, period {Period}", user.Email, squareGameId, period);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to send period-win email for game {GameId}, period {Period}", squareGameId, period);
-            }
         }
 
         public async Task SendGameRecapEmailsAsync(Guid squareGameId)
@@ -131,7 +94,21 @@ namespace RSS_Services
                         continue;
                     }
 
+                    // CAN-SPAM opt-out — honored per recipient; the batch still runs
+                    // for everyone else and RecapEmailSent above stays at-most-once.
+                    if (player.User.RecapEmailsOptedOut) continue;
+
                     var squaresClaimed = game.GameSquares.Count(gs => (gs.OriginalGamePlayerId ?? gs.GamePlayerId) == player.Id);
+
+                    // Lazily assigned, never expires — the opt-out link must keep
+                    // working for at least 30 days (CAN-SPAM), so this isn't tied to
+                    // Identity's short-lived DataProtectionTokenProvider.
+                    if (player.User.UnsubscribeToken == null)
+                    {
+                        player.User.UnsubscribeToken = Guid.NewGuid();
+                        await _appDbContext.SaveChangesAsync();
+                    }
+                    var unsubscribeUrl = $"{_resendOptions.AppBaseUrl}/email-preferences?u={player.User.Id}&t={player.User.UnsubscribeToken}";
 
                     var model = new RecapEmailModel
                     {
@@ -140,7 +117,8 @@ namespace RSS_Services
                         PeriodRows = periodRows,
                         RecipientName = GetDisplayName(player.User),
                         CoinsWagered = game.PricePerSquare * squaresClaimed,
-                        CoinsWon = settledByUser.GetValueOrDefault(player.ApplicationUserId, 0m)
+                        CoinsWon = settledByUser.GetValueOrDefault(player.ApplicationUserId, 0m),
+                        UnsubscribeUrl = unsubscribeUrl
                     };
 
                     try

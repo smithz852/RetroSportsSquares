@@ -219,6 +219,9 @@ namespace RSS_DB.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("RecapEmailsOptedOut")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
@@ -227,6 +230,9 @@ namespace RSS_DB.Migrations
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid?>("UnsubscribeToken")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)

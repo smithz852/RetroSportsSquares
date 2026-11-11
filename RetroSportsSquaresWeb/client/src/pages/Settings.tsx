@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordChangeModal } from "@/components/PasswordChangeModal";
 import { EmailChangeModal } from "@/components/EmailChangeModal";
 import { DeleteAccountModal } from "@/components/DeleteAccountModal";
+import { Switch } from "@/components/ui/switch";
 import { Pencil, Check, Loader2, ArrowLeft } from "lucide-react";
 import { endpoints } from "@shared/routes";
 import { apiFetch } from "@/lib/api-client";
@@ -124,6 +125,8 @@ export default function Settings() {
   const [pwModalOpen, setPwModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [emailPrefSaving, setEmailPrefSaving] = useState(false);
+  const [emailPrefError, setEmailPrefError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -145,6 +148,19 @@ export default function Settings() {
       throw new Error("GAMER TAG MUST BE 2-5 CHARACTERS");
     await patchUserField(endpoints.user.updateGamerTag, { gamerTag: trimmed });
     queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+  };
+
+  const saveEmailPreference = async (recapEmailsOptedOut: boolean) => {
+    setEmailPrefError(null);
+    setEmailPrefSaving(true);
+    try {
+      await patchUserField(endpoints.user.updateEmailPreferences, { recapEmailsOptedOut });
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    } catch (err) {
+      setEmailPrefError(err instanceof Error ? err.message : "SAVE FAILED");
+    } finally {
+      setEmailPrefSaving(false);
+    }
   };
 
   return (
@@ -194,6 +210,27 @@ export default function Settings() {
                 maxLength={5}
                 onSave={saveGamerTag}
               />
+
+              <div className="flex items-center justify-between gap-4 py-3 border-t border-primary/10">
+                <div className="flex flex-col gap-1">
+                  <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">
+                    GAME RECAP EMAILS
+                  </span>
+                  <p className="font-['VT323'] text-gray-500 text-lg">
+                    GET AN EMAIL SUMMARY WHEN YOUR GAMES FINISH
+                  </p>
+                </div>
+                <Switch
+                  checked={!user.recapEmailsOptedOut}
+                  disabled={emailPrefSaving}
+                  onCheckedChange={checked => saveEmailPreference(!checked)}
+                />
+              </div>
+              {emailPrefError && (
+                <p role="alert" aria-live="polite" className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">
+                  {emailPrefError}
+                </p>
+              )}
             </div>
           </TabsContent>
 

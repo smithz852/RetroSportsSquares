@@ -119,6 +119,38 @@ namespace RSS.Controllers
             return Ok(new { message = "Email address updated successfully." });
         }
 
+        [HttpPatch("email-preferences")]
+        public async Task<IActionResult> UpdateEmailPreferences([FromBody] UpdateEmailPreferencesDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+
+            user.RecapEmailsOptedOut = dto.RecapEmailsOptedOut;
+            await _userManager.UpdateAsync(user);
+
+            return NoContent();
+        }
+
+        // Unauthenticated by design — CAN-SPAM forbids requiring login to opt out.
+        // The token (not the user ID alone) is what authorizes the change.
+        [AllowAnonymous]
+        [HttpPost("unsubscribe")]
+        public async Task<IActionResult> Unsubscribe([FromBody] UnsubscribeDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user != null && user.UnsubscribeToken != null && user.UnsubscribeToken == dto.Token)
+            {
+                user.RecapEmailsOptedOut = true;
+                await _userManager.UpdateAsync(user);
+            }
+
+            // Same response either way — don't reveal whether the id/token was valid.
+            return Ok(new { message = "You will no longer receive game recap emails." });
+        }
+
         [HttpDelete("account")]
         public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto dto)
         {
@@ -152,4 +184,6 @@ namespace RSS.Controllers
     public record RequestEmailChangeDto(string NewEmail, string CurrentPassword);
     public record ConfirmEmailChangeDto(string NewEmail, string Token);
     public record DeleteAccountDto(string CurrentPassword, string ConfirmText);
+    public record UpdateEmailPreferencesDto(bool RecapEmailsOptedOut);
+    public record UnsubscribeDto(string UserId, Guid Token);
 }
