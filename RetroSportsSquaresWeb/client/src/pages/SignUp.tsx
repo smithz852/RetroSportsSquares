@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { RetroButton } from "@/components/RetroButton";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -167,9 +168,8 @@ export default function Signup() {
               </div>
               <div className="space-y-2">
                 <label className="text-primary font-pixel text-base uppercase">Password</label>
-                <Input
+                <PasswordInput
                   required
-                  type="password"
                   pattern={passwordPattern}
                   value={formData.password}
                   onChange={handlePasswordChange}
@@ -178,9 +178,8 @@ export default function Signup() {
               </div>
               <div className="space-y-2">
                 <label className="text-primary font-pixel text-base uppercase">Confirm Password</label>
-                <Input
+                <PasswordInput
                   required
-                  type="password"
                   value={formData.confirmPassword}
                   onChange={handleConfirmPasswordChange}
                   className="bg-black border-2 border-primary text-white font-pixel text-xs rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"

@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { RetroButton } from "@/components/RetroButton";
 import { Loader2 } from "lucide-react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
@@ -80,9 +81,8 @@ export function DeleteAccountModal({ open, onClose }: Props) {
 
           <div className="flex flex-col gap-1">
             <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">CURRENT PASSWORD</span>
-            <Input
+            <PasswordInput
               ref={currentPasswordRef}
-              type="password"
               value={form.currentPassword}
               onChange={e => setForm(prev => ({ ...prev, currentPassword: e.target.value }))}
               disabled={submitting}
