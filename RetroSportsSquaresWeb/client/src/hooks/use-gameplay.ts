@@ -45,7 +45,6 @@ export function usePostSquareSelection(gameId: string) {
       data: CreateSquareSelectionRequest,
     ): Promise<SquareSelectionResponse> => {
       if (!localStorage.getItem("token")) throw new Error("Please login to create a game");
-      console.log("Squaredata:", data);
       const res = await apiFetch(endpoints.selections.create(gameId), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,8 +72,7 @@ export function usePostSquareSelection(gameId: string) {
       }
       
       const selectionData = await res.json();
-      // console.log("selectionResponse:", selectionData);
-      
+
       // Backend returns array directly, wrap it in expected format
       return { selections: selectionData };
     },
@@ -92,9 +90,7 @@ export function useGetBoardSquares(gameId: string, refetchInterval?: number | fa
     queryFn: async (): Promise<BoardSquare[]> => {
       const res = await apiFetch(endpoints.selections.getBoard(gameId));
       if (!res.ok) throw new Error("Failed to fetch board squares");
-      const data = await res.json();
-      // console.log("BoardSquares:", data);
-      return data;
+      return res.json();
     },
     enabled: !!gameId,
     refetchInterval: refetchInterval ?? false,
@@ -109,7 +105,6 @@ export function useSetOutsideSquareNumbers(gameId: string) {
       data: CreateOutsideSquareNumbersRequest,
     ): Promise<OutsideSquareNumbersResponse> => {
       if (!localStorage.getItem("token")) throw new Error("Please login to start a game");
-      console.log("OutsideSquareData:", data);
       const res = await apiFetch(endpoints.selections.setGameNumbers(gameId), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -133,7 +128,7 @@ export function useSetOutsideSquareNumbers(gameId: string) {
         } catch {
           errorMessage = res.statusText || errorMessage;
         }
-        console.log("EM: ", errorMessage)
+
         // Create custom error with details
         const error = new Error(errorMessage) as Error & { details?: any };
         error.details = errorDetails;
@@ -141,8 +136,7 @@ export function useSetOutsideSquareNumbers(gameId: string) {
       }
       
       const outsideSquareData = await res.json();
-      // console.log("selectionResponse:", selectionData);
-      
+
       // Backend returns array directly, wrap it in expected format
       return { outsideSquares: outsideSquareData };
     },
@@ -157,24 +151,8 @@ export function useGetOutsideSquares(gameId: string) {
     queryFn: async (): Promise<OutsideSquare> => {
       const res = await apiFetch(endpoints.selections.getGameNumbers(gameId));
       if (!res.ok) throw new Error("Failed to fetch outside squares");
-      const data = await res.json();
-      console.log("OutsideSquareData:", data);
-      return data;
+      return res.json();
     },
     enabled: !!gameId,
   });
 }
-
-// export function useGetQuarterWinners(gameId: string) {
-//   return useQuery({
-//     queryKey: ["quarterWinners", gameId],
-//     queryFn: async (): Promise<Record<number, string | null>> => {
-//       const res = await fetch(`${API_BASE_URL}${endpoints.games.scoreData(gameId)}`);
-//       if (!res.ok) throw new Error("Failed to fetch quarter winners");
-//       const data = await res.json();
-//       console.log("QuarterWinners:", data);
-//       return data || {};
-//     },
-//     enabled: !!gameId,
-//   });
-// }

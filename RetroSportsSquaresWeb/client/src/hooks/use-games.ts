@@ -9,9 +9,7 @@ export function useGames() {
     queryFn: async (): Promise<SquareGame[]> => {
       const res = await apiFetch(endpoints.games.list);
       if (!res.ok) throw new Error("Failed to fetch games");
-      const data = await res.json();
-        // console.log(data);
-      return data;
+      return res.json();
     },
   });
 }
@@ -23,7 +21,6 @@ export function useCreateGame() {
     mutationFn: async (data: CreateSquareGameRequest): Promise<SquareGame> => {
       if (!localStorage.getItem('token')) throw new Error("Please login to create a game");
 
-      console.log(data);
       const res = await apiFetch(endpoints.games.create, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,9 +50,7 @@ export function useGetAvailableGameOptions(gameType: string, leagueId: string) {
     queryFn: async (): Promise<AvailableGameOptions[]> => {
       const res = await apiFetch(endpoints.games.options(gameType, leagueId));
       if (!res.ok) throw new Error("Failed to fetch available game options");
-     const data = await res.json();
-     console.log(data);
-     return data;
+      return res.json();
     },
     enabled: !!gameType && !!leagueId,
   });
@@ -67,9 +62,7 @@ export function GetGameScoreData(id: string, refetchInterval?: number | false) {
     queryFn: async (): Promise<SquareGameScoreData> => {
       const res = await apiFetch(endpoints.games.scoreData(id));
       if (!res.ok) throw new Error("Failed to fetch game score data");
-       const data = await res.json();
-     console.log(data);
-     return data;
+      return res.json();
     },
     enabled: !!id,
     refetchInterval,
