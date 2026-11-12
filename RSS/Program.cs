@@ -213,7 +213,8 @@ var authPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 {
     "/auth/forgot-password",
     "/auth/reset-password",
-    "/user/request-email-change"
+    "/user/request-email-change",
+    "/auth/login"
 };
 
 builder.Services.AddRateLimiter(options =>
@@ -236,10 +237,28 @@ builder.Services.AddRateLimiter(options =>
 
     var emailLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
-        if (!authPaths.Contains(context.Request.Path.Value ?? ""))
+        var path = context.Request.Path.Value ?? "";
+        if (!authPaths.Contains(path))
             return RateLimitPartition.GetNoLimiter("no-limit");
 
         var key = context.Items["rate-limit-key"] as string ?? "unknown";
+
+        // Login gets its own (looser, shorter-window) bucket so it doesn't share
+        // state with the stricter 3/hour forgot/reset/email-change bucket below —
+        // a user who fat-fingers their password a few times shouldn't also burn
+        // down their forgot-password allowance for the day.
+        if (path.Equals("/auth/login", StringComparison.OrdinalIgnoreCase))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: $"email-login:{key}",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(30),
+                    QueueLimit = 0
+                });
+        }
+
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: $"email:{key}",
             factory: _ => new FixedWindowRateLimiterOptions
