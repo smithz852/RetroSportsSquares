@@ -46,8 +46,6 @@ export default function GameBoard() {
     Array(10).fill(null),
   );
   const [selections, setSelections] = useState<Record<string, string>>({}); // { [squareGuid]: playerName }
-  // console.log(selections);
-  
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
   const { mutate, isPending } = usePostSquareSelection(id);
