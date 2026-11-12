@@ -174,3 +174,17 @@ Azure App Service — this is largely a configuration/connection-string integrat
 application code, and would add automatic alerting on things like authentication-failure spikes
 and abnormal request volume. Not yet scheduled; tracked as a follow-up, not a blocker to this
 runbook existing.
+
+**Pre-scoped decisions for when this gets built** (so the eventual `Program.cs` change is a
+drop-in, not a redesign):
+- SDK: `Azure.Monitor.OpenTelemetry.AspNetCore` (the current Microsoft-recommended distro for
+  .NET 8), not the older `Microsoft.ApplicationInsights.AspNetCore` package. It auto-instruments
+  ASP.NET Core requests, outbound HTTP calls, and EF Core SQL queries with no extra code — the
+  EF Core piece is useful here specifically, since abnormal database query volume is one of the
+  detection signals named in Section 3.
+- Connection string: config-driven, following the same pattern already used for `Jwt:Key` /
+  `Resend:ApiKey` / `ApiSports:Key` — placeholder in `appsettings.json`, real value via Key Vault
+  in Production. Never hard-code it.
+- Actual alert rules (auth-failure-rate thresholds, request-volume anomalies, etc.) are
+  configured in the Azure Monitor dashboard after the resource exists — not something that can
+  be pre-built in code ahead of time.
