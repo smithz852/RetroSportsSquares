@@ -128,6 +128,7 @@ export interface User {
   coinBalance: number;
   hasSeenWelcome: boolean;
   recapEmailsOptedOut: boolean;
+  doNotSellOrShare: boolean;
 }
 
 export interface LoginResponse {

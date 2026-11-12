@@ -180,6 +180,12 @@ namespace RSS_DB.Migrations
                     b.Property<string>("DisplayName")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("DoNotSellOrShare")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset?>("DoNotSellOrShareSetAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");

@@ -28,6 +28,13 @@ const PRIVACY_SECTIONS: { heading: string; body: string[] }[] = [
     ],
   },
   {
+    heading: "Do Not Sell or Share My Personal Information",
+    body: [
+      "We do not sell your personal information, and we do not share it with third parties for cross-context behavioral advertising, as those terms are defined under the California Consumer Privacy Act (CCPA/CPRA). We have no advertising or analytics vendors integrated into Sports Squares today.",
+      "If that ever changes, we will honor your Global Privacy Control browser signal automatically, whether or not you are logged in. You can also set your preference directly from Settings.",
+    ],
+  },
+  {
     heading: "Data Security",
     body: [
       "We take reasonable measures to protect your information, including never storing passwords in plain text.",

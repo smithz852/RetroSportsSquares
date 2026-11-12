@@ -33,6 +33,12 @@ namespace RSS_DB.Entities
         // opt-out link embedded in emails must keep working for 30+ days.
         public bool RecapEmailsOptedOut { get; set; } = false;
         public Guid? UnsubscribeToken { get; set; }
+        // CCPA/CPRA "do not sell or share" preference. No ad/analytics vendor exists
+        // yet (see architecture.md's privacy-consent gate), so this has no effect
+        // today — it's a durable record of the user's choice so it's already honored
+        // the moment a vendor is wired up, without needing to re-prompt anyone.
+        public bool DoNotSellOrShare { get; set; } = false;
+        public DateTimeOffset? DoNotSellOrShareSetAt { get; set; }
         public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }

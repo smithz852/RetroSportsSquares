@@ -58,6 +58,7 @@ export const endpoints = {
     deleteAccount: '/User/account',
     updateEmailPreferences: '/User/email-preferences',
     unsubscribe: '/User/unsubscribe',
+    updatePrivacyPreferences: '/User/privacy-preferences',
   },
   support: {
     send: '/Support/send',

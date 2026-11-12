@@ -54,7 +54,7 @@ namespace RSS.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
             var coinBalance = await _coinWalletService.EnsureDailyGrantAsync(user.Id);
-            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome, user.RecapEmailsOptedOut } });
+            return Ok(new { token, user = new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome, user.RecapEmailsOptedOut, user.DoNotSellOrShare } });
         }
 
         [HttpGet("me")]
@@ -71,7 +71,7 @@ namespace RSS.Controllers
             // The daily coin grant rides on /me since it runs on every app load;
             // idempotent per PST day, so repeated calls are cheap no-ops.
             var coinBalance = await _coinWalletService.EnsureDailyGrantAsync(user.Id);
-            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome, user.RecapEmailsOptedOut });
+            return Ok(new { user.Id, user.Email, user.DisplayName, user.GamerTag, IsAdmin = roles.Contains("Admin"), CoinBalance = coinBalance, user.HasSeenWelcome, user.RecapEmailsOptedOut, user.DoNotSellOrShare });
         }
 
         [HttpPost("logout")]
