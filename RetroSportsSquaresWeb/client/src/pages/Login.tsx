@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Link, useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLogin } from "@/hooks/use-auth";
@@ -93,9 +94,8 @@ export default function Login() {
                     <FormItem>
                       <FormLabel className="text-red-500 font-pixel text-base uppercase">Access Code</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          type="password" 
+                        <PasswordInput
+                          {...field}
                           placeholder="******"
                           className="bg-black border-2 border-red-900 text-red-500 font-mono rounded-none focus:border-red-600 focus:ring-0 placeholder:text-red-900"
                           data-testid="input-password"

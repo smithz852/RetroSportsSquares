@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { RetroButton } from "@/components/RetroButton";
 import { Loader2 } from "lucide-react";
 import { API_BASE_URL, endpoints } from "@shared/routes";
@@ -86,16 +87,28 @@ export function EmailChangeModal({ open, onClose }: Props) {
               ].map(({ label, key, type, ref }) => (
                 <div key={key} className="flex flex-col gap-1">
                   <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
-                  <Input
-                    ref={ref}
-                    type={type}
-                    value={form[key]}
-                    onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                    disabled={sending}
-                    className="border-2 border-primary/30 bg-black text-white font-['VT323'] text-xl rounded-none
-                      focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0
-                      disabled:opacity-60"
-                  />
+                  {type === "password" ? (
+                    <PasswordInput
+                      ref={ref}
+                      value={form[key]}
+                      onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
+                      disabled={sending}
+                      className="border-2 border-primary/30 bg-black text-white font-['VT323'] text-xl rounded-none
+                        focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0
+                        disabled:opacity-60"
+                    />
+                  ) : (
+                    <Input
+                      ref={ref}
+                      type={type}
+                      value={form[key]}
+                      onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
+                      disabled={sending}
+                      className="border-2 border-primary/30 bg-black text-white font-['VT323'] text-xl rounded-none
+                        focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0
+                        disabled:opacity-60"
+                    />
+                  )}
                 </div>
               ))}
 

@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { RetroButton } from "@/components/RetroButton";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 
@@ -98,9 +98,8 @@ export default function ResetPassword() {
           ].map(({ label, key, ref }) => (
             <div key={key} className="flex flex-col gap-1">
               <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">{label}</span>
-              <Input
+              <PasswordInput
                 ref={ref}
-                type="password"
                 value={form[key]}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
                 disabled={submitting}
