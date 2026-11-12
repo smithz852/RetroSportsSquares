@@ -127,6 +127,8 @@ export default function Settings() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [emailPrefSaving, setEmailPrefSaving] = useState(false);
   const [emailPrefError, setEmailPrefError] = useState<string | null>(null);
+  const [privacyPrefSaving, setPrivacyPrefSaving] = useState(false);
+  const [privacyPrefError, setPrivacyPrefError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -160,6 +162,19 @@ export default function Settings() {
       setEmailPrefError(err instanceof Error ? err.message : "SAVE FAILED");
     } finally {
       setEmailPrefSaving(false);
+    }
+  };
+
+  const savePrivacyPreference = async (doNotSellOrShare: boolean) => {
+    setPrivacyPrefError(null);
+    setPrivacyPrefSaving(true);
+    try {
+      await patchUserField(endpoints.user.updatePrivacyPreferences, { doNotSellOrShare });
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    } catch (err) {
+      setPrivacyPrefError(err instanceof Error ? err.message : "SAVE FAILED");
+    } finally {
+      setPrivacyPrefSaving(false);
     }
   };
 
@@ -229,6 +244,27 @@ export default function Settings() {
               {emailPrefError && (
                 <p role="alert" aria-live="polite" className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">
                   {emailPrefError}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between gap-4 py-3 border-t border-primary/10">
+                <div className="flex flex-col gap-1">
+                  <span className="font-['Press_Start_2P'] text-gray-500 text-[10px] tracking-wider">
+                    DO NOT SELL OR SHARE MY PERSONAL INFORMATION
+                  </span>
+                  <p className="font-['VT323'] text-gray-500 text-lg">
+                    WE DON'T SELL OR SHARE YOUR DATA TODAY. SET THIS NOW SO YOUR CHOICE IS ALREADY HONORED IF THAT EVER CHANGES.
+                  </p>
+                </div>
+                <Switch
+                  checked={user.doNotSellOrShare}
+                  disabled={privacyPrefSaving}
+                  onCheckedChange={checked => savePrivacyPreference(checked)}
+                />
+              </div>
+              {privacyPrefError && (
+                <p role="alert" aria-live="polite" className="font-['Press_Start_2P'] text-red-500 text-[10px] leading-4">
+                  {privacyPrefError}
                 </p>
               )}
             </div>

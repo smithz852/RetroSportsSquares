@@ -134,6 +134,22 @@ namespace RSS.Controllers
             return NoContent();
         }
 
+        [HttpPatch("privacy-preferences")]
+        public async Task<IActionResult> UpdatePrivacyPreferences([FromBody] UpdatePrivacyPreferencesDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return Unauthorized();
+
+            user.DoNotSellOrShare = dto.DoNotSellOrShare;
+            user.DoNotSellOrShareSetAt = DateTimeOffset.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            return NoContent();
+        }
+
         // Unauthenticated by design — CAN-SPAM forbids requiring login to opt out.
         // The token (not the user ID alone) is what authorizes the change.
         [AllowAnonymous]
@@ -185,5 +201,6 @@ namespace RSS.Controllers
     public record ConfirmEmailChangeDto(string NewEmail, string Token);
     public record DeleteAccountDto(string CurrentPassword, string ConfirmText);
     public record UpdateEmailPreferencesDto(bool RecapEmailsOptedOut);
+    public record UpdatePrivacyPreferencesDto(bool DoNotSellOrShare);
     public record UnsubscribeDto(string UserId, Guid Token);
 }
