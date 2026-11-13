@@ -125,11 +125,11 @@ namespace RSS_Services
                     {
                         var (subject, text, html) = GameEmailTemplates.BuildRecap(model);
                         await _emailService.SendAsync(player.User.Email, subject, text, html);
-                        _logger.LogInformation("Recap email sent to {Email} for game {GameId}", player.User.Email, squareGameId);
+                        _logger.LogInformation("Recap email sent to user {UserId} for game {GameId}", player.ApplicationUserId, squareGameId);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Failed to send recap email to {Email} for game {GameId}", player.User.Email, squareGameId);
+                        _logger.LogWarning(ex, "Failed to send recap email to user {UserId} for game {GameId}", player.ApplicationUserId, squareGameId);
                     }
                 }
             }

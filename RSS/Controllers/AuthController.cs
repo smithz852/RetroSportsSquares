@@ -133,7 +133,7 @@ namespace RSS.Controllers
 
             // Audit trail for the age gate without persisting the raw date of birth (data minimization) —
             // birth year + computed age is enough to reconstruct why AgeVerified was set true.
-            _logger.LogInformation("Signup age gate passed: user {Email}, birth year {BirthYear}, computed age {Age}", dto.Email, dto.DateOfBirth.Year, age);
+            _logger.LogInformation("Signup age gate passed: user {UserId}, birth year {BirthYear}, computed age {Age}", user.Id, dto.DateOfBirth.Year, age);
 
             return Ok(new { message = "User created successfully" });
         }

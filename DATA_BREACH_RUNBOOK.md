@@ -34,6 +34,22 @@ This app does not currently collect user state/region. Per-incident scoping shou
 treating every affected account as a CA resident** unless there's a specific reason to believe
 otherwise — safer than trying to retrofit geo-detection just for this purpose.
 
+**Application-log retention exception (documented, accepted):** `ILogger` output across the
+backend (`TokenService`, `GameNotificationService`, `AuthController`) was audited and corrected
+2026-11 to log `UserId` instead of plaintext email wherever both were available, specifically so
+that a deleted account's email doesn't keep circulating through console/Azure Log Stream output
+indefinitely after `AccountDeletionService` anonymizes the `AspNetUsers` row. This is a forward-
+looking fix only — it does not retroactively scrub log lines emitted before the change shipped.
+Since this app had no production deployment at the time the fix landed, no pre-fix log history
+with real user emails exists to retroactively scrub in the first place. If that ever stops being
+true (e.g. a pre-launch log export is retained somewhere), treat any plaintext email surviving in
+it past that user's account deletion as the same accepted-but-bounded retention exception CCPA
+§1798.105(d) allows for operational/security logs — not a breach — but note the exception here
+rather than assuming it silently. The support-request form (`SupportService`) still logs a
+submitted email as-is; see [[project_launch_readiness]] for why that's tracked separately (it's
+not always tied to a logged-in `ApplicationUser`, so there's no account-deletion event to key a
+fix off of).
+
 ## 2. Roles
 
 Single-maintainer project today — no formal team structure needed. Whoever is running this
