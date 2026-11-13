@@ -6,6 +6,7 @@ import { API_BASE_URL } from "@shared/routes";
 import { type ChatMessage } from "@shared/schema";
 import { appendChatMessage } from "./use-chat";
 import { handleSessionExpired } from "@/lib/api-client";
+import { useLiveAnnouncer } from "./use-live-announcer";
 
 const isAuthError = (err: unknown): boolean =>
   err instanceof signalR.HttpError
@@ -16,6 +17,7 @@ export function useGameHub(gameId: string) {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const { announce, liveRegion } = useLiveAnnouncer();
 
   useEffect(() => {
     if (!gameId) return;
@@ -30,11 +32,13 @@ export function useGameHub(gameId: string) {
     connection.on("TurnAdvanced", () => {
       queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
       queryClient.invalidateQueries({ queryKey: ["boardSquares", gameId] });
+      announce("Turn advanced to the next player.");
     });
 
     // A new player joined — refresh turn queue
     connection.on("PlayerJoined", () => {
       queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
+      announce("A new player joined the game.");
     });
 
     // Selection phase kicked off by host
@@ -45,6 +49,7 @@ export function useGameHub(gameId: string) {
     // A square was claimed in open mode — refresh the board
     connection.on("SquareSelected", () => {
       queryClient.invalidateQueries({ queryKey: ["boardSquares", gameId] });
+      announce("A square was selected.");
     });
 
     // Host cancelled the game before it started
@@ -55,16 +60,19 @@ export function useGameHub(gameId: string) {
     // A player left — refresh the player list for remaining players
     connection.on("PlayerLeft", () => {
       queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
+      announce("A player left the game.");
     });
 
     // Host started the game — trigger outside squares fetch for all players
     connection.on("GameStarted", () => {
       queryClient.invalidateQueries({ queryKey: ["OutsideSquares", gameId] });
+      announce("The game has started.");
     });
 
     // Score data updated by background service — refresh scoreboard for all players
     connection.on("ScoreUpdated", () => {
       queryClient.invalidateQueries({ queryKey: ["gameScoreData", gameId] });
+      announce("The score was updated.");
     });
 
     // Chat is an append-only stream — push into the cache instead of refetching
@@ -94,4 +102,6 @@ export function useGameHub(gameId: string) {
       connection.invoke("LeaveGame", gameId).finally(() => connection.stop());
     };
   }, [gameId]);
+
+  return { liveRegion };
 }

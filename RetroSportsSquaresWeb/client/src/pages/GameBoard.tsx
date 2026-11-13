@@ -58,7 +58,7 @@ export default function GameBoard() {
   const { data: scoreData, isLoading } = GetGameScoreData(id);
   const ModeIcon = getSettlementModeIcon(game?.settlementMode ?? scoreData?.settlementMode);
 
-  useGameHub(id);
+  const { liveRegion } = useGameHub(id);
 
   const isTurnBased = game?.isTurnBased ?? false;
   const { data: turnStatus, dataUpdatedAt: turnStatusUpdatedAt } = useGetTurnStatus(id, !gameStarted);
@@ -502,6 +502,7 @@ useEffect(() => {
 
   return (
     <div className="relative py-4 max-w-[1600px] mx-auto w-full">
+      {liveRegion}
       {/* Margin ad slots — only rendered when the viewport has real space to spare
           outside the content column, so they never leave an empty reserved box */}
       <div className="hidden min-[1900px]:flex fixed left-6 top-28 w-40 min-h-[500px] border-2 border-dashed border-red-900/40 items-center justify-center p-4">
