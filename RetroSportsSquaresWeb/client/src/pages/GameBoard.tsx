@@ -361,7 +361,14 @@ useEffect(() => {
 
   
 
-  const handleStartGame = () => startGame();
+  const handleStartGame = () => startGame(undefined, {
+    onError: (err) => toast({
+      title: "ERROR",
+      description: err.message || "Failed to start game.",
+      variant: "destructive",
+      className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+    }),
+  });
 
   const handleDeleteGame = () => {
     if (!confirm("Delete this game? This cannot be undone.")) return;

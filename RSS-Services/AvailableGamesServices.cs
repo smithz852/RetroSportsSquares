@@ -87,6 +87,12 @@ namespace RSS_Services
                 var chatMessages = _appDbContext.ChatMessages.Where(m => m.GameId == gameGuid);
                 _appDbContext.ChatMessages.RemoveRange(chatMessages);
 
+                // The game never actually happened, so refund every joiner's daily
+                // join quota too, not just the host's — mirrors the "free until
+                // locked in" rule LeaveGame already applies to a single player.
+                var joinLogs = _appDbContext.GameActivityLogs.Where(l => l.GameId == gameGuid && l.Type == GameActivityTypes.Join);
+                _appDbContext.GameActivityLogs.RemoveRange(joinLogs);
+
                 _appDbContext.SquareGames.Remove(game);
                 await _appDbContext.SaveChangesAsync();
                 await transaction.CommitAsync();

@@ -24,8 +24,9 @@ namespace RSS.Controllers
         private readonly GamePlayerServices _gamePlayerServices;
         private readonly IGameHubNotifier _hubNotifier;
         private readonly CoinWalletService _coinWalletService;
+        private readonly GameQuotaService _gameQuotaService;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, CoinWalletService coinWalletService)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, CoinWalletService coinWalletService, GameQuotaService gameQuotaService)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -36,6 +37,7 @@ namespace RSS.Controllers
             _gamePlayerServices = gamePlayerServices;
             _hubNotifier = hubNotifier;
             _coinWalletService = coinWalletService;
+            _gameQuotaService = gameQuotaService;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -136,15 +138,36 @@ namespace RSS.Controllers
                 return NotFound();
 
             if (!game.isOpen)
-                return BadRequest("This game has already started.");
+                return BadRequest(new { message = "This game has already started." });
 
             if (game.SelectionPhaseActive)
-                return BadRequest("Can't start the game while square selection is still in progress.");
+                return BadRequest(new { message = "Can't start the game while square selection is still in progress." });
 
-            var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
-            if (!setGameToClosed)
+            if (!User.IsInRole("Admin"))
             {
-                return BadRequest("Failed to close game.");
+                var startsToday = await _gameQuotaService.GetCountTodayAsync(userId, RSS_DB.Entities.GameActivityTypes.Start);
+                if (startsToday >= GameQuotaService.DailyStartLimit)
+                    return StatusCode(429, new { message = $"You've reached your daily limit of {GameQuotaService.DailyStartLimit} game starts. Try again tomorrow." });
+            }
+
+            await using var transaction = await _appDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                var setGameToClosed = await _squareServices.SetGameToClosedById(gameId);
+                if (!setGameToClosed)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest(new { message = "Failed to close game." });
+                }
+
+                _gameQuotaService.LogActivity(userId, game.Id, RSS_DB.Entities.GameActivityTypes.Start);
+                await _appDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
 
             await _hubNotifier.NotifyGameStarted(gameId);
@@ -201,7 +224,7 @@ namespace RSS.Controllers
 
             try
             {
-                var gamePlayer = await _gamePlayerServices.JoinGame(userId, gameId);
+                var gamePlayer = await _gamePlayerServices.JoinGame(userId, gameId, User.IsInRole("Admin"));
                 return Ok(new { isHost = gamePlayer.IsHost });
             }
             catch (ArgumentException ex)

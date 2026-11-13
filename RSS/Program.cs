@@ -142,6 +142,7 @@ builder.Services.AddScoped<RSS_Services.CoinWalletService>();
 builder.Services.AddScoped<RSS_Services.GameSettlementService>();
 builder.Services.AddScoped<RSS_Services.GameNotificationService>();
 builder.Services.AddScoped<RSS_Services.GameResultProcessor>();
+builder.Services.AddScoped<RSS_Services.GameQuotaService>();
 builder.Services.AddHttpClient<RSS_Services.SportsGameServices>(client =>
 {
     client.DefaultRequestHeaders.Add("x-apisports-key", builder.Configuration["ApiSports:Key"]!);
