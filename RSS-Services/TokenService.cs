@@ -29,13 +29,13 @@ public class TokenService
         try
         {
             await _emailService.SendPasswordResetAsync(user.Email!, encodedToken);
-            _logger.LogInformation("Password reset email sent to {Email}", user.Email);
+            _logger.LogInformation("Password reset email sent to user {UserId}", user.Id);
         }
         catch (Exception ex)
         {
             // Swallow — the caller always returns the same generic response
             // regardless of outcome, so a delivery failure shouldn't surface as a 500.
-            _logger.LogWarning(ex, "Failed to send password reset email to {Email}", user.Email);
+            _logger.LogWarning(ex, "Failed to send password reset email to user {UserId}", user.Id);
         }
     }
 
@@ -45,7 +45,7 @@ public class TokenService
         var encodedToken = Uri.EscapeDataString(token);
 
         await _emailService.SendEmailVerificationAsync(user.Email!, encodedToken);
-        _logger.LogInformation("Verification email sent to {Email}", user.Email);
+        _logger.LogInformation("Verification email sent to user {UserId}", user.Id);
     }
 
     public async Task SendEmailChangeConfirmationAsync(ApplicationUser user, string newEmail)
@@ -55,17 +55,17 @@ public class TokenService
 
         // Critical — let this throw if it fails so the caller can surface the error
         await _emailService.SendEmailChangeConfirmationAsync(newEmail, newEmail, encodedToken);
-        _logger.LogInformation("Email change confirmation sent to {NewEmail} for user {UserId}", newEmail, user.Id);
+        _logger.LogInformation("Email change confirmation sent for user {UserId}", user.Id);
 
         // Best-effort — don't block the user if the notice fails
         try
         {
             await _emailService.SendEmailChangeNoticeAsync(user.Email!);
-            _logger.LogInformation("Email change notice sent to {OldEmail} for user {UserId}", user.Email, user.Id);
+            _logger.LogInformation("Email change notice sent for user {UserId}", user.Id);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to send email change notice to {OldEmail} for user {UserId}", user.Email, user.Id);
+            _logger.LogWarning(ex, "Failed to send email change notice for user {UserId}", user.Id);
         }
     }
 }
