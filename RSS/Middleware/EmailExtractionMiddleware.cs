@@ -15,7 +15,8 @@ public class EmailExtractionMiddleware
 
         if (path.Equals("/auth/forgot-password", StringComparison.OrdinalIgnoreCase) ||
             path.Equals("/auth/reset-password", StringComparison.OrdinalIgnoreCase) ||
-            path.Equals("/auth/login", StringComparison.OrdinalIgnoreCase))
+            path.Equals("/auth/login", StringComparison.OrdinalIgnoreCase) ||
+            path.Equals("/auth/signup", StringComparison.OrdinalIgnoreCase))
         {
             context.Request.EnableBuffering();
             try

@@ -214,17 +214,36 @@ var authPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     "/auth/forgot-password",
     "/auth/reset-password",
     "/user/request-email-change",
-    "/auth/login"
+    "/auth/login",
+    "/auth/signup"
 };
 
 builder.Services.AddRateLimiter(options =>
 {
     var ipLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
-        if (!authPaths.Contains(context.Request.Path.Value ?? ""))
+        var path = context.Request.Path.Value ?? "";
+        if (!authPaths.Contains(path))
             return RateLimitPartition.GetNoLimiter("no-limit");
 
         var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        // Signup gets its own, much stricter per-IP bucket than the generic
+        // 10/min auth bucket below — unlike login brute-forcing, a signup bot
+        // only needs one request per fake account, so a loose per-minute cap
+        // does little to slow down scripted mass account creation.
+        if (path.Equals("/auth/signup", StringComparison.OrdinalIgnoreCase))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: $"ip-signup:{ip}",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 3,
+                    Window = TimeSpan.FromHours(1),
+                    QueueLimit = 0
+                });
+        }
+
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: $"ip:{ip}",
             factory: _ => new FixedWindowRateLimiterOptions
