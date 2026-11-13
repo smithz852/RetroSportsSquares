@@ -76,7 +76,10 @@ export function useStartGame(gameId: string) {
     mutationFn: async (): Promise<void> => {
       if (!localStorage.getItem('token')) throw new Error('Please login to start a game');
       const res = await apiFetch(endpoints.games.start(gameId), { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to start game');
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || 'Failed to start game');
+      }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['OutsideSquares', gameId] }),
   });

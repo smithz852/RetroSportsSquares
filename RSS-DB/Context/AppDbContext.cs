@@ -27,6 +27,7 @@ namespace RSS_DB
         public DbSet<GameSquares> GameSquares { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<CoinTransaction> CoinTransactions { get; set; }
+        public DbSet<GameActivityLog> GameActivityLogs { get; set; }
 
 
 
@@ -61,6 +62,10 @@ namespace RSS_DB
             // Refund/settlement sums per player per game.
             builder.Entity<CoinTransaction>()
                 .HasIndex(t => new { t.SquareGameId, t.ApplicationUserId });
+
+            // Daily quota lookups (GameQuotaService) — count by user+type+day.
+            builder.Entity<GameActivityLog>()
+                .HasIndex(l => new { l.ApplicationUserId, l.Type, l.ActivityDatePst });
         }
     }
 }

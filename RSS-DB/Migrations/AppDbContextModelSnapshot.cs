@@ -386,6 +386,37 @@ namespace RSS_DB.Migrations
                     b.ToTable("DailySportsGames");
                 });
 
+            modelBuilder.Entity("RSS_DB.Entities.GameActivityLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("ActivityDatePst")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId", "Type", "ActivityDatePst");
+
+                    b.ToTable("GameActivityLogs");
+                });
+
             modelBuilder.Entity("RSS_DB.Entities.GamePlayer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -619,6 +650,17 @@ namespace RSS_DB.Migrations
                 });
 
             modelBuilder.Entity("RSS_DB.Entities.CoinTransaction", b =>
+                {
+                    b.HasOne("RSS_DB.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RSS_DB.Entities.GameActivityLog", b =>
                 {
                     b.HasOne("RSS_DB.Entities.ApplicationUser", "User")
                         .WithMany()

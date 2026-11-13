@@ -15,12 +15,14 @@ namespace RSS_Services
         private AppDbContext _appDbContext;
         private readonly SquareServices _squareServices;
         private readonly IGameHubNotifier _hubNotifier;
+        private readonly GameQuotaService _gameQuotaService;
 
-        public GamePlayerServices(AppDbContext appDbContext, SquareServices squareServices, IGameHubNotifier hubNotifier)
+        public GamePlayerServices(AppDbContext appDbContext, SquareServices squareServices, IGameHubNotifier hubNotifier, GameQuotaService gameQuotaService)
         {
             _appDbContext = appDbContext;
             _squareServices = squareServices;
             _hubNotifier = hubNotifier;
+            _gameQuotaService = gameQuotaService;
         }
 
         public GamePlayer CreatePlayerHostedGame(string userId, Guid gameId)
@@ -35,7 +37,7 @@ namespace RSS_Services
             return gamePlayer;
         }
 
-        public async Task<GamePlayer> JoinGame(string userId, string gameId)
+        public async Task<GamePlayer> JoinGame(string userId, string gameId, bool isAdmin)
         {
             if (!Guid.TryParse(gameId, out var gameGuid))
                 throw new ArgumentException($"Invalid game ID: {gameId}");
@@ -59,6 +61,13 @@ namespace RSS_Services
             if (game.GamePlayers.Count >= game.PlayerCount)
                 throw new InvalidOperationException("Game is full.");
 
+            if (!isAdmin)
+            {
+                var joinsToday = await _gameQuotaService.GetCountTodayAsync(userId, GameActivityTypes.Join);
+                if (joinsToday >= GameQuotaService.DailyJoinLimit)
+                    throw new InvalidOperationException($"You've reached your daily limit of {GameQuotaService.DailyJoinLimit} game joins. Try again tomorrow.");
+            }
+
             var gamePlayer = new GamePlayer
             {
                 ApplicationUserId = userId,
@@ -67,6 +76,7 @@ namespace RSS_Services
             };
 
             _appDbContext.GamePlayers.Add(gamePlayer);
+            _gameQuotaService.LogActivity(userId, gameGuid, GameActivityTypes.Join);
             await _appDbContext.SaveChangesAsync();
             await _hubNotifier.NotifyPlayerJoined(gameId);
             return gamePlayer;
@@ -235,6 +245,14 @@ namespace RSS_Services
                 throw new InvalidOperationException("Cannot leave after the game has started.");
 
             _appDbContext.GamePlayers.Remove(gamePlayer);
+
+            // Refund today's join quota — leaving is only reachable before selections
+            // start, so this can only ever undo a join that hadn't locked in yet.
+            var joinLog = await _appDbContext.GameActivityLogs
+                .FirstOrDefaultAsync(l => l.ApplicationUserId == userId && l.GameId == gameGuid && l.Type == GameActivityTypes.Join);
+            if (joinLog != null)
+                _appDbContext.GameActivityLogs.Remove(joinLog);
+
             await _appDbContext.SaveChangesAsync();
             await _hubNotifier.NotifyPlayerLeft(gameId);
         }
