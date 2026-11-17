@@ -175,6 +175,7 @@ export default function GameBoard() {
   });
   const [isHost, setIsHost] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [startGameError, setStartGameError] = useState<string | null>(null);
 
   // Odds Board State
   const [multiplier, setMultiplier] = useState(0);
@@ -373,12 +374,8 @@ useEffect(() => {
   
 
   const handleStartGame = () => startGame(undefined, {
-    onError: (err) => toast({
-      title: "ERROR",
-      description: err.message || "Failed to start game.",
-      variant: "destructive",
-      className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
-    }),
+    onSuccess: () => setStartGameError(null),
+    onError: (err) => setStartGameError(err.message || "Failed to start game."),
   });
 
   const handleBeginSelections = () => beginSelections(undefined, {
@@ -636,6 +633,17 @@ useEffect(() => {
                 Spectator Mode — Viewing Only
               </span>
             </div>
+          )}
+
+          {isHost && !gameStarted && startGameError && (
+            <Alert
+              variant="destructive"
+              className="w-full max-w-xl bg-black border-2 border-red-900 text-red-500 rounded-none"
+            >
+              <AlertTriangle className="h-5 w-5" />
+              <AlertTitle className="font-pixel text-sm uppercase">Failed to Start Game</AlertTitle>
+              <AlertDescription className="font-['VT323'] text-lg">{startGameError}</AlertDescription>
+            </Alert>
           )}
 
           <div id="board-controls" tabIndex={-1} className="flex items-center gap-4 w-full">
