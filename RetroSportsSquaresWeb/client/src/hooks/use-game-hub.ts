@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -18,9 +18,11 @@ export function useGameHub(gameId: string) {
   const [, setLocation] = useLocation();
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const { announce, liveRegion } = useLiveAnnouncer();
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "reconnecting" | "disconnected">("connected");
 
   useEffect(() => {
     if (!gameId) return;
+    let active = true;
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/hubs/game`, {
         accessTokenFactory: () => localStorage.getItem("token") ?? "",
@@ -82,10 +84,30 @@ export function useGameHub(gameId: string) {
       );
     });
 
+    // Automatic reconnect lost the connection — surface it so players know live
+    // updates have paused instead of silently going stale.
+    connection.onreconnecting(() => {
+      if (!active) return;
+      setConnectionStatus("reconnecting");
+      announce("Connection lost. Reconnecting...");
+    });
+
+    // Back online — catch up on anything broadcast while we were disconnected.
+    connection.onreconnected(() => {
+      if (!active) return;
+      setConnectionStatus("connected");
+      announce("Reconnected.");
+      queryClient.invalidateQueries({ queryKey: ["turnStatus", gameId] });
+      queryClient.invalidateQueries({ queryKey: ["boardSquares", gameId] });
+      queryClient.invalidateQueries({ queryKey: ["gameScoreData", gameId] });
+    });
+
     // Token expired before negotiate, or expired mid-session and automatic
     // reconnect's negotiate fails too — either way, treat it as a session expiry.
+    // Otherwise, automatic reconnect has exhausted its retries — this is terminal.
     connection.onclose((err) => {
       if (isAuthError(err)) handleSessionExpired();
+      else if (active) setConnectionStatus("disconnected");
     });
 
     connection
@@ -93,15 +115,19 @@ export function useGameHub(gameId: string) {
       .then(() => connection.invoke("JoinGame", gameId))
       .catch((err) => {
         if (isAuthError(err)) handleSessionExpired();
-        else console.error(err);
+        else {
+          console.error(err);
+          if (active) setConnectionStatus("disconnected");
+        }
       });
 
     connectionRef.current = connection;
 
     return () => {
+      active = false;
       connection.invoke("LeaveGame", gameId).finally(() => connection.stop());
     };
   }, [gameId]);
 
-  return { liveRegion };
+  return { liveRegion, connectionStatus };
 }
