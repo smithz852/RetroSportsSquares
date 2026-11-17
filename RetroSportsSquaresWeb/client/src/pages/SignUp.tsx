@@ -112,8 +112,8 @@ export default function Signup() {
         });
         setLocation("/login");
       },
-      onError: () => {
-        setSignupError("FAILED TO CREATE PROFILE.");
+      onError: (err) => {
+        setSignupError(err.message.toUpperCase());
         errorRef.current?.focus();
       }
     });
