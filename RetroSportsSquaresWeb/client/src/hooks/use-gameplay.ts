@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "@shared/routes";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, parseApiError } from "@/lib/api-client";
 import {
   BoardSquare,
   CreateOutsideSquareNumbersRequest,
@@ -15,10 +15,7 @@ export function useJoinGame() {
     mutationFn: async (gameId: string): Promise<{ isHost: boolean }> => {
       if (!localStorage.getItem("token")) throw new Error("Please login to join a game");
       const res = await apiFetch(endpoints.games.join(gameId), { method: "POST" });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || "Failed to join game");
-      }
+      if (!res.ok) throw await parseApiError(res, "Failed to join game");
       return res.json();
     },
   });
@@ -29,10 +26,7 @@ export function useLeaveGame() {
     mutationFn: async (gameId: string): Promise<void> => {
       if (!localStorage.getItem("token")) throw new Error("Please login to leave a game");
       const res = await apiFetch(endpoints.games.leave(gameId), { method: "POST" });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || "Failed to leave game");
-      }
+      if (!res.ok) throw await parseApiError(res, "Failed to leave game");
     },
   });
 }
@@ -89,7 +83,7 @@ export function useGetBoardSquares(gameId: string, refetchInterval?: number | fa
     queryKey: ["boardSquares", gameId],
     queryFn: async (): Promise<BoardSquare[]> => {
       const res = await apiFetch(endpoints.selections.getBoard(gameId));
-      if (!res.ok) throw new Error("Failed to fetch board squares");
+      if (!res.ok) throw await parseApiError(res, "Failed to fetch board squares");
       return res.json();
     },
     enabled: !!gameId,
@@ -150,7 +144,7 @@ export function useGetOutsideSquares(gameId: string) {
     queryKey: ["OutsideSquares", gameId], 
     queryFn: async (): Promise<OutsideSquare> => {
       const res = await apiFetch(endpoints.selections.getGameNumbers(gameId));
-      if (!res.ok) throw new Error("Failed to fetch outside squares");
+      if (!res.ok) throw await parseApiError(res, "Failed to fetch outside squares");
       return res.json();
     },
     enabled: !!gameId,

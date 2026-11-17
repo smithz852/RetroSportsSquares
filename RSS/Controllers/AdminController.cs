@@ -66,7 +66,7 @@ namespace RSS.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
         }
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RSS.DTOs;
 using RSS_DB.Entities;
 using RSS_Services;
 using System.Security.Claims;
@@ -113,7 +114,7 @@ namespace RSS.Controllers
 
             var result = await _userManager.ChangeEmailAsync(user, dto.NewEmail, dto.Token);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                return BadRequest(new ApiErrorResponse(string.Join(" ", result.Errors.Select(e => e.Description))));
 
             await _userManager.SetUserNameAsync(user, dto.NewEmail);
             return Ok(new { message = "Email address updated successfully." });

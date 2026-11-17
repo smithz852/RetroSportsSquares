@@ -8,7 +8,7 @@ import {
   type AdminUserSummary,
   type ChatMessage,
 } from "@shared/schema";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, parseApiError } from "@/lib/api-client";
 
 // Admin data has no SignalR invalidation, so use a short staleTime
 // instead of the app-wide infinite default
@@ -18,7 +18,7 @@ async function adminFetch<T>(endpoint: string): Promise<T> {
   if (!localStorage.getItem('token')) throw new Error("Not authenticated");
   const res = await apiFetch(endpoint);
   if (res.status === 403) throw new Error("Access denied: admin only");
-  if (!res.ok) throw new Error("Failed to fetch admin data");
+  if (!res.ok) throw await parseApiError(res, "Failed to fetch admin data");
   return res.json();
 }
 

@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@shared/routes";
+import { type ApiErrorResponse } from "@shared/schema";
 import { navigate } from "wouter/use-browser-location";
 import { queryClient } from "./queryClient";
 import { toast } from "@/hooks/use-toast";
@@ -31,4 +32,13 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
   if (res.status === 401 && token) handleSessionExpired();
 
   return res;
+}
+
+// Every endpoint now responds to a failure with the same ApiErrorResponse shape
+// ({message, fieldErrors?}) — parse it once here instead of each hook re-implementing
+// its own text/json/fallback logic. `fallback` covers responses with no body at all
+// (e.g. a bare 401/403 from an [Authorize] attribute).
+export async function parseApiError(res: Response, fallback: string): Promise<Error> {
+  const body = await res.json().catch(() => null) as ApiErrorResponse | null;
+  return new Error(body?.message || fallback);
 }
