@@ -34,11 +34,16 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
   return res;
 }
 
+export type FieldErrors = Record<string, string[]>;
+export type ApiError = Error & { fieldErrors?: FieldErrors };
+
 // Every endpoint now responds to a failure with the same ApiErrorResponse shape
 // ({message, fieldErrors?}) — parse it once here instead of each hook re-implementing
 // its own text/json/fallback logic. `fallback` covers responses with no body at all
 // (e.g. a bare 401/403 from an [Authorize] attribute).
-export async function parseApiError(res: Response, fallback: string): Promise<Error> {
+export async function parseApiError(res: Response, fallback: string): Promise<ApiError> {
   const body = await res.json().catch(() => null) as ApiErrorResponse | null;
-  return new Error(body?.message || fallback);
+  const error = new Error(body?.message || fallback) as ApiError;
+  if (body?.fieldErrors) error.fieldErrors = body.fieldErrors;
+  return error;
 }

@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSignup } from "@/hooks/use-auth";
+import { type FieldErrors } from "@/lib/api-client";
 import { motion, useReducedMotion } from "framer-motion";
 import { entranceProps } from "@/lib/motion";
 
@@ -44,7 +45,11 @@ export default function Signup() {
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const errorRef = useRef<HTMLParagraphElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const dateOfBirthRef = useRef<HTMLInputElement>(null);
   const reducedMotion = useReducedMotion();
 
   const validatePassword = (password: string) => {
@@ -91,9 +96,16 @@ export default function Signup() {
     }
   };
 
+  const fieldRefs: Record<string, React.RefObject<HTMLInputElement>> = {
+    email: emailRef,
+    password: passwordRef,
+    dateOfBirth: dateOfBirthRef,
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSignupError(null);
+    setFieldErrors({});
 
     signup({
       name: formData.name,
@@ -114,7 +126,14 @@ export default function Signup() {
       },
       onError: (err) => {
         setSignupError(err.message.toUpperCase());
-        errorRef.current?.focus();
+        setFieldErrors(err.fieldErrors ?? {});
+
+        // Prefer focusing the specific invalid field so the error is announced in
+        // context; fall back to the general message when the server didn't attribute
+        // the failure to a particular input (e.g. the age/terms confirmation check).
+        const firstInvalidField = Object.keys(err.fieldErrors ?? {}).find((key) => fieldRefs[key]);
+        const target = firstInvalidField ? fieldRefs[firstInvalidField].current : errorRef.current;
+        target?.focus();
       }
     });
   };
@@ -158,22 +177,32 @@ export default function Signup() {
               <div className="space-y-2">
                 <label className="text-primary font-pixel text-base  uppercase">Email</label>
                 <Input
+                  ref={emailRef}
                   required
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  aria-invalid={!!fieldErrors.email}
                   className="bg-black border-2 border-primary text-white font-pixel text-sm rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
+                {fieldErrors.email && (
+                  <p role="alert" className="text-red-500 font-pixel text-xs uppercase">{fieldErrors.email[0]}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-primary font-pixel text-base uppercase">Password</label>
                 <PasswordInput
+                  ref={passwordRef}
                   required
                   pattern={passwordPattern}
                   value={formData.password}
                   onChange={handlePasswordChange}
+                  aria-invalid={!!fieldErrors.password}
                   className="bg-black border-2 border-primary text-white font-pixel text-base rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
+                {fieldErrors.password && (
+                  <p role="alert" className="text-red-500 font-pixel text-xs uppercase">{fieldErrors.password[0]}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-primary font-pixel text-base uppercase">Confirm Password</label>
@@ -187,13 +216,18 @@ export default function Signup() {
               <div className="space-y-2">
                 <label className="text-primary font-pixel text-base uppercase">Date of Birth</label>
                 <Input
+                  ref={dateOfBirthRef}
                   required
                   type="date"
                   max={getEighteenYearsAgoIso()}
                   value={formData.dateOfBirth}
                   onChange={handleDateOfBirthChange}
+                  aria-invalid={!!fieldErrors.dateOfBirth}
                   className="bg-black border-2 border-primary text-white font-pixel text-sm rounded-none h-12 focus-visible:ring-0 focus-visible:border-white"
                 />
+                {fieldErrors.dateOfBirth && (
+                  <p role="alert" className="text-red-500 font-pixel text-xs uppercase">{fieldErrors.dateOfBirth[0]}</p>
+                )}
               </div>
 
               <div className="space-y-3 pt-2">

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import { type LoginRequest, type User, type LoginResponse, type SignupRequest } from "@shared/schema";
-import { apiFetch, parseApiError } from "@/lib/api-client";
+import { apiFetch, parseApiError, type ApiError } from "@/lib/api-client";
 
 
 
@@ -66,7 +66,7 @@ export function useLogin() {
 }
 
 export function useSignup() {
-  return useMutation({
+  return useMutation<unknown, ApiError, SignupRequest>({
     mutationFn: async (userData: SignupRequest) => {
       const response = await fetch(`${API_BASE_URL}${endpoints.auth.signup}`, {
         method: 'POST',
