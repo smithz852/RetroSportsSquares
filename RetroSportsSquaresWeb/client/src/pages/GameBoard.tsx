@@ -7,7 +7,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { entranceProps } from "@/lib/motion";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Coins, AlertTriangle } from "lucide-react";
 import { Scoreboard } from "@/components/Scoreboard";
 import { useAuth } from "@/hooks/use-auth";
 import { GetGameScoreData, getSquareGameById, useStartGame, useDeleteGame, useGetTurnStatus, useBeginSelections, useSkipPlayer } from "@/hooks/use-games";
@@ -58,7 +59,7 @@ export default function GameBoard() {
   const { data: scoreData, isLoading } = GetGameScoreData(id);
   const ModeIcon = getSettlementModeIcon(game?.settlementMode ?? scoreData?.settlementMode);
 
-  const { liveRegion } = useGameHub(id);
+  const { liveRegion, connectionStatus } = useGameHub(id);
 
   const isTurnBased = game?.isTurnBased ?? false;
   const { data: turnStatus, dataUpdatedAt: turnStatusUpdatedAt } = useGetTurnStatus(id, !gameStarted);
@@ -534,6 +535,22 @@ useEffect(() => {
   return (
     <div className="relative py-4 max-w-[1600px] mx-auto w-full">
       {liveRegion}
+      {connectionStatus !== "connected" && (
+        <Alert
+          variant="destructive"
+          className="mb-4 max-w-[60rem] mx-auto bg-black border-2 border-yellow-600 text-yellow-400 rounded-none [&>svg]:text-yellow-400"
+        >
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle className="font-pixel text-sm uppercase">
+            {connectionStatus === "reconnecting" ? "Reconnecting..." : "Connection Lost"}
+          </AlertTitle>
+          <AlertDescription className="font-['VT323'] text-lg">
+            {connectionStatus === "reconnecting"
+              ? "Live score and turn updates are paused while we reconnect."
+              : "Live updates have stopped. Refresh the page to reconnect."}
+          </AlertDescription>
+        </Alert>
+      )}
       {/* Margin ad slots — only rendered when the viewport has real space to spare
           outside the content column, so they never leave an empty reserved box */}
       <div className="hidden min-[1900px]:flex fixed left-6 top-28 w-40 min-h-[500px] border-2 border-dashed border-red-900/40 items-center justify-center p-4">
