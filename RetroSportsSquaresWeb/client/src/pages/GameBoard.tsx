@@ -221,6 +221,16 @@ useEffect(() => {
           setIsHost(data.isHost);
           setShowRulesModal(true);
         },
+        onError: (err) => {
+          toast({
+            title: "ERROR",
+            description: err.message || "Failed to join game.",
+            variant: "destructive",
+            className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+          });
+          queryClient.invalidateQueries({ queryKey: ['games'] });
+          setLocation("/");
+        },
       });
     }
   }, [user?.id, id, isSpectator]);
@@ -369,6 +379,27 @@ useEffect(() => {
       className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
     }),
   });
+
+  const handleBeginSelections = () => beginSelections(undefined, {
+    onError: (err) => toast({
+      title: "ERROR",
+      description: err.message || "Failed to begin selections.",
+      variant: "destructive",
+      className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+    }),
+  });
+
+  const handleSkipPlayer = () => {
+    if (!turnStatus?.currentTurnUserId) return;
+    skipPlayer(turnStatus.currentTurnUserId, {
+      onError: (err) => toast({
+        title: "ERROR",
+        description: err.message || "Failed to skip player.",
+        variant: "destructive",
+        className: "bg-black border-2 border-red-900 text-red-500 font-['VT323']",
+      }),
+    });
+  };
 
   const handleDeleteGame = () => {
     if (!confirm("Delete this game? This cannot be undone.")) return;
@@ -594,7 +625,7 @@ useEffect(() => {
             <>
                   {isHost && isTurnBased && !selectionPhaseActive && !gameStarted && !allSelectionsComplete && (
                     <Button
-                      onClick={() => beginSelections()}
+                      onClick={handleBeginSelections}
                       disabled={isBeginPending}
                       className="w-full bg-red-600 text-black font-pixel text-xl py-8 rounded-none border-b-8 border-red-900 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-500 animate-pulse motion-reduce:animate-none"
                     >
@@ -613,7 +644,7 @@ useEffect(() => {
 
                   {isHost && isTurnBased && selectionPhaseActive && !gameStarted && (
                     <Button
-                      onClick={() => turnStatus?.currentTurnUserId && skipPlayer(turnStatus.currentTurnUserId)}
+                      onClick={handleSkipPlayer}
                       disabled={isSkipPending || !turnStatus?.currentTurnUserId}
                       className="bg-red-900 text-red-400 font-pixel text-xl py-8 rounded-none border-b-8 border-red-950 active:border-b-0 active:translate-y-2 transition-all hover:bg-red-800"
                     >
