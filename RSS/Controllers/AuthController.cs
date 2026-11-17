@@ -99,18 +99,18 @@ namespace RSS.Controllers
         {
             var existingUser = await _userManager.FindByEmailAsync(dto.Email);
             if (existingUser != null)
-                return BadRequest(new { message = "User already exists" });
+                return BadRequest(new ApiErrorResponse("User already exists", FieldError("email", "User already exists")));
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             if (dto.DateOfBirth > today)
-                return BadRequest(new { message = "Invalid date of birth." });
+                return BadRequest(new ApiErrorResponse("Invalid date of birth.", FieldError("dateOfBirth", "Invalid date of birth.")));
 
             var age = today.Year - dto.DateOfBirth.Year;
             if (dto.DateOfBirth > today.AddYears(-age))
                 age--;
 
             if (age < MinimumAge)
-                return BadRequest(new { message = "You must be 18 or older to create an account." });
+                return BadRequest(new ApiErrorResponse("You must be 18 or older to create an account.", FieldError("dateOfBirth", "You must be 18 or older to create an account.")));
 
             if (!dto.AgeConfirmed || !dto.AcceptedTerms)
                 return BadRequest(new { message = "You must confirm you are 18+ and accept the Terms of Service." });
@@ -130,7 +130,9 @@ namespace RSS.Controllers
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
-                return BadRequest(new ApiErrorResponse(string.Join(" ", result.Errors.Select(e => e.Description))));
+                return BadRequest(new ApiErrorResponse(
+                    string.Join(" ", result.Errors.Select(e => e.Description)),
+                    FieldErrorsFromIdentity(result.Errors)));
 
             // Audit trail for the age gate without persisting the raw date of birth (data minimization) —
             // birth year + computed age is enough to reconstruct why AgeVerified was set true.
@@ -159,6 +161,27 @@ namespace RSS.Controllers
                 return BadRequest(new ApiErrorResponse(string.Join(" ", result.Errors.Select(e => e.Description))));
 
             return Ok(new { message = "Password reset successfully." });
+        }
+
+        private static Dictionary<string, string[]> FieldError(string field, string message) =>
+            new() { [field] = new[] { message } };
+
+        // SignUp's UserName is the email, so username/email-coded Identity errors (e.g.
+        // DuplicateUserName) belong on the email field; anything else password-coded is
+        // the only other field SignUp actually has to attribute an Identity error to.
+        private static Dictionary<string, string[]> FieldErrorsFromIdentity(IEnumerable<IdentityError> errors)
+        {
+            var fields = new Dictionary<string, List<string>>();
+            foreach (var error in errors)
+            {
+                var field = error.Code.Contains("Password") ? "password"
+                    : (error.Code.Contains("UserName") || error.Code.Contains("Email")) ? "email"
+                    : "general";
+                if (!fields.TryGetValue(field, out var messages))
+                    fields[field] = messages = new List<string>();
+                messages.Add(error.Description);
+            }
+            return fields.ToDictionary(kv => kv.Key, kv => kv.Value.ToArray());
         }
 
         private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
