@@ -25,8 +25,9 @@ namespace RSS.Controllers
         private readonly IGameHubNotifier _hubNotifier;
         private readonly CoinWalletService _coinWalletService;
         private readonly GameQuotaService _gameQuotaService;
+        private readonly ILogger<SquareGamesController> _logger;
 
-        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, CoinWalletService coinWalletService, GameQuotaService gameQuotaService)
+        public SquareGamesController(AvailableGamesServices availableGamesServices, MapperHelpers mapperHelpers, GeneralServices generalServices, SportsGameServices sportsGameServices, SquareServices squareServices, AppDbContext appDbContext, GamePlayerServices gamePlayerServices, IGameHubNotifier hubNotifier, CoinWalletService coinWalletService, GameQuotaService gameQuotaService, ILogger<SquareGamesController> logger)
         {
             _availableGamesServices = availableGamesServices;
             _mapperHelpers = mapperHelpers;
@@ -38,6 +39,7 @@ namespace RSS.Controllers
             _hubNotifier = hubNotifier;
             _coinWalletService = coinWalletService;
             _gameQuotaService = gameQuotaService;
+            _logger = logger;
         }
 
         [HttpGet("GetAvailableSquareGames")]
@@ -114,9 +116,10 @@ namespace RSS.Controllers
                 var gameDto = _mapperHelpers.AvailableGamesMapper(createdGame);
                 return Ok(gameDto);
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to create game for user {UserId}", userId);
                 return BadRequest(new ApiErrorResponse("Failed to save game data."));
             }
         }
