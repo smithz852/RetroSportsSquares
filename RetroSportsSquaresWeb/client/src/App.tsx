@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import GameOptions from "@/pages/GameOptions";
@@ -32,30 +33,32 @@ function Router() {
       <Navbar />
       <WelcomeModal />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/login" component={Login} />
-           <Route path="/signup" component={Signup} />
-          <Route path="/options" component={GameOptions} />
-          <Route path="/leagues/:sport" component={LeagueOptions} />
-          <Route path="/arena/:type/:leagueId" component={Dashboard} />
-          <Route path="/game/:id" component={GameBoard} />
-          <Route path="/player-dashboard" component={PlayerDashboard} />
-          <Route path="/admin">
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          </Route>
-          <Route path="/settings" component={Settings} />
-          <Route path="/support" component={Support} />
-          <Route path="/sitemap" component={Sitemap} />
-          <Route path="/terms" component={Terms} />
-          <Route path="/privacy" component={Privacy} />
-          <Route path="/confirm-email-change" component={ConfirmEmailChange} />
-          <Route path="/reset-password" component={ResetPassword} />
-          <Route path="/email-preferences" component={EmailPreferences} />
-          <Route component={NotFound} />
-        </Switch>
+        <ErrorBoundary>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/login" component={Login} />
+             <Route path="/signup" component={Signup} />
+            <Route path="/options" component={GameOptions} />
+            <Route path="/leagues/:sport" component={LeagueOptions} />
+            <Route path="/arena/:type/:leagueId" component={Dashboard} />
+            <Route path="/game/:id" component={GameBoard} />
+            <Route path="/player-dashboard" component={PlayerDashboard} />
+            <Route path="/admin">
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            </Route>
+            <Route path="/settings" component={Settings} />
+            <Route path="/support" component={Support} />
+            <Route path="/sitemap" component={Sitemap} />
+            <Route path="/terms" component={Terms} />
+            <Route path="/privacy" component={Privacy} />
+            <Route path="/confirm-email-change" component={ConfirmEmailChange} />
+            <Route path="/reset-password" component={ResetPassword} />
+            <Route path="/email-preferences" component={EmailPreferences} />
+            <Route component={NotFound} />
+          </Switch>
+        </ErrorBoundary>
       </main>
       <Footer />
     </div>
