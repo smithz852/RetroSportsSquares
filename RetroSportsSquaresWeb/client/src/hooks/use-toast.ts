@@ -5,7 +5,7 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
+const TOAST_LIMIT = 3
 const TOAST_REMOVE_DELAY = 1000000
 
 type ToasterToast = ToastProps & {
@@ -149,10 +149,15 @@ function toast({ ...props }: Toast) {
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
+  // Destructive/error toasts interrupt (assertive); routine ones are announced
+  // politely instead of competing with whatever the screen reader is already saying.
+  const ariaType = props.type ?? (props.variant === "destructive" ? "foreground" : "background")
+
   dispatch({
     type: "ADD_TOAST",
     toast: {
       ...props,
+      type: ariaType,
       id,
       open: true,
       onOpenChange: (open) => {
