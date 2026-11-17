@@ -117,7 +117,7 @@ namespace RSS.Controllers
             catch
             {
                 await transaction.RollbackAsync();
-                return BadRequest("Failed to save game data.");
+                return BadRequest(new ApiErrorResponse("Failed to save game data."));
             }
         }
 
@@ -229,11 +229,11 @@ namespace RSS.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
         }
 
@@ -252,11 +252,11 @@ namespace RSS.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
         }
 
@@ -276,8 +276,8 @@ namespace RSS.Controllers
                 var status = await _gamePlayerServices.GetTurnStatus(gameId);
                 return Ok(status);
             }
-            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
-            catch (ArgumentException ex) { return NotFound(ex.Message); }
+            catch (InvalidOperationException ex) { return BadRequest(new ApiErrorResponse(ex.Message)); }
+            catch (ArgumentException ex) { return NotFound(new ApiErrorResponse(ex.Message)); }
         }
 
         [HttpPost("skip-player/{gameId}")]
@@ -291,7 +291,7 @@ namespace RSS.Controllers
             if (!isHost) return Forbid();
 
             if (string.IsNullOrEmpty(expectedUserId))
-                return BadRequest("expectedUserId is required — specify which player is being skipped.");
+                return BadRequest(new ApiErrorResponse("expectedUserId is required — specify which player is being skipped."));
 
             // Skips that specific player only. If the turn already moved (they submitted,
             // or another skip landed first) this is a no-op and the caller gets the current status.
@@ -308,7 +308,7 @@ namespace RSS.Controllers
                 var status = await _gamePlayerServices.GetTurnStatus(gameId);
                 return Ok(status);
             }
-            catch (ArgumentException ex) { return NotFound(ex.Message); }
+            catch (ArgumentException ex) { return NotFound(new ApiErrorResponse(ex.Message)); }
         }
 
         [HttpPost("SquareSelections/{gameId}")]
@@ -371,7 +371,7 @@ namespace RSS.Controllers
 
                 var result = await _squareServices.CreateSquareSelections(squareSelections.Selections, userId, gameId);
                 if (result == null || !result.Squares.Any())
-                    return BadRequest("Failed to save square selection data.");
+                    return BadRequest(new ApiErrorResponse("Failed to save square selection data."));
 
                 // A partial selection keeps the squares that were free but leaves the turn with
                 // the player so they can pick the rest.
@@ -396,7 +396,7 @@ namespace RSS.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
           }
 
@@ -407,7 +407,7 @@ namespace RSS.Controllers
             var gameboard = await _squareServices.GetGameboardSquaresByGameId(gameId);
             if (gameboard == null)
             {
-                return BadRequest("Gameboard not found");
+                return BadRequest(new ApiErrorResponse("Gameboard not found"));
             }
             var gameboardDto = _mapperHelpers.PreGameboardMapper(gameboard);
             return Ok(gameboardDto);
@@ -430,12 +430,12 @@ namespace RSS.Controllers
                 return NotFound();
 
             if (!game.isOpen)
-                return BadRequest("Cannot delete a game that has already started.");
+                return BadRequest(new ApiErrorResponse("Cannot delete a game that has already started."));
 
             var dailySportGameId = game.DailySportGameId;
             var deleted = await _availableGamesServices.DeleteGame(gameId);
             if (!deleted)
-                return BadRequest("Failed to delete game.");
+                return BadRequest(new ApiErrorResponse("Failed to delete game."));
 
             await _hubNotifier.NotifyGameDeleted(gameId);
             _sportsGameServices.SetGameNotInUse(dailySportGameId);
@@ -448,7 +448,7 @@ namespace RSS.Controllers
             var game = await _availableGamesServices.GetGameById(gameId);
             if (game == null)
             {
-                return BadRequest("Game not found");
+                return BadRequest(new ApiErrorResponse("Game not found"));
             }
             if (game.isOpen)
             {

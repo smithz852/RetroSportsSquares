@@ -114,6 +114,14 @@ export interface AvailableSportLeague {
   leagueId: number;
 }
 
+// The one error-response shape every endpoint uses on failure. fieldErrors is reserved
+// for a later pass that highlights specific invalid inputs — not populated by any
+// endpoint yet.
+export interface ApiErrorResponse {
+  message: string;
+  fieldErrors?: Record<string, string[]>;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;

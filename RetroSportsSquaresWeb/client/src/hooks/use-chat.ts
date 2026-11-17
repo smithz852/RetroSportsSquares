@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "@shared/routes";
 import { type ChatMessage } from "@shared/schema";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, parseApiError } from "@/lib/api-client";
 
 // Appends a message to the cached list, skipping duplicates by id.
 // The sender receives the message twice (mutation response + hub broadcast).
@@ -19,10 +19,7 @@ export function useChatMessages(gameId: string) {
     queryFn: async (): Promise<ChatMessage[]> => {
       if (!localStorage.getItem("token")) throw new Error("Please login to view chat");
       const res = await apiFetch(endpoints.games.chat(gameId));
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || "Failed to load chat");
-      }
+      if (!res.ok) throw await parseApiError(res, "Failed to load chat");
       return res.json();
     },
     enabled: !!gameId,
@@ -44,19 +41,7 @@ export function useSendChatMessage(gameId: string) {
         if (res.status === 429) {
           throw new Error("Slow down! You're sending messages too fast.");
         }
-        let errorMessage = "Failed to send message";
-        try {
-          const text = await res.text();
-          try {
-            const data = JSON.parse(text);
-            errorMessage = data.message || data.error || text || errorMessage;
-          } catch {
-            errorMessage = text || errorMessage;
-          }
-        } catch {
-          // keep default message
-        }
-        throw new Error(errorMessage);
+        throw await parseApiError(res, "Failed to send message");
       }
       return res.json();
     },

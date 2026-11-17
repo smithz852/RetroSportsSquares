@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL, endpoints } from "@shared/routes";
 import { type LoginRequest, type User, type LoginResponse, type SignupRequest } from "@shared/schema";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, parseApiError } from "@/lib/api-client";
 
 
 
@@ -44,9 +44,9 @@ export function useLogin() {
         });
 
         if (!response.ok) {
-          throw new Error('Login failed. Please ensure the Email and Password is correct.');
+          throw await parseApiError(response, 'Login failed. Please ensure the Email and Password is correct.');
         }
-        
+
         return response.json();
       } catch (error) {
         // Network error (server down, no internet, etc.)
@@ -74,10 +74,7 @@ export function useSignup() {
         body: JSON.stringify(userData),
       });
       
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        throw new Error(body?.message || 'Signup failed');
-      }
+      if (!response.ok) throw await parseApiError(response, 'Signup failed');
 
       return response.json();
     },

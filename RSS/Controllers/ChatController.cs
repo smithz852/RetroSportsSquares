@@ -34,11 +34,11 @@ namespace RSS.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
         }
 
@@ -53,7 +53,7 @@ namespace RSS.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ApiErrorResponse(ex.Message));
             }
         }
     }

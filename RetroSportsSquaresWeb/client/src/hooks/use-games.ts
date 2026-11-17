@@ -1,14 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { endpoints } from "@shared/routes";
 import { type SquareGame, type CreateSquareGameRequest, type AvailableGameOptions, type AvailableSportLeague, SquareGameScoreData, TurnStatus } from "@shared/schema";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, parseApiError } from "@/lib/api-client";
 
 export function useGames() {
   return useQuery({
     queryKey: ['games'],
     queryFn: async (): Promise<SquareGame[]> => {
       const res = await apiFetch(endpoints.games.list);
-      if (!res.ok) throw new Error("Failed to fetch games");
+      if (!res.ok) throw await parseApiError(res, "Failed to fetch games");
       return res.json();
     },
   });
@@ -26,7 +26,7 @@ export function useCreateGame() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to create game");
+      if (!res.ok) throw await parseApiError(res, "Failed to create game");
       return res.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['games'] }),
@@ -38,7 +38,7 @@ export function useAvailableSportsAndLeagues() {
     queryKey: ['availableSportsAndLeagues'],
     queryFn: async (): Promise<AvailableSportLeague[]> => {
       const res = await apiFetch(endpoints.games.availableSportsAndLeagues);
-      if (!res.ok) throw new Error('Failed to fetch available sports and leagues');
+      if (!res.ok) throw await parseApiError(res, 'Failed to fetch available sports and leagues');
       return res.json();
     },
   });
@@ -49,7 +49,7 @@ export function useGetAvailableGameOptions(gameType: string, leagueId: string) {
     queryKey: ['available-game-options', gameType, leagueId],
     queryFn: async (): Promise<AvailableGameOptions[]> => {
       const res = await apiFetch(endpoints.games.options(gameType, leagueId));
-      if (!res.ok) throw new Error("Failed to fetch available game options");
+      if (!res.ok) throw await parseApiError(res, "Failed to fetch available game options");
       return res.json();
     },
     enabled: !!gameType && !!leagueId,
@@ -61,7 +61,7 @@ export function GetGameScoreData(id: string, refetchInterval?: number | false) {
     queryKey: ['gameScoreData', id],
     queryFn: async (): Promise<SquareGameScoreData> => {
       const res = await apiFetch(endpoints.games.scoreData(id));
-      if (!res.ok) throw new Error("Failed to fetch game score data");
+      if (!res.ok) throw await parseApiError(res, "Failed to fetch game score data");
       return res.json();
     },
     enabled: !!id,
@@ -76,10 +76,7 @@ export function useStartGame(gameId: string) {
     mutationFn: async (): Promise<void> => {
       if (!localStorage.getItem('token')) throw new Error('Please login to start a game');
       const res = await apiFetch(endpoints.games.start(gameId), { method: 'POST' });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.message || 'Failed to start game');
-      }
+      if (!res.ok) throw await parseApiError(res, 'Failed to start game');
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['OutsideSquares', gameId] }),
   });
@@ -90,7 +87,7 @@ export function useGetTurnStatus(gameId: string, enabled: boolean) {
     queryKey: ['turnStatus', gameId],
     queryFn: async (): Promise<TurnStatus> => {
       const res = await apiFetch(endpoints.games.turnStatus(gameId));
-      if (!res.ok) throw new Error('Failed to fetch turn status');
+      if (!res.ok) throw await parseApiError(res, 'Failed to fetch turn status');
       return res.json();
     },
     enabled: !!gameId && enabled,
@@ -104,10 +101,7 @@ export function useBeginSelections(gameId: string) {
     mutationFn: async (): Promise<TurnStatus> => {
       if (!localStorage.getItem('token')) throw new Error('Not authenticated');
       const res = await apiFetch(endpoints.games.beginSelections(gameId), { method: 'POST' });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(text || 'Failed to begin selections');
-      }
+      if (!res.ok) throw await parseApiError(res, 'Failed to begin selections');
       return res.json();
     },
     onSuccess: () => {
@@ -126,7 +120,7 @@ export function useSkipPlayer(gameId: string) {
       const res = await apiFetch(`${endpoints.games.skipPlayer(gameId)}?expectedUserId=${encodeURIComponent(expectedUserId)}`, {
         method: 'POST',
       });
-      if (!res.ok) throw new Error('Failed to skip player');
+      if (!res.ok) throw await parseApiError(res, 'Failed to skip player');
       return res.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['turnStatus', gameId] }),
@@ -140,10 +134,7 @@ export function useDeleteGame() {
     mutationFn: async (gameId: string): Promise<void> => {
       if (!localStorage.getItem('token')) throw new Error('Please login to delete a game');
       const res = await apiFetch(endpoints.games.delete(gameId), { method: 'DELETE' });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(text || 'Failed to delete game');
-      }
+      if (!res.ok) throw await parseApiError(res, 'Failed to delete game');
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['games'] }),
   });
@@ -154,7 +145,7 @@ export function getSquareGameById(id: string) {
     queryKey: ['game', id],
     queryFn: async (): Promise<SquareGame> => {
       const res = await apiFetch(endpoints.games.squareGameById(id));
-      if (!res.ok) throw new Error('Failed to fetch game');
+      if (!res.ok) throw await parseApiError(res, 'Failed to fetch game');
       return res.json();
     },
     enabled: !!id,

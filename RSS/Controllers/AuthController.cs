@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using RSS.DTOs;
 using RSS_DB.Entities;
 using RSS_Services;
 using System.IdentityModel.Tokens.Jwt;
@@ -129,7 +130,7 @@ namespace RSS.Controllers
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                return BadRequest(new ApiErrorResponse(string.Join(" ", result.Errors.Select(e => e.Description))));
 
             // Audit trail for the age gate without persisting the raw date of birth (data minimization) —
             // birth year + computed age is enough to reconstruct why AgeVerified was set true.
@@ -155,7 +156,7 @@ namespace RSS.Controllers
 
             var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+                return BadRequest(new ApiErrorResponse(string.Join(" ", result.Errors.Select(e => e.Description))));
 
             return Ok(new { message = "Password reset successfully." });
         }
