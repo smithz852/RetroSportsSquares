@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { RetroButton } from "@/components/RetroButton";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,8 @@ export default function Signup() {
   });
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
   const reducedMotion = useReducedMotion();
 
   const validatePassword = (password: string) => {
@@ -91,6 +93,7 @@ export default function Signup() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSignupError(null);
 
     signup({
       name: formData.name,
@@ -110,12 +113,8 @@ export default function Signup() {
         setLocation("/login");
       },
       onError: () => {
-        toast({
-          title: "ERROR",
-          description: "FAILED TO CREATE PROFILE.",
-          variant: "destructive",
-          className: "bg-black border-2 border-red-900 text-red-500 font-pixel text-[10px]",
-        });
+        setSignupError("FAILED TO CREATE PROFILE.");
+        errorRef.current?.focus();
       }
     });
   };
@@ -231,6 +230,18 @@ export default function Signup() {
                   </label>
                 </div>
               </div>
+
+              {signupError && (
+                <p
+                  ref={errorRef}
+                  role="alert"
+                  aria-live="polite"
+                  tabIndex={-1}
+                  className="text-red-500 font-pixel text-xs uppercase"
+                >
+                  {signupError}
+                </p>
+              )}
 
               <div className="pt-4 flex flex-col gap-4">
                 <RetroButton type="submit" disabled={isPending} className="w-full py-6 text-lg">

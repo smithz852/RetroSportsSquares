@@ -9,8 +9,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Link, useLocation } from "wouter";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLogin } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
 import { entranceProps } from "@/lib/motion";
 
@@ -22,9 +21,9 @@ const loginSchema = z.object({
 export default function Login() {
   const [, setLocation] = useLocation();
   const { mutate: login, isPending, error } = useLogin();
-  const { toast } = useToast();
   const [forgotOpen, setForgotOpen] = useState(false);
   const reducedMotion = useReducedMotion();
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -34,17 +33,12 @@ export default function Login() {
     },
   });
 
-  // Show error toast when login fails
+  // Focus the error message when login is rejected by the server
   useEffect(() => {
     if (error) {
-      toast({
-        title: "ACCESS DENIED",
-        description: error.message.toUpperCase(),
-        variant: "destructive",
-        className: "bg-black border-2 border-red-900 text-red-500 font-pixel text-[10px]",
-      });
+      errorRef.current?.focus();
     }
-  }, [error, toast]);
+  }, [error]);
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
     login(values, {
@@ -106,9 +100,21 @@ export default function Login() {
                   )}
                 />
 
+                {error && (
+                  <p
+                    ref={errorRef}
+                    role="alert"
+                    aria-live="polite"
+                    tabIndex={-1}
+                    className="text-red-500 font-pixel text-xs uppercase"
+                  >
+                    ACCESS DENIED: {error.message.toUpperCase()}
+                  </p>
+                )}
+
                 <div className="flex flex-col gap-4">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isPending}
                     className="w-full bg-red-600 text-black font-pixel py-6 text-[20px] rounded-none hover:bg-red-500 active:translate-y-1 transition-all uppercase"
                     data-testid="button-login"
